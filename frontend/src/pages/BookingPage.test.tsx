@@ -106,6 +106,27 @@ describe("BookingPage", () => {
     expect(screen.getByLabelText("Tên khách hàng")).toHaveValue("");
   });
 
+  it("refreshes slots and appointments after a successful booking", async () => {
+    mocked.createAppointment.mockResolvedValue(bookedAppointment);
+    renderPage();
+
+    await screen.findByRole("button", { name: "08:00" });
+    await waitFor(() => {
+      expect(mocked.fetchSlots).toHaveBeenCalledTimes(1);
+      expect(mocked.listAppointments).toHaveBeenCalledTimes(1);
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "08:00" }));
+    await userEvent.type(screen.getByLabelText("Tên khách hàng"), "Nguyễn An");
+    await userEvent.click(screen.getByRole("button", { name: "Đặt lịch" }));
+
+    expect(await screen.findByText("Đặt lịch thành công.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mocked.fetchSlots).toHaveBeenCalledTimes(2);
+      expect(mocked.listAppointments).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it("shows the conflict message on 409 and never reports success", async () => {
     mocked.createAppointment.mockRejectedValue(new ConflictError());
     renderPage();
