@@ -1,0 +1,24 @@
+# Re-run after adding tests. NOTE: first X1 run (04 log) mutated booked_starts_between (first match) instead of export_between: tool bug; X1 now targets the LAST match.
+   diff:  1 file changed, 1 insertion(+), 1 deletion(-)
+=== X1-end-bound-lt-to-lte -> KILLED
+FAILED test_export_api.py::test_scope_boundaries_use_local_day_not_utc_day
+FAILED test_export_repository_contract.py::test_export_between_contract[postgres-False-expected0]
+FAILED test_export_repository_contract.py::test_export_between_contract[postgres-True-expected1]
+FAILED test_export_repository_contract.py::test_export_between_empty_window[postgres]
+4 failed, 188 passed, 1 warning in 4.53s
+-            Appointment.starts_at < end,
++            Appointment.starts_at <= end,
+   diff:  1 file changed, 1 insertion(+), 1 deletion(-)
+=== X6-no-order-by -> KILLED
+FAILED test_export_repository_contract.py::test_export_between_contract[postgres-True-expected1]
+1 failed, 191 passed, 1 warning in 4.45s
+-            statement.order_by(Appointment.starts_at, Appointment.created_at, Appointment.id)
++            statement
+   diff:  1 file changed, 1 insertion(+), 1 deletion(-)
+=== X7-drop-empty-key-guard -> KILLED
+______ test_empty_api_key_never_authenticates_even_if_config_was_bypassed ______
+    def test_empty_api_key_never_authenticates_even_if_config_was_bypassed() -> None:
+FAILED test_export_policy.py::test_empty_api_key_never_authenticates_even_if_config_was_bypassed
+1 failed, 191 passed, 1 warning in 4.35s
+-        if hmac.compare_digest(candidate, token.encode()) and api_key:
++        if hmac.compare_digest(candidate, token.encode()):
