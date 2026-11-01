@@ -160,6 +160,25 @@ describe("BookingPage", () => {
     expect(await screen.findByText("Đã huỷ lịch.")).toBeInTheDocument();
   });
 
+  it("refreshes slots and appointments after cancelling a booking", async () => {
+    mocked.listAppointments.mockResolvedValue({
+      ...emptyList,
+      items: [bookedAppointment],
+      total: 1,
+    });
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Huỷ lịch của Nguyễn An" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận huỷ" }));
+
+    expect(await screen.findByText("Đã huỷ lịch.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mocked.fetchSlots).toHaveBeenCalledTimes(2);
+      expect(mocked.listAppointments).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it("does not cancel when the confirmation is dismissed", async () => {
     mocked.listAppointments.mockResolvedValue({
       ...emptyList,
