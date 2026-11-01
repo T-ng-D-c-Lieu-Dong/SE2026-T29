@@ -1,0 +1,20 @@
+# VT-119 load/risk experiment — 150 concurrent export tasks, target p95 <= 4.0 s
+# harness : scripts/vt119_export_load.py (httpx, 150 concurrent x 5 rounds = 750 requests, 1 warm-up)
+# server  : uvicorn app.main:app, 1 worker (as in backend/Dockerfile), PostgreSQL 16 local, same host
+# data    : 1984 rows (1488 booked + 496 cancelled), export window 31 days (max allowed), 176,340-byte CSV
+# host    : sandbox with nproc=1 -> load client, API and PostgreSQL share ONE vCPU (pessimistic)
+# date    : 2026-11-01T14:04:06Z
+
+## Run 1 — before optimisation (ORM entities), commit a80b969..e0199bd code
+requests=750 users=150 rounds=5 wall=32.89s
+status_counts={200: 721, 'ReadError': 3, 503: 26}
+p50=4.059s p95=6.312s p99=6.737s max=6.972s
+target_p95<=4.0s -> FAIL
+
+## Run 2 — after repository returns column rows instead of ORM entities
+requests=750 users=150 rounds=5 wall=24.46s
+status_counts={200: 749, 'ReadError': 1} body_bytes=176340
+p50=2.676s p95=5.181s p99=5.550s max=5.924s
+target_p95<=4.0s -> FAIL
+
+## Micro-profile (single request, 1488 rows): ORM query 17.2 ms + render 11.7 ms  ->  column query 6.9 ms + render 11.1 ms

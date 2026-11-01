@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -61,17 +62,25 @@ class AppointmentRepository:
         start: datetime,
         end: datetime,
         include_cancelled: bool,
-    ) -> list[Appointment]:
-        statement = select(Appointment).where(
+    ) -> list[Any]:
+        """Return read-only rows (column tuples, not ORM entities) for the export."""
+        statement = select(
+            Appointment.id,
+            Appointment.customer_name,
+            Appointment.starts_at,
+            Appointment.status,
+            Appointment.created_at,
+            Appointment.cancelled_at,
+        ).where(
             Appointment.starts_at >= start,
             Appointment.starts_at < end,
         )
         if not include_cancelled:
             statement = statement.where(Appointment.status == AppointmentStatus.BOOKED.value)
-        rows = await self.session.scalars(
+        result = await self.session.execute(
             statement.order_by(Appointment.starts_at, Appointment.created_at, Appointment.id)
         )
-        return list(rows)
+        return list(result.all())
 
     async def commit(self) -> None:
         await self.session.commit()
