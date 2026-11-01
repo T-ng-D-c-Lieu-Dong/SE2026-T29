@@ -12,3 +12,15 @@ class SlotAlreadyBooked(BookingError):
 
 class AppointmentNotFound(BookingError):
     """The requested appointment does not exist."""
+
+
+class ExportUnauthenticated(BookingError):
+    """The export request has no valid API key."""
+
+
+class ExportForbidden(BookingError):
+    """The caller is authenticated but not allowed to export this scope."""
+
+
+class InvalidExportRange(BookingError):
+    """The requested export date window is invalid."""

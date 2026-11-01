@@ -1,15 +1,14 @@
 """VT-119 unit tests: decision table for the appointment export policy.
 
-Decision table (conditions are evaluated in this precedence order):
+Conditions: C1 key valid, C2 role may export, C3 window valid, C4 asks cancelled,
+C5 role is admin. Evaluation precedence: C1 -> C2 -> C3 -> (C4 and C5).
 
-| Rule | C1 key valid | C2 role may export | C3 window valid | C4 asks cancelled | C5 role=admin | Action        |
-|------|--------------|--------------------|-----------------|-------------------|---------------|---------------|
-| R1   | N            | -                  | -               | -                 | -             | 401           |
-| R2   | Y            | N                  | -               | -                 | -             | 403           |
-| R3   | Y            | Y                  | N               | -                 | -             | 422           |
-| R4   | Y            | Y                  | Y               | N                 | -             | 200 booked    |
-| R5   | Y            | Y                  | Y               | Y                 | Y             | 200 +cancelled|
-| R6   | Y            | Y                  | Y               | Y                 | N             | 403           |
+R1: C1=N                          -> 401
+R2: C1=Y C2=N                     -> 403
+R3: C1=Y C2=Y C3=N                -> 422
+R4: C1=Y C2=Y C3=Y C4=N           -> 200 booked only
+R5: C1=Y C2=Y C3=Y C4=Y C5=Y      -> 200 including cancelled
+R6: C1=Y C2=Y C3=Y C4=Y C5=N      -> 403 (no silent downgrade)
 """
 
 import csv
@@ -41,7 +40,14 @@ OK_FROM, OK_TO = date(2026, 11, 10), date(2026, 11, 12)
         ("R2-viewer", "k-viewer", OK_FROM, OK_TO, False, ExportForbidden),
         ("R2-precedence-over-R3", "k-viewer", OK_TO, OK_FROM, False, ExportForbidden),
         ("R3-from-after-to", "k-staff", OK_TO, OK_FROM, False, InvalidExportRange),
-        ("R3-window-32-days", "k-staff", date(2026, 11, 1), date(2026, 12, 2), False, InvalidExportRange),
+        (
+            "R3-window-32-days",
+            "k-staff",
+            date(2026, 11, 1),
+            date(2026, 12, 2),
+            False,
+            InvalidExportRange,
+        ),
         ("R4-staff", "k-staff", OK_FROM, OK_TO, False, False),
         ("R4-admin", "k-admin", OK_FROM, OK_TO, False, False),
         ("R4-boundary-31-days", "k-staff", date(2026, 11, 1), date(2026, 12, 1), False, False),

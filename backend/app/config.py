@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://booking:booking@localhost:5432/booking"
     release: str = "dev"
+    export_api_keys: str = ""
     commit_sha: str = "unknown"
     db_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
     fault_mode: Literal["off", "error", "latency"] = "off"

@@ -56,6 +56,23 @@ class AppointmentRepository:
         )
         return set(rows)
 
+    async def export_between(
+        self,
+        start: datetime,
+        end: datetime,
+        include_cancelled: bool,
+    ) -> list[Appointment]:
+        statement = select(Appointment).where(
+            Appointment.starts_at >= start,
+            Appointment.starts_at < end,
+        )
+        if not include_cancelled:
+            statement = statement.where(Appointment.status == AppointmentStatus.BOOKED.value)
+        rows = await self.session.scalars(
+            statement.order_by(Appointment.starts_at, Appointment.created_at, Appointment.id)
+        )
+        return list(rows)
+
     async def commit(self) -> None:
         await self.session.commit()
 

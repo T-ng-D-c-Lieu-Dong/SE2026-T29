@@ -26,7 +26,9 @@ DAY = date(2026, 11, 20)
 
 @pytest.fixture(autouse=True)
 def export_keys(monkeypatch):
-    monkeypatch.setenv("BOOKING_EXPORT_API_KEYS", "k-admin:export_admin,k-staff:export_staff,k-viewer:viewer")
+    monkeypatch.setenv(
+        "BOOKING_EXPORT_API_KEYS", "k-admin:export_admin,k-staff:export_staff,k-viewer:viewer"
+    )
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -76,7 +78,9 @@ async def test_role_without_export_permission_is_403(client, test_session_factor
     assert "SecretCustomer" not in response.text
 
 
-async def test_staff_exports_only_booked_rows_in_requested_days(client, test_session_factory) -> None:
+async def test_staff_exports_only_booked_rows_in_requested_days(
+    client, test_session_factory
+) -> None:
     await seed(test_session_factory, "InScope", local(DAY, 10))
     await seed(test_session_factory, "Cancelled", local(DAY, 11), status="cancelled")
     await seed(test_session_factory, "OtherDay", local(DAY + timedelta(days=3), 10))
@@ -170,7 +174,9 @@ async def test_failure_path_database_down_is_503_not_empty_csv(test_session_fact
     assert "customer_name" not in response.text
 
 
-async def test_export_is_deterministic_and_has_no_side_effects(client, test_session_factory) -> None:
+async def test_export_is_deterministic_and_has_no_side_effects(
+    client, test_session_factory
+) -> None:
     for hour in (9, 10, 11):
         await seed(test_session_factory, f"C{hour}", local(DAY, hour))
 
@@ -181,8 +187,10 @@ async def test_export_is_deterministic_and_has_no_side_effects(client, test_sess
     assert first.content == second.content
 
 
-async def test_export_neutralises_formula_injection_end_to_end(client, test_session_factory) -> None:
-    await seed(test_session_factory, "=HYPERLINK(\"http://evil\")", local(DAY, 10))
+async def test_export_neutralises_formula_injection_end_to_end(
+    client, test_session_factory
+) -> None:
+    await seed(test_session_factory, '=HYPERLINK("http://evil")', local(DAY, 10))
 
     response = await client.get(URL, params=params(), headers=STAFF)
 
@@ -190,7 +198,9 @@ async def test_export_neutralises_formula_injection_end_to_end(client, test_sess
 
 
 async def test_repeated_cancel_does_not_rewrite_cancelled_at_seen_by_export(client) -> None:
-    starts_at = datetime.now(BOOKING_TIMEZONE).replace(hour=10, minute=0, second=0, microsecond=0) + timedelta(days=2)
+    starts_at = datetime.now(BOOKING_TIMEZONE).replace(
+        hour=10, minute=0, second=0, microsecond=0
+    ) + timedelta(days=2)
     created = await client.post(
         "/api/appointments",
         json={"customer_name": "Cuong", "starts_at": starts_at.isoformat()},
@@ -208,8 +218,12 @@ async def test_repeated_cancel_does_not_rewrite_cancelled_at_seen_by_export(clie
     assert rows(first) == rows(second)
 
 
-async def test_concurrent_bookings_never_export_duplicate_active_slot(client, test_session_factory) -> None:
-    starts_at = datetime.now(BOOKING_TIMEZONE).replace(hour=14, minute=0, second=0, microsecond=0) + timedelta(days=3)
+async def test_concurrent_bookings_never_export_duplicate_active_slot(
+    client, test_session_factory
+) -> None:
+    starts_at = datetime.now(BOOKING_TIMEZONE).replace(
+        hour=14, minute=0, second=0, microsecond=0
+    ) + timedelta(days=3)
     day = starts_at.date()
 
     results = await asyncio.gather(
@@ -235,8 +249,12 @@ async def test_concurrent_bookings_never_export_duplicate_active_slot(client, te
         assert booked == 1
 
 
-async def test_export_during_concurrent_writes_stays_consistent(client, test_session_factory) -> None:
-    base = datetime.now(BOOKING_TIMEZONE).replace(minute=0, second=0, microsecond=0) + timedelta(days=4)
+async def test_export_during_concurrent_writes_stays_consistent(
+    client, test_session_factory
+) -> None:
+    base = datetime.now(BOOKING_TIMEZONE).replace(minute=0, second=0, microsecond=0) + timedelta(
+        days=4
+    )
     day = base.date()
 
     async def book(hour: int):
