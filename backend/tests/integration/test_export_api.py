@@ -271,3 +271,14 @@ async def test_export_during_concurrent_writes_stays_consistent(
         assert response.status_code == 200
         starts = [r["starts_at"] for r in rows(response)]
         assert len(starts) == len(set(starts))
+
+
+@pytest.mark.parametrize("raw", ["", "malformed-without-role"])
+async def test_bad_or_empty_key_config_fails_closed(client, monkeypatch, raw) -> None:
+    monkeypatch.setenv("BOOKING_EXPORT_API_KEYS", raw)
+    get_settings.cache_clear()
+
+    response = await client.get(URL, params=params(), headers=ADMIN)
+
+    assert response.status_code in (401, 503)
+    assert not response.headers["content-type"].startswith("text/csv")

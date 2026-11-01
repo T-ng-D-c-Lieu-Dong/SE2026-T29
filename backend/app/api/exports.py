@@ -30,6 +30,8 @@ def export_role(x_api_key: Annotated[str | None, Header()] = None) -> str:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     except ExportForbidden as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail="Export is not configured") from exc
     return role
 
 
