@@ -21,6 +21,7 @@ import pytest
 from app.domain import ExportForbidden, ExportUnauthenticated, InvalidExportRange
 from app.services.export import (
     CSV_COLUMNS,
+    authenticate,
     evaluate_export_request,
     parse_api_keys,
     render_csv,
@@ -110,3 +111,13 @@ def test_render_csv_round_trips_commas_quotes_and_newlines() -> None:
     parsed = list(csv.reader(io.StringIO(render_csv([_row(customer_name=name)]))))
 
     assert parsed[1][1] == name
+
+
+def test_blank_token_in_config_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        parse_api_keys(" :export_admin")
+
+
+def test_empty_api_key_never_authenticates_even_if_config_was_bypassed() -> None:
+    with pytest.raises(ExportUnauthenticated):
+        authenticate("", {"": "export_admin"})

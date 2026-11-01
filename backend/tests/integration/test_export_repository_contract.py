@@ -41,26 +41,38 @@ class FakeExportRepository:
         return sorted(selected, key=lambda r: (r.starts_at, r.created_at, r.id))
 
 
+C0 = datetime(2026, 11, 1, 3, 0, tzinfo=UTC)
+# (name, starts_at, status, created_at). The two "tie-*" rows share a slot and are inserted
+# in the opposite order of created_at, so only an explicit ORDER BY can sort them correctly.
 SCENARIO = [
-    ("before-start", T0 - timedelta(minutes=30), "booked"),
-    ("at-start", T0, "booked"),
-    ("inside-cancelled", T0 + timedelta(hours=1), "cancelled"),
-    ("inside-b", T0 + timedelta(hours=3), "booked"),
-    ("inside-a", T0 + timedelta(hours=2), "booked"),
-    ("at-end", T0 + timedelta(hours=24), "booked"),
+    ("before-start", T0 - timedelta(minutes=30), "booked", C0),
+    ("at-start", T0, "booked", C0),
+    ("inside-cancelled", T0 + timedelta(hours=1), "cancelled", C0),
+    ("inside-b", T0 + timedelta(hours=3), "booked", C0),
+    ("inside-a", T0 + timedelta(hours=2), "booked", C0),
+    ("tie-late", T0 + timedelta(hours=5), "booked", C0 + timedelta(hours=1)),
+    ("tie-early", T0 + timedelta(hours=5), "cancelled", C0),
+    ("at-end", T0 + timedelta(hours=24), "booked", C0),
 ]
 
 
 @pytest.fixture(params=["fake", "postgres"])
 async def repository(request, test_session_factory):
     if request.param == "fake":
-        base = datetime(2026, 11, 1, tzinfo=UTC)
-        rows = [FakeRow(uuid4(), n, s, st, base) for n, s, st in SCENARIO]
+        rows = [FakeRow(uuid4(), n, s, st, c) for n, s, st, c in SCENARIO]
         yield FakeExportRepository(rows)
         return
     async with test_session_factory() as session:
-        for name, starts_at, status in SCENARIO:
-            session.add(Appointment(customer_name=name, starts_at=starts_at, status=status))
+        for name, starts_at, status, created_at in SCENARIO:
+            session.add(
+                Appointment(
+                    customer_name=name,
+                    starts_at=starts_at,
+                    status=status,
+                    created_at=created_at,
+                )
+            )
+            await session.flush()
         await session.commit()
     async with test_session_factory() as session:
         yield AppointmentRepository(session)
@@ -69,8 +81,11 @@ async def repository(request, test_session_factory):
 @pytest.mark.parametrize(
     ("include_cancelled", "expected"),
     [
-        (False, ["at-start", "inside-a", "inside-b"]),
-        (True, ["at-start", "inside-cancelled", "inside-a", "inside-b"]),
+        (False, ["at-start", "inside-a", "inside-b", "tie-late"]),
+        (
+            True,
+            ["at-start", "inside-cancelled", "inside-a", "inside-b", "tie-early", "tie-late"],
+        ),
     ],
 )
 async def test_export_between_contract(repository, include_cancelled, expected) -> None:

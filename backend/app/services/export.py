@@ -35,9 +35,10 @@ def parse_api_keys(raw: str) -> dict[str, str]:
         if not item:
             continue
         token, separator, role = item.rpartition(":")
+        token, role = token.strip(), role.strip()
         if not separator or not token or not role:
             raise ValueError("export API keys must look like token:role")
-        keys[token.strip()] = role.strip()
+        keys[token] = role
     return keys
 
 

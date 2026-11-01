@@ -1,0 +1,38 @@
+=== X1-end-bound-lt-to-lte -> SURVIVED
+190 passed, 1 warning in 4.50s
+=== X2-skip-scope-authorization -> KILLED
+FAILED test_export_api.py::test_staff_cannot_widen_scope_to_cancelled
+1 failed, 189 passed, 1 warning in 4.44s
+=== X3-no-formula-sanitising -> KILLED
+FAILED test_export_api.py::test_export_neutralises_formula_injection_end_to_end
+FAILED test_export_policy.py::test_render_csv_neutralises_formula_injection[=1+1]
+FAILED test_export_policy.py::test_render_csv_neutralises_formula_injection[+cmd]
+FAILED test_export_policy.py::test_render_csv_neutralises_formula_injection[-2]
+FAILED test_export_policy.py::test_render_csv_neutralises_formula_injection[@SUM(A1)]
+FAILED test_export_policy.py::test_render_csv_neutralises_formula_injection[	TAB]
+=== X4-no-cache-control -> KILLED
+FAILED test_export_api.py::test_staff_exports_only_booked_rows_in_requested_days
+1 failed, 189 passed, 1 warning in 4.35s
+=== X5-catch-only-SQLAlchemyError -> KILLED
+>               raise OSError(err, f'Connect call failed {address}')
+E               ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 1)
+FAILED test_export_api.py::test_failure_path_database_down_is_503_not_empty_csv
+1 failed, 189 passed, 1 warning in 4.72s
+=== X6-no-order-by -> SURVIVED
+190 passed, 1 warning in 4.01s
+=== X7-drop-empty-key-guard -> SURVIVED
+190 passed, 1 warning in 4.36s
+=== X8-max-window-31-to-32 -> KILLED
+FAILED test_export_api.py::test_invalid_scope_is_422_for_authorised_caller[query1]
+FAILED test_export_policy.py::test_export_decision_table[R3-window-32-days-k-staff-date_from6-date_to6-False-InvalidExportRange]
+2 failed, 188 passed, 1 warning in 4.20s
+=== X9-viewer-allowed -> KILLED
+FAILED test_export_api.py::test_role_without_export_permission_is_403
+FAILED test_export_api.py::test_authentication_precedes_validation
+FAILED test_export_policy.py::test_export_decision_table[R2-viewer-k-viewer-date_from3-date_to3-False-ExportForbidden]
+FAILED test_export_policy.py::test_export_decision_table[R2-precedence-over-R3-k-viewer-date_from4-date_to4-False-ExportForbidden]
+4 failed, 186 passed, 1 warning in 4.41s
+=== X10-include-cancelled-ignored -> KILLED
+FAILED test_export_api.py::test_staff_exports_only_booked_rows_in_requested_days
+FAILED test_export_repository_contract.py::test_export_between_contract[postgres-False-expected0]
+2 failed, 188 passed, 1 warning in 4.15s

@@ -1,0 +1,27 @@
+=== M1-no-cancel-idempotency
+ 1 file changed, 3 deletions(-)
+--- (a) ORIGINAL suite only (baseline d2dffaf tests, new VT-119 tests excluded)
+FAILED tests/unit/test_booking_service.py::test_cancel_is_idempotent
+1 failed, 141 passed, 1 warning in 3.26s
+--- (b) FULL suite incl. VT-119 tests
+FAILED tests/integration/test_export_api.py::test_repeated_cancel_does_not_rewrite_cancelled_at_seen_by_export
+FAILED tests/unit/test_booking_service.py::test_cancel_is_idempotent
+2 failed, 188 passed, 1 warning in 4.35s
+=== M2-no-unique-active-slot-index
+ 1 file changed, 6 deletions(-)
+--- (a) ORIGINAL suite only (baseline d2dffaf tests, new VT-119 tests excluded)
+FAILED tests/integration/test_appointments_api.py::test_concurrent_booking_same_slot
+1 failed, 141 passed, 1 warning in 3.31s
+--- (b) FULL suite incl. VT-119 tests
+FAILED tests/integration/test_appointments_api.py::test_concurrent_booking_same_slot
+FAILED tests/integration/test_export_api.py::test_concurrent_bookings_never_export_duplicate_active_slot
+2 failed, 188 passed, 1 warning in 4.38s
+=== M3-conflict-not-mapped-to-409
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+--- (a) ORIGINAL suite only (baseline d2dffaf tests, new VT-119 tests excluded)
+FAILED tests/integration/test_appointments_api.py::test_concurrent_booking_same_slot
+1 failed, 141 passed, 1 warning in 3.78s
+--- (b) FULL suite incl. VT-119 tests
+FAILED tests/integration/test_appointments_api.py::test_concurrent_booking_same_slot
+FAILED tests/integration/test_export_api.py::test_concurrent_bookings_never_export_duplicate_active_slot
+2 failed, 188 passed, 1 warning in 5.07s
