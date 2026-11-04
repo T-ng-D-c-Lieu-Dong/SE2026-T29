@@ -106,6 +106,27 @@ describe("BookingPage", () => {
     expect(screen.getByLabelText("Tên khách hàng")).toHaveValue("");
   });
 
+  it("refreshes slots and appointments after a successful booking", async () => {
+    mocked.createAppointment.mockResolvedValue(bookedAppointment);
+    renderPage();
+
+    await screen.findByRole("button", { name: "08:00" });
+    await waitFor(() => {
+      expect(mocked.fetchSlots).toHaveBeenCalledTimes(1);
+      expect(mocked.listAppointments).toHaveBeenCalledTimes(1);
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "08:00" }));
+    await userEvent.type(screen.getByLabelText("Tên khách hàng"), "Nguyễn An");
+    await userEvent.click(screen.getByRole("button", { name: "Đặt lịch" }));
+
+    expect(await screen.findByText("Đặt lịch thành công.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mocked.fetchSlots).toHaveBeenCalledTimes(2);
+      expect(mocked.listAppointments).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it("shows the conflict message on 409 and never reports success", async () => {
     mocked.createAppointment.mockRejectedValue(new ConflictError());
     renderPage();
@@ -137,6 +158,25 @@ describe("BookingPage", () => {
       expect(mocked.cancelAppointment).toHaveBeenCalledWith(bookedAppointment.id);
     });
     expect(await screen.findByText("Đã huỷ lịch.")).toBeInTheDocument();
+  });
+
+  it("refreshes slots and appointments after cancelling a booking", async () => {
+    mocked.listAppointments.mockResolvedValue({
+      ...emptyList,
+      items: [bookedAppointment],
+      total: 1,
+    });
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Huỷ lịch của Nguyễn An" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận huỷ" }));
+
+    expect(await screen.findByText("Đã huỷ lịch.")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mocked.fetchSlots).toHaveBeenCalledTimes(2);
+      expect(mocked.listAppointments).toHaveBeenCalledTimes(2);
+    });
   });
 
   it("does not cancel when the confirmation is dismissed", async () => {
