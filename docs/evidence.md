@@ -15,7 +15,7 @@ chốt phạm vi TASK-001 và phân biệt thiết kế đích với phần code
 | Business/data | `backend/app/services/booking.py`, `repositories/appointments.py`, `models/appointment.py`, `db.py`, `domain/errors.py` — đã có | Hướng API → service → repository → DB |
 | Migrations | `backend/alembic/versions/` — đã có migration đầu tiên | Transaction/schema, uniqueness của active booking |
 | Telemetry | `backend/app/telemetry/`, `deploy/compose.observability.yaml`, `deploy/observability/` — đã có code, stack và evidence local; còn drill máy demo | HTTP metrics, spans, log correlation và reliability drill |
-| Tests | `backend/tests/unit/`, `backend/tests/integration/`, `frontend/src/**/*.test.*`, `frontend/e2e/`, `loadtest/` — đã có; E15 chưa đo | Kiểm chứng quy tắc và hệ thống |
+| Tests | `backend/tests/unit/`, `backend/tests/integration/`, `frontend/src/**/*.test.*`, `frontend/e2e/`, `loadtest/` — đã có; E15 đã nghiệm thu 10 phút | Kiểm chứng quy tắc và hệ thống |
 | Container/deploy | `backend/Dockerfile`, `deploy/compose.yaml`, `deploy/compose.production.yaml` — đã có | ADR-001 và runtime services |
 | CI/CD | `.github/workflows/ci.yml`, `release.yml`, `rollback.yml`, `scripts/deploy.sh`, `scripts/rollback.sh`, `scripts/deploy.py`, `scripts/rollback.py` — đã có | Gates, release manifest và recovery |
 | Tài liệu vận hành | `docs/runbooks/observability-alerts.md`, `docs/devops/observability-local.md`, `docs/releases/` — đã có; `docs/incidents/` tạo khi chạy drill chung | Quy trình drill, dữ liệu sự cố và định danh release |
@@ -40,7 +40,7 @@ Các đường dẫn backend viết ngắn ở cùng hàng được hiểu là n
 | E12 | Deploy lỗi rollback được | Deploy/rollback scripts + smoke tests | Release drill lỗi rồi khôi phục | ≤5 phút; version cũ; smoke test pass; booking cũ còn | [Đạt cục bộ](evidence/2026-10-14-release-deploy.md) |
 | E13 | Dữ liệu tồn tại qua recreate | PostgreSQL volume | Tạo booking, recreate API rồi đọc lại | Row không mất | [Đạt trên CI](evidence/2026-10-21-container-ci.md) |
 | E14 | Release tương thích schema cũ | Alembic + migration review | Chạy code bản rollback với schema sau migration | Tạo/xem/hủy đều pass | [Review schema hiện tại đạt](evidence/2026-10-25-architecture-review.md); test lifecycle cục bộ chưa thay thế kiểm chứng hai release khi có migration mới |
-| E15 | Độ trễ đạt mục tiêu tham chiếu | [Load script](../loadtest/booking.js) + histogram | 10 request/giây, 10 phút, recording | ≥95% dưới 500 ms; báo đủ VM/dataset/phiên bản | [Script đã kiểm tra; E15 chưa kiểm chứng đủ 10 phút](evidence/loadtest/2026-10-27-week2-smoke.md) |
+| E15 | Độ trễ đạt mục tiêu tham chiếu | [Load script](../loadtest/booking.js) + histogram | 10 request/giây, 10 phút, recording | ≥95% dưới 500 ms; báo đủ VM/dataset/phiên bản | [Đạt trên máy demo: p95 35.8 ms < 500 ms, 0% lỗi 5xx trong 10 phút @ 10 RPS](evidence/loadtest/2026-11-02-e15-latency-report.md) |
 | E16 | API chết vẫn được phát hiện | Blackbox probe + alert rule | Stop API trong môi trường drill | Probe fail, alert xuất hiện dù HTTP counter không tăng | [Đạt cục bộ cho probe và Prometheus alert](evidence/observability/2026-10-22-local-e16.md) |
 
 Test E03 dùng hai kết nối/transaction độc lập được khởi động đồng thời và lặp có kiểm soát. Gọi tuần tự hai lần chỉ kiểm chứng duplicate booking thông thường. SQLite/in-memory fake không chứng minh hành vi partial index/concurrency của PostgreSQL.
