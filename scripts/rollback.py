@@ -213,6 +213,11 @@ def main() -> None:
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-container-ops", action="store_true")
+    parser.add_argument(
+        "--verify-slo",
+        action="store_true",
+        help="Print SLO evaluation report after successful rollback",
+    )
     args = parser.parse_args()
 
     try:
@@ -227,6 +232,11 @@ def main() -> None:
             acquire_lock=True,
         )
         rollbacker.run()
+        if args.verify_slo and not args.dry_run:
+            from scripts.verify_rollback_slo import evaluate_rollback_slo
+
+            slo_res = evaluate_rollback_slo(state_dir=args.state_dir)
+            print(slo_res.summary_text())
     except DeploymentLockError as exc:
         print(f"[FATAL] Lock error: {exc}", file=sys.stderr)
         sys.exit(2)
