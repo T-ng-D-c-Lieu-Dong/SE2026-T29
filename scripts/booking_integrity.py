@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
@@ -69,17 +70,38 @@ class IntegrityReport:
         return len(self.missing_ids) == 0 and len(self.corrupted_ids) == 0
 
 
-def fetch_bookings(base_url: str, timeout: float = 10.0) -> list[BookingRecord]:
-    """Fetch all appointments from /api/appointments."""
+def fetch_bookings(
+    base_url: str,
+    timeout: float = 10.0,
+    max_retries: int = 3,
+    retry_delay: float = 1.0,
+) -> list[BookingRecord]:
+    """Fetch all appointments from /api/appointments with resilient retry for temporary connection resets."""
     url = f"{base_url.rstrip('/')}/api/appointments?limit=1000"
     req = urllib.request.Request(
         url,
         headers={"Accept": "application/json", "User-Agent": "booking-integrity-check/1.0"},
     )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        if resp.status != 200:
-            raise RuntimeError(f"HTTP {resp.status} querying {url}")
-        data = json.loads(resp.read().decode("utf-8"))
+    last_err: Exception | None = None
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status != 200:
+                    raise RuntimeError(f"HTTP {resp.status} querying {url}")
+                data = json.loads(resp.read().decode("utf-8"))
+                break
+        except (urllib.error.URLError, TimeoutError, ConnectionResetError) as exc:
+            last_err = exc
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+            else:
+                raise RuntimeError(
+                    f"Failed to fetch appointments from {url} after {max_retries} attempts: {exc}"
+                ) from exc
+    else:
+        if last_err:
+            raise last_err
+        raise RuntimeError(f"Failed querying {url}")
 
     items = data.get("items", data) if isinstance(data, dict) else data
     if not isinstance(items, list):

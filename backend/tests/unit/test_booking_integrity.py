@@ -1,10 +1,13 @@
 """Unit tests for booking integrity checker (TASK-007 / C136)."""
 
 from datetime import UTC, datetime
+from unittest.mock import MagicMock, patch
+import urllib.error
 
 from scripts.booking_integrity import (
     BookingRecord,
     IntegritySnapshot,
+    fetch_bookings,
     verify_integrity,
 )
 
@@ -153,3 +156,22 @@ def test_verify_integrity_corrupted_booking():
     assert "b-1" in report.corrupted_ids
     assert report.corrupted_ids["b-1"]["expected"]["status"] == "CONFIRMED"
     assert report.corrupted_ids["b-1"]["actual"]["status"] == "CANCELLED"
+
+
+def test_fetch_bookings_retry_on_network_glitch():
+    mock_resp = MagicMock()
+    mock_resp.status = 200
+    mock_resp.read.return_value = (
+        b'[{"id":"b-1","customer_name":"Bob","starts_at":"2026-11-03T09:00:00","status":"CONFIRMED"}]'
+    )
+    mock_resp.__enter__.return_value = mock_resp
+
+    with patch(
+        "urllib.request.urlopen",
+        side_effect=[urllib.error.URLError("Connection reset"), mock_resp],
+    ) as mock_urlopen:
+        records = fetch_bookings("http://localhost:8000", max_retries=2, retry_delay=0.01)
+        assert len(records) == 1
+        assert records[0].id == "b-1"
+        assert mock_urlopen.call_count == 2
+

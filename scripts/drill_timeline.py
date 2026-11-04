@@ -130,8 +130,15 @@ class DrillTimeline:
 
 
 def default_timeline_path() -> Path:
-    state_dir = Path(os.environ.get("BOOKING_STATE_DIR", "deploy/state"))
-    return state_dir / "drill-timeline.json"
+    env_dir = os.environ.get("BOOKING_STATE_DIR")
+    if env_dir:
+        return Path(env_dir) / "drill-timeline.json"
+
+    # Support backwards compatibility with legacy deploy/state path, default to deploy
+    legacy_path = Path("deploy/state/drill-timeline.json")
+    if legacy_path.is_file():
+        return legacy_path
+    return Path("deploy/drill-timeline.json")
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -2,7 +2,9 @@
 
 from datetime import UTC, datetime, timedelta
 
-from scripts.drill_timeline import DrillTimeline, main
+from pathlib import Path
+
+from scripts.drill_timeline import DrillTimeline, default_timeline_path, main
 
 T0 = datetime(2026, 11, 2, 10, 0, 0, tzinfo=UTC)
 
@@ -108,3 +110,12 @@ def test_timeline_cli_flow(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["drill_timeline.py", "clear", "--file", str(timeline_file)])
     main()
     assert not timeline_file.exists()
+
+
+def test_default_timeline_path_resolution(tmp_path, monkeypatch):
+    monkeypatch.delenv("BOOKING_STATE_DIR", raising=False)
+    assert default_timeline_path() == Path("deploy/drill-timeline.json")
+
+    monkeypatch.setenv("BOOKING_STATE_DIR", str(tmp_path / "custom"))
+    assert default_timeline_path() == tmp_path / "custom" / "drill-timeline.json"
+
