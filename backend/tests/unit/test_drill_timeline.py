@@ -1,7 +1,6 @@
 """Unit tests for drill timeline recorder (TASK-007 / C134)."""
 
 from datetime import UTC, datetime, timedelta
-
 from pathlib import Path
 
 from scripts.drill_timeline import DrillTimeline, default_timeline_path, main
@@ -118,4 +117,3 @@ def test_default_timeline_path_resolution(tmp_path, monkeypatch):
 
     monkeypatch.setenv("BOOKING_STATE_DIR", str(tmp_path / "custom"))
     assert default_timeline_path() == tmp_path / "custom" / "drill-timeline.json"
-

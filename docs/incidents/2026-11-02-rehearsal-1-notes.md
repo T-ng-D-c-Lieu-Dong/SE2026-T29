@@ -64,3 +64,4 @@ Trong quá trình diễn tập lần 1, nhóm đã ghi nhận 3 vấn đề kỹ
 3. **Cần tự động hóa kích hoạt rollback khi nhận tín hiệu alert:**
    - *Hiện tượng:* Bước kích hoạt rollback hiện tại cần thao tác bấm nút GitHub Actions thủ công. Trong trường hợp trực ban khẩn cấp, cần có webhook trigger tự động.
    - *Khắc phục (C187, C188):* Bổ sung cơ chế `repository_dispatch` cho workflow rollback và script kích hoạt trigger từ alert webhook.
+

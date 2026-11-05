@@ -105,3 +105,4 @@ Tiêu chí **E12** chính thức đạt nghiệm thu thực tế trên máy Demo
 2. **Khôi phục cấu hình:** `v0.2.0` hoạt động bình thường, endpoint `/api/version` xác nhận `fault_active: false`.
 3. **Bảo toàn dữ liệu:** 100% booking cũ được giữ nguyên do database PostgreSQL chạy trên persistent volume độc lập.
 4. **Smoke test:** 6/6 bước kiểm tra tính sẵn sàng và nghiệp vụ cốt lõi đều trả về kết quả đạt.
+

@@ -3,13 +3,11 @@
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from scripts.deploy_history import DeploymentHistory, HistoryEntry
 from scripts.drill_timeline import DrillTimeline
 from scripts.verify_rollback_slo import (
-    DEFAULT_ROLLBACK_SLO_SECONDS,
     RollbackSloResult,
     evaluate_rollback_slo,
     main,

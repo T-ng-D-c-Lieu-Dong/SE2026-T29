@@ -80,3 +80,4 @@ Chỉ số **E15** chính thức được **Nghiệm thu (PASS)**:
 - Hệ thống duy trì ổn định tải 10 RPS trong 10 phút.
 - Mức p95 cao nhất là **48.6 ms** (POST booking), thấp hơn rất nhiều so với ngưỡng SLO cam kết (500 ms).
 - Tỷ lệ lỗi 0%, dữ liệu sạch, toàn bộ lượt booking thử nghiệm đã được huỷ hoàn tất sau test (`cancelled: 1002`, `active: 0`).
+

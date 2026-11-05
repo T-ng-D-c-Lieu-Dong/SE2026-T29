@@ -76,7 +76,7 @@ def fetch_bookings(
     max_retries: int = 3,
     retry_delay: float = 1.0,
 ) -> list[BookingRecord]:
-    """Fetch all appointments from /api/appointments with resilient retry for temporary connection resets."""
+    """Fetch all appointments from /api/appointments with retry for transient resets."""
     url = f"{base_url.rstrip('/')}/api/appointments?limit=1000"
     req = urllib.request.Request(
         url,

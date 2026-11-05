@@ -116,7 +116,8 @@ def evaluate_rollback_slo(
             )
 
     raise ValueError(
-        f"No rollback operations found in history at {history.history_file} or timeline at {tl_path}."
+        f"No rollback operations found in history at {history.history_file} "
+        f"or timeline at {tl_path}."
     )
 
 
@@ -164,10 +165,11 @@ def main() -> None:
             print(result.summary_text())
 
         if args.fail_on_violation and not result.slo_met:
-            print(
-                f"[ERROR] Rollback duration ({result.duration_seconds:.2f}s) exceeded SLO ({args.target_seconds:.2f}s)!",
-                file=sys.stderr,
+            msg = (
+                f"[ERROR] Rollback duration ({result.duration_seconds:.2f}s) "
+                f"exceeded SLO ({args.target_seconds:.2f}s)!"
             )
+            print(msg, file=sys.stderr)
             sys.exit(1)
 
     except Exception as exc:

@@ -1,8 +1,8 @@
 """Unit tests for repository_dispatch automated rollback trigger (TASK-007 / C187)."""
 
+import urllib.error
 from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
-import urllib.error
 
 import pytest
 from scripts.trigger_rollback_dispatch import (
