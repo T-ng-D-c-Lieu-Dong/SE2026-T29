@@ -1,0 +1,18 @@
+backend/tests/integration/test_draft_autosave_api.py::test_tc01_first_save_creates_draft PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc02_higher_revision_replaces_whole_snapshot PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc03_get_unknown_draft_returns_404 PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc04_older_revision_is_rejected_and_does_not_overwrite PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc05_same_revision_retry_is_rejected_not_reapplied PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload0-revision zero] PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload1-negative revision] PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload2-missing revision] PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload3-name over 100 chars] PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload4-naive datetime] PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc07_boundary_name_100_chars_is_accepted PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc08_concurrent_pair_newer_always_wins_in_both_orders PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc09_hundred_concurrent_saves_same_draft_converge_to_max PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc10_stale_save_waiting_on_row_lock_does_not_overwrite PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc11_concurrent_saves_of_different_drafts_are_isolated PASSED
+backend/tests/integration/test_draft_autosave_api.py::test_tc12_server_clock_is_not_used_to_order_saves PASSED
+============================== 16 passed in 1.70s ==============================
+158 passed, 1 warning in 4.84s

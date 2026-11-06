@@ -1,0 +1,54 @@
+
+
+  █ THRESHOLDS 
+
+    draft_server_errors
+    ✓ 'rate<0.01' rate=0.00%
+
+    draft_unexpected_status
+    ✓ 'rate==0' rate=0.00%
+
+    http_req_duration{scenario:hot_draft}
+    ✓ 'p(95)<3000' p(95)=868.64ms
+
+    http_req_duration{scenario:own_drafts}
+    ✓ 'p(95)<3000' p(95)=927.25ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 65348   543.369158/s
+    checks_succeeded...: 100.00% 65348 out of 65348
+    checks_failed......: 0.00%   0 out of 65348
+
+    ✓ own_drafts: 200 or 409
+    ✓ own_drafts: newer revision accepted
+    ✓ hot_draft: 200 or 409
+
+    CUSTOM
+    draft_server_errors............: 0.00%  0 out of 42183
+    draft_unexpected_status........: 0.00%  0 out of 42183
+    hot_revision_sent..............: avg=1793251240895530.5 med=1793251240895509.5 p(90)=1793251240903116.2 p(95)=1793251240904067.2 p(99)=1793251240904827.8 max=1793251240905018
+
+    HTTP
+    http_req_duration..............: avg=285.69ms           med=210.56ms           p(90)=682.45ms           p(95)=897.03ms           p(99)=1.36s              max=2.98s           
+      { expected_response:true }...: avg=232.35ms           med=51.87ms            p(90)=621.52ms           p(95)=868.4ms            p(99)=1.41s              max=2.98s           
+      { scenario:hot_draft }.......: avg=315.69ms           med=224.12ms           p(90)=669.69ms           p(95)=868.64ms           p(99)=1.25s              max=2.57s           
+      { scenario:own_drafts }......: avg=261.07ms           med=64.13ms            p(90)=697.12ms           p(95)=927.25ms           p(99)=1.47s              max=2.98s           
+    http_req_failed................: 36.97% 15596 out of 42183
+    http_reqs......................: 42183  350.751992/s
+
+    EXECUTION
+    iteration_duration.............: avg=286.1ms            med=210.92ms           p(90)=683.17ms           p(95)=897.5ms            p(99)=1.36s              max=2.98s           
+    iterations.....................: 42183  350.751992/s
+    vus............................: 100    min=100            max=123
+    vus_max........................: 200    min=200            max=200
+
+    NETWORK
+    data_received..................: 15 MB  126 kB/s
+    data_sent......................: 12 MB  101 kB/s
+
+
+
+max revision sent = 1793251240905018; stored revision = 1793251240905018
+OK: stored draft is the newest revision

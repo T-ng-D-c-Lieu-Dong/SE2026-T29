@@ -1,0 +1,18 @@
+### Lần 1: cấu hình mặc định (sai — bỏ sót code chạy trong greenlet của SQLAlchemy async)
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+backend/app/api/drafts.py                     25      6      0      0    76%   23-31, 38-40
+backend/app/models/draft.py                   15      0      0      0   100%
+backend/app/repositories/drafts.py            18      1      0      0    94%   49
+backend/app/schemas/draft.py                  21      0      2      0   100%
+backend/app/services/drafts.py                19      5      4      0    61%   23, 25, 29-31
+16 passed in 2.57s
+
+### Lần 2: concurrency = greenlet,thread
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+backend/app/api/drafts.py                     25      0      0      0   100%
+backend/app/domain/errors.py                   9      0      0      0   100%
+backend/app/models/draft.py                   15      0      0      0   100%
+backend/app/repositories/drafts.py            18      0      0      0   100%
+backend/app/schemas/draft.py                  21      0      2      0   100%
+backend/app/services/drafts.py                19      0      4      0   100%
+16 passed in 3.32s

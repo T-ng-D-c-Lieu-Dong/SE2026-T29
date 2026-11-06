@@ -1,0 +1,4 @@
+### Mutation M2: bỏ ge=1 trên revision — commit f420237
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload0-revision zero]
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload1-negative revision]
+2 failed, 14 passed in 2.44s

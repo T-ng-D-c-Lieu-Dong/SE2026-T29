@@ -1,0 +1,16 @@
+### Flaky F1 (time): TC10 với sleep(0) thay cho sleep(0.05), lặp 30 lần
+2 failed, 28 passed, 540 deselected in 1.07s
+
+### F1 sau khi sửa (polling pg_stat_activity), TC10 lặp 100 lần
+100 passed, 1800 deselected in 4.53s
+
+### F2 (order/shared state): file test draft lặp 10 lần, thứ tự ngẫu nhiên
+190 passed in 16.08s
+
+### F2b: toàn bộ suite backend (chung DB với test appointments), 3 seed thứ tự
+seed=1: 161 passed, 1 warning in 4.69s
+seed=115: 161 passed, 1 warning in 4.81s
+seed=23001824: 161 passed, 1 warning in 4.58s
+
+### F3 (concurrency): TC08/TC09/TC11 lặp 20 lần
+60 passed, 320 deselected in 24.85s

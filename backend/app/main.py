@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import appointments, health, slots, version
+from app.api import appointments, drafts, health, slots, version
 from app.config import get_settings
 from app.db import engine
 from app.request_logging import (
@@ -63,6 +63,7 @@ def create_app() -> FastAPI:
     application.include_router(version.router)
     application.include_router(slots.router)
     application.include_router(appointments.router)
+    application.include_router(drafts.router)
     return application
 
 

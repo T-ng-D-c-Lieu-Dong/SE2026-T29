@@ -38,7 +38,7 @@ async def test_session_factory():
 @pytest_asyncio.fixture(autouse=True)
 async def clean_database(test_session_factory) -> None:
     async with test_session_factory() as session:
-        await session.execute(text("TRUNCATE TABLE appointments"))
+        await session.execute(text("TRUNCATE TABLE appointments, appointment_drafts"))
         await session.commit()
 
 

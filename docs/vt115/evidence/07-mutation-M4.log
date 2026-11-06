@@ -1,0 +1,5 @@
+### Mutation M4: bỏ le=2^53-1 trên revision — commit d46f143 — chạy suite TRƯỚC khi bổ sung test
+16 passed in 1.76s
+### Chạy lại M4 SAU khi bổ sung TC13 (test từ commit bab87fd)
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc13_revision_boundaries_on_new_draft[9007199254740992-422]
+1 failed, 18 passed in 1.96s

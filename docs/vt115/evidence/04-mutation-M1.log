@@ -1,0 +1,20 @@
+### Mutation M1: bỏ điều kiện WHERE revision < excluded.revision — commit 601a129 (nhánh mutation/vt115-m1-remove-stale-guard, không merge)
+E       AssertionError: {"id":"f762807f-ab57-43de-b30f-20f52d958b88","revision":4,"customer_name":"older text","starts_at":"2026-12-01T09:30:00Z","updated_at":"2026-10-29T05:12:20.972469Z"}
+E       assert 200 == 409
+E        +  where 200 = <Response [200 OK]>.status_code
+E       assert 200 == 409
+E        +  where 200 = <Response [200 OK]>.status_code
+E           AssertionError: 1
+E           assert 2 == 3
+E       assert 37 == 100
+E       assert 200 == 409
+E        +  where 200 = <Response [200 OK]>.status_code
+E       assert 200 == 409
+E        +  where 200 = <Response [200 OK]>.status_code
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc04_older_revision_is_rejected_and_does_not_overwrite
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc05_same_revision_retry_is_rejected_not_reapplied
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc08_concurrent_pair_newer_always_wins_in_both_orders
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc09_hundred_concurrent_saves_same_draft_converge_to_max
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc10_stale_save_waiting_on_row_lock_does_not_overwrite
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc12_server_clock_is_not_used_to_order_saves
+6 failed, 10 passed in 1.33s

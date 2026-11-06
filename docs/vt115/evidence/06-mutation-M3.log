@@ -1,0 +1,4 @@
+### Mutation M3: bỏ kiểm tra starts_at phải có múi giờ — commit 50dc91d
+E       assert 200 == 422
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload4-naive datetime]
+1 failed, 15 passed in 1.89s

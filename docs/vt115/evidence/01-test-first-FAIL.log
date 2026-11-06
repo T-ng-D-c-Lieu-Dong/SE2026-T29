@@ -1,0 +1,754 @@
+FFFFFFFFFFFFFFFF                                                         [100%]
+=================================== FAILURES ===================================
+______________________ test_tc01_first_save_creates_draft ______________________
+
+client = <httpx.AsyncClient object at 0x7fbf07efdbe0>
+
+>       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:54: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.813315+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.606,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07fca5d0:request_logging.py:141 http_request
+______________ test_tc02_higher_revision_replaces_whole_snapshot _______________
+
+client = <httpx.AsyncClient object at 0x7fbf07ec0f50>
+
+>       await seed(client, draft_id, 1, "An")
+
+backend/tests/integration/test_draft_autosave_api.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07ec0f50>
+draft_id = UUID('0c3568b9-21ed-4968-affd-f9dd200877cc'), revision = 1
+name = 'An'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.848281+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.391,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec0410:request_logging.py:141 http_request
+___________________ test_tc03_get_unknown_draft_returns_404 ____________________
+
+client = <httpx.AsyncClient object at 0x7fbf07ec3b10>
+
+>       assert response.json() == {"detail": "Draft was not found"}
+E       AssertionError: assert {'detail': 'Not Found'} == {'detail': 'D...as not found'}
+E         
+E         Differing items:
+E         {'detail': 'Not Found'} != {'detail': 'Draft was not found'}
+E         Use -v to get more diff
+
+backend/tests/integration/test_draft_autosave_api.py:80: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.863541+00:00","level":"INFO","event":"http_request","method":"GET","route":"<unmatched>","status":404,"duration_ms":3.326,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec2fd0:request_logging.py:141 http_request
+_________ test_tc04_older_revision_is_rejected_and_does_not_overwrite __________
+
+client = <httpx.AsyncClient object at 0x7fbf07eea780>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+
+>       await seed(client, draft_id, 5, "newer text")
+
+backend/tests/integration/test_draft_autosave_api.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07eea780>
+draft_id = UUID('d1f86bc4-962e-40f3-bddd-09dc7859a076'), revision = 5
+name = 'newer text'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.879203+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.784,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07e656d0:request_logging.py:141 http_request
+___________ test_tc05_same_revision_retry_is_rejected_not_reapplied ____________
+
+client = <httpx.AsyncClient object at 0x7fbf07d6c2b0>
+
+>       assert first.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:107: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.891521+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.624,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07e66710:request_logging.py:141 http_request
+_ test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload0-revision zero] _
+
+client = <httpx.AsyncClient object at 0x7fbf07ef03b0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+payload = {'revision': 0, 'customer_name': 'Nguyễn Mai Hoàng Anh', 'starts_at': '2026-12-01T09:30:00+00:00'}
+case = 'revision zero'
+
+>       await seed(client, draft_id, 1, "kept")
+
+backend/tests/integration/test_draft_autosave_api.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07ef03b0>
+draft_id = UUID('cacad865-3e98-4b84-ba95-23c70b684e3b'), revision = 1
+name = 'kept'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.906302+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.328,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec2fd0:request_logging.py:141 http_request
+_ test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload1-negative revision] _
+
+client = <httpx.AsyncClient object at 0x7fbf07e2c5a0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+payload = {'revision': -1, 'customer_name': 'Nguyễn Mai Hoàng Anh', 'starts_at': '2026-12-01T09:30:00+00:00'}
+case = 'negative revision'
+
+>       await seed(client, draft_id, 1, "kept")
+
+backend/tests/integration/test_draft_autosave_api.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07e2c5a0>
+draft_id = UUID('975e2d69-ee6e-4f0d-bc73-84b3aa7b94c7'), revision = 1
+name = 'kept'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.918896+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.657,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec0410:request_logging.py:141 http_request
+_ test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload2-missing revision] _
+
+client = <httpx.AsyncClient object at 0x7fbf07d3b350>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+payload = {'customer_name': 'x', 'starts_at': None}, case = 'missing revision'
+
+>       await seed(client, draft_id, 1, "kept")
+
+backend/tests/integration/test_draft_autosave_api.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07d3b350>
+draft_id = UUID('a1046e7b-7c77-4fed-92a8-ae0963e14c14'), revision = 1
+name = 'kept'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.931182+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.452,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec2ad0:request_logging.py:141 http_request
+_ test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload3-name over 100 chars] _
+
+client = <httpx.AsyncClient object at 0x7fbf07e3ba50>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+payload = {'revision': 2, 'customer_name': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'starts_at': '2026-12-01T09:30:00+00:00'}
+case = 'name over 100 chars'
+
+>       await seed(client, draft_id, 1, "kept")
+
+backend/tests/integration/test_draft_autosave_api.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07e3ba50>
+draft_id = UUID('47860a8f-148a-4dcd-bc68-f3af35ce381e'), revision = 1
+name = 'kept'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.946815+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.555,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec1d10:request_logging.py:141 http_request
+_ test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload4-naive datetime] _
+
+client = <httpx.AsyncClient object at 0x7fbf07d5d350>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+payload = {'revision': 2, 'customer_name': 'Nguyễn Mai Hoàng Anh', 'starts_at': '2026-12-01T09:30:00'}
+case = 'naive datetime'
+
+>       await seed(client, draft_id, 1, "kept")
+
+backend/tests/integration/test_draft_autosave_api.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07d5d350>
+draft_id = UUID('c042b1fb-e241-4ffb-b248-ece2206d35e8'), revision = 1
+name = 'kept'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.960633+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.513,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec0f50:request_logging.py:141 http_request
+________________ test_tc07_boundary_name_100_chars_is_accepted _________________
+
+client = <httpx.AsyncClient object at 0x7fbf07e73a70>
+
+>       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:143: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.975329+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.599,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec07d0:request_logging.py:141 http_request
+__________ test_tc08_concurrent_pair_newer_always_wins_in_both_orders __________
+
+client = <httpx.AsyncClient object at 0x7fbf07d70e60>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+
+>           await seed(client, draft_id, 1, "base")
+
+backend/tests/integration/test_draft_autosave_api.py:157: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07d70e60>
+draft_id = UUID('e4e2956d-7912-4f16-82a6-aa73520428ee'), revision = 1
+name = 'base'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:30.990945+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.583,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07fcb4d0:request_logging.py:141 http_request
+________ test_tc09_hundred_concurrent_saves_same_draft_converge_to_max _________
+
+client = <httpx.AsyncClient object at 0x7fbf07d974d0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+
+>       assert set(codes) <= {200, 409}, codes
+E       AssertionError: [404, 404, 404, 404, 404, 404, ...]
+E       assert {404} <= {200, 409}
+E         
+E         Extra items in the left set:
+E         404
+
+backend/tests/integration/test_draft_autosave_api.py:188: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:31.006532+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.006,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.007164+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.091,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.007720+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.078,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.008131+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.07,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.008552+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.071,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.008930+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.066,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.009290+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.065,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.009738+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.074,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.010119+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.067,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.010519+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.077,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.010914+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.067,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.011320+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.118,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.012054+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.074,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.012602+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.089,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.013014+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.071,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.013380+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.068,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.013811+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.072,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.014176+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.067,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.014586+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.071,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.014948+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.064,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.015426+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.164,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.015878+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.07,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.016226+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.063,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.016821+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.117,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.017504+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.16,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.018025+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.093,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.018500+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.138,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.018974+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.092,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.019525+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.119,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.019925+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.068,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.020273+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.064,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.020676+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.067,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.021036+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.064,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.021547+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.147,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.022013+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.072,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.022534+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.141,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.022987+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.074,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.023463+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.112,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.023860+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.068,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.024209+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.063,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.024625+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.072,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.025004+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.065,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.025367+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.064,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.025777+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.068,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.026133+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.073,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.026695+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.109,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.027158+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.069,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.027729+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.081,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.028136+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.066,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.028688+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.093,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.029149+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.083,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.029622+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.079,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.030028+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.068,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.030462+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.118,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.030979+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.086,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.031523+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.157,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.032088+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.091,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.032697+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.094,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.033358+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.164,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.033985+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.084,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.034442+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.067,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.035108+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.316,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.035972+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.2,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.036634+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.112,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.037190+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.087,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.037710+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.08,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.038107+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.067,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.038512+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.117,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.038877+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.064,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.039223+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.065,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.039976+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.314,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.040854+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.118,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.041559+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.173,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.043594+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.225,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.044565+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.166,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.045652+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.106,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.046501+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.149,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.047929+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.123,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.048630+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.123,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.049164+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.08,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.049796+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.099,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.050718+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.483,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.051331+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.138,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.052127+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.138,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.052743+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.089,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.053197+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.075,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.053792+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.106,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.054270+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.074,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.054853+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.094,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.055453+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.147,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.056035+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.092,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.056555+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.162,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.057075+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.095,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.057680+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.103,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.058183+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.072,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.059118+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.288,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.060002+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.115,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.060675+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.098,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.061211+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.109,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.061809+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.088,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+INFO     booking.http.7fbf07ec1090:request_logging.py:141 http_request
+_________ test_tc10_stale_save_waiting_on_row_lock_does_not_overwrite __________
+
+client = <httpx.AsyncClient object at 0x7fbf07c082f0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+
+>       await seed(client, draft_id, 1, "base")
+
+backend/tests/integration/test_draft_autosave_api.py:202: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07c082f0>
+draft_id = UUID('26b53949-8343-45a1-9d1a-7c0b348a1041'), revision = 1
+name = 'base'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:31.078443+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.683,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07e66490:request_logging.py:141 http_request
+_________ test_tc11_concurrent_saves_of_different_drafts_are_isolated __________
+
+client = <httpx.AsyncClient object at 0x7fbf07d157e0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+
+>       assert [r.status_code for r in responses] == [200] * 100
+E       assert [404, 404, 40...404, 404, ...] == [200, 200, 20...200, 200, ...]
+E         
+E         At index 0 diff: 404 != 200
+E         Use -v to get more diff
+
+backend/tests/integration/test_draft_autosave_api.py:233: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:31.092030+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":3.16,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.092731+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.124,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.093189+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.068,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.093705+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.094613+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.099,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.095093+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.07,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.095703+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.086,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.096118+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.065,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.096553+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.081,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.096914+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.054,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.097250+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.071,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.097760+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.076,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.098177+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.086,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.098644+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.071,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.099064+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.086,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.099849+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.103,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.105602+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":5.242,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.106355+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.129,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.106946+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.084,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.107681+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.134,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.108361+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.113,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.109077+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.11,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.109736+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.121,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.110361+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.107,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.111024+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.1,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.112033+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.185,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.112856+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.115,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.113446+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.095,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.114087+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.115,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.114726+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.111,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.115339+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.14,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.115984+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.11,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.116574+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.108,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.117147+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.091,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.117811+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.118357+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.086,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.118976+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.101,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.119623+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.099,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.120228+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.120824+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.099,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.121450+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.101,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.122051+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.122699+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.123330+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.151,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.123963+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.1,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.124580+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.111,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.125146+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.087,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.125769+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.126335+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.103,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.126958+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.091,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.127635+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.107,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.128189+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.1,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.129165+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.378,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.129931+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.076,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.130466+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.121,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.131059+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.094,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.131666+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.096,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.132249+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.104,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.132781+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.07,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.133135+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.053,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.133513+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.122,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.134072+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.103,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.134673+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.102,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.135344+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.158,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.135988+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.107,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.136582+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.114,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.137154+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.096,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.137788+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.105,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.138344+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.097,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.138974+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.097,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.139665+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.107,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.140212+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.095,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.140838+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.097,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.141610+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.122,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.142198+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.103,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.142838+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.1,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.143520+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.144,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.144117+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.108,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.144709+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.102,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.145249+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.087,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.145877+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.102,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.146988+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.11,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.147652+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.118,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.148229+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.09,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.148859+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.101,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.149432+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.098,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.150125+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.098,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.150769+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.111,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.151442+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.163,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.152022+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.089,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.152455+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.106,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.153030+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.1,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.153594+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.107,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.154213+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.1,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.154814+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.105,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.155468+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.126,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.156084+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.098,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.156620+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.097,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.157208+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.097,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-10-29T05:08:31.157828+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":0.102,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+INFO     booking.http.7fbf07e65450:request_logging.py:141 http_request
+______________ test_tc12_server_clock_is_not_used_to_order_saves _______________
+
+client = <httpx.AsyncClient object at 0x7fbf07d89fd0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x7fbf07d0a5d0>, autoflush=True, expire_on_commit=False)
+
+>       await seed(client, draft_id, 9, "rev9")
+
+backend/tests/integration/test_draft_autosave_api.py:243: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+client = <httpx.AsyncClient object at 0x7fbf07d89fd0>
+draft_id = UUID('bcaaf6be-5cf5-4912-8408-c3d6f189be82'), revision = 9
+name = 'rev9'
+
+>       assert response.status_code == 200, f"seeding draft failed: {response.status_code}"
+E       AssertionError: seeding draft failed: 404
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+backend/tests/integration/test_draft_autosave_api.py:36: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-10-29T05:08:31.239357+00:00","level":"INFO","event":"http_request","method":"PUT","route":"<unmatched>","status":404,"duration_ms":2.614,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7fbf07fc96d0:request_logging.py:141 http_request
+=========================== short test summary info ============================
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc01_first_save_creates_draft
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc02_higher_revision_replaces_whole_snapshot
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc03_get_unknown_draft_returns_404
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc04_older_revision_is_rejected_and_does_not_overwrite
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc05_same_revision_retry_is_rejected_not_reapplied
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload0-revision zero]
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload1-negative revision]
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload2-missing revision]
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload3-name over 100 chars]
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc06_invalid_payload_is_rejected_without_consuming_revision[payload4-naive datetime]
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc07_boundary_name_100_chars_is_accepted
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc08_concurrent_pair_newer_always_wins_in_both_orders
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc09_hundred_concurrent_saves_same_draft_converge_to_max
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc10_stale_save_waiting_on_row_lock_does_not_overwrite
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc11_concurrent_saves_of_different_drafts_are_isolated
+FAILED backend/tests/integration/test_draft_autosave_api.py::test_tc12_server_clock_is_not_used_to_order_saves
+16 failed in 0.52s

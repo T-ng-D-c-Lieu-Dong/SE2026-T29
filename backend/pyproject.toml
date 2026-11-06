@@ -50,3 +50,10 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.coverage.run]
+branch = true
+# SQLAlchemy async runs DB-bound code inside greenlets; without this, lines after an
+# awaited DB call are reported as "not executed" (observed in VT-115 evidence 03).
+concurrency = ["greenlet", "thread"]
+source = ["app"]

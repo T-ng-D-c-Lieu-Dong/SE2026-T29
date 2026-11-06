@@ -1,0 +1,58 @@
+time="2026-10-29T12:19:38+07:00" level=warning msg="Request Failed" error="Put \"http://127.0.0.1:8000/api/drafts/00000000-0000-4000-8000-000000000116\": read tcp 127.0.0.1:52318->127.0.0.1:8000: read: connection reset by peer"
+
+
+  █ THRESHOLDS 
+
+    draft_server_errors
+    ✓ 'rate<0.01' rate=0.00%
+
+    draft_unexpected_status
+    ✗ 'rate==0' rate=0.00%
+
+    http_req_duration{scenario:hot_draft}
+    ✓ 'p(95)<3000' p(95)=920.27ms
+
+    http_req_duration{scenario:own_drafts}
+    ✓ 'p(95)<3000' p(95)=858.04ms
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 56354  468.791528/s
+    checks_succeeded...: 66.02% 37205 out of 56354
+    checks_failed......: 33.97% 19149 out of 56354
+
+    ✓ own_drafts: 200 or 409
+    ✗ own_drafts: newer revision accepted
+      ↳  0% — ✓ 26 / ✗ 19147
+    ✗ hot_draft: 200 or 409
+      ↳  99% — ✓ 18006 / ✗ 2
+
+    CUSTOM
+    draft_server_errors............: 0.00%  1 out of 37181
+    draft_unexpected_status........: 0.00%  2 out of 37181
+    hot_revision_sent..............: avg=9004.5   med=9004.5   p(90)=16207.3  p(95)=17107.65 p(99)=17827.93 max=18008  
+
+    HTTP
+    http_req_duration..............: avg=323.31ms med=222.4ms  p(90)=690.05ms p(95)=892.24ms p(99)=1.33s    max=3s     
+      { expected_response:true }...: avg=40.82ms  med=39.44ms  p(90)=53ms     p(95)=59.35ms  p(99)=123.14ms max=923.4ms
+      { scenario:hot_draft }.......: avg=332.85ms med=230.39ms p(90)=705.85ms p(95)=920.27ms p(99)=1.36s    max=3s     
+      { scenario:own_drafts }......: avg=314.35ms med=209.49ms p(90)=678ms    p(95)=858.04ms p(99)=1.28s    max=2.66s  
+    http_req_failed................: 91.10% 33873 out of 37181
+    http_reqs......................: 37181  309.29726/s
+
+    EXECUTION
+    iteration_duration.............: avg=323.8ms  med=222.71ms p(90)=690.85ms p(95)=892.56ms p(99)=1.33s    max=3s     
+    iterations.....................: 37181  309.29726/s
+    vus............................: 100    min=100            max=107
+    vus_max........................: 200    min=200            max=200
+
+    NETWORK
+    data_received..................: 14 MB  118 kB/s
+    data_sent......................: 9.7 MB 81 kB/s
+
+
+
+time="2026-10-29T12:20:20+07:00" level=error msg="thresholds on metrics 'draft_unexpected_status' have been crossed"
+max revision sent = 18008; stored revision = 18008
+OK: stored draft is the newest revision
