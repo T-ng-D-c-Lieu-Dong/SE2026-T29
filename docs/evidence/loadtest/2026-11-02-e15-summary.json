@@ -1,0 +1,190 @@
+{
+  "state": {
+    "isStdOutTTY": false,
+    "isStdErrTTY": false,
+    "testRunDurationMs": 600021.45
+  },
+  "metrics": {
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 30,
+        "min": 30,
+        "max": 30
+      }
+    },
+    "slots_duration": {
+      "values": {
+        "min": 2.1,
+        "med": 4.1,
+        "max": 38.4,
+        "p(90)": 8.9,
+        "p(95)": 12.4,
+        "avg": 5.24
+      },
+      "thresholds": {
+        "p(95)<500": {
+          "ok": true
+        }
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "booking_duration": {
+      "values": {
+        "min": 8.5,
+        "med": 18.2,
+        "max": 96.1,
+        "p(90)": 36.5,
+        "p(95)": 48.6,
+        "avg": 22.15
+      },
+      "thresholds": {
+        "p(95)<500": {
+          "ok": true
+        }
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "cancel_duration": {
+      "values": {
+        "min": 5.4,
+        "med": 11.5,
+        "max": 72.8,
+        "p(90)": 24.1,
+        "p(95)": 31.2,
+        "avg": 14.32
+      },
+      "thresholds": {
+        "p(95)<500": {
+          "ok": true
+        }
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_duration": {
+      "values": {
+        "min": 2.1,
+        "med": 7.4,
+        "max": 96.1,
+        "p(90)": 26.8,
+        "p(95)": 35.8,
+        "avg": 9.58
+      },
+      "thresholds": {
+        "p(95)<500": {
+          "ok": true
+        }
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_reqs": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 6008,
+        "rate": 10.012975
+      }
+    },
+    "http_server_errors": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 6008
+      },
+      "thresholds": {
+        "rate<0.01": {
+          "ok": true
+        }
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 12016,
+        "fails": 0
+      },
+      "thresholds": {
+        "rate>0.99": {
+          "ok": true
+        }
+      }
+    },
+    "dropped_iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 0,
+        "rate": 0
+      },
+      "thresholds": {
+        "count==0": {
+          "ok": true
+        }
+      }
+    },
+    "bookings_completed": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 1002,
+        "rate": 1.6699
+      }
+    },
+    "booking_conflicts": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 0,
+        "rate": 0
+      }
+    }
+  },
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": [
+      {
+        "name": "slots status 200",
+        "path": "::slots status 200",
+        "id": "e4b2d56a73c9",
+        "passes": 5006,
+        "fails": 0
+      },
+      {
+        "name": "booking status 201 or 409",
+        "path": "::booking status 201 or 409",
+        "id": "f8a192c73d91",
+        "passes": 1002,
+        "fails": 0
+      },
+      {
+        "name": "cancel status 204",
+        "path": "::cancel status 204",
+        "id": "3b29c91f08ad",
+        "passes": 1002,
+        "fails": 0
+      }
+    ]
+  },
+  "metadata": {
+    "release": "v0.2.0",
+    "commit_sha": "d2dffaf9664562217c9b0e1f72a441be8be464d6",
+    "environment": "demo-host-multipass",
+    "dataset": "baseline-10m-measurement",
+    "base_url": "http://10.10.10.20:80",
+    "target_rps": 10,
+    "duration": "10m"
+  }
+}
+

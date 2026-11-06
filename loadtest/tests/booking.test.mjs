@@ -207,3 +207,21 @@ test('summary supports a custom file path and absent metrics', async () => {
   assert.ok(output['reports/custom.json'].endsWith('\n'));
   assert.match(output.stdout, /p95: n\/a/);
 });
+
+test('supports mixed scenario with deliberate conflicts', async () => {
+  const { script, calls, metrics } = await loadBooking(
+    [
+      response(200, [slot, { starts_at: '2099-11-02T11:00:00+07:00' }]),
+      response(409, { detail: 'Slot already booked' }),
+    ],
+    { CONFLICT_SCENARIO: 'true' }
+  );
+  assert.ok(script.options.scenarios.conflict, 'Conflict scenario should be configured');
+  assert.equal(script.options.scenarios.conflict.exec, 'createConflictingBooking');
+
+  script.createConflictingBooking();
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].method, 'POST');
+  assert.equal(metrics.booking_conflicts.length, 2);
+  assert.equal(metrics.booking_conflicts[1], 1);
+});

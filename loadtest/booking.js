@@ -36,10 +36,18 @@ const arrivalProfile = {
 // At 10 RPS: 4 reads/s + 2 booking flows/s * 3 HTTP requests = 10 HTTP requests/s.
 // A failed/empty query or conflict skips writes; inspect actual http_reqs for E15.
 function makeScenarios() {
-  return {
+  const scenarios = {
     slots: { ...arrivalProfile, exec: 'listSlots', rate: TARGET_RPS * 2 },
     booking: { ...arrivalProfile, exec: 'createAndCancelBooking', rate: TARGET_RPS },
   };
+  if (__ENV.CONFLICT_SCENARIO === 'true') {
+    scenarios.conflict = {
+      ...arrivalProfile,
+      exec: 'createConflictingBooking',
+      rate: Math.max(1, Math.floor(TARGET_RPS / 2)),
+    };
+  }
+  return scenarios;
 }
 
 export const options = {
@@ -116,6 +124,56 @@ export function createAndCancelBooking() {
   });
   httpServerErrors.add(cancelled.status >= 500 && cancelled.status < 600);
   if (check(cancelled, { 'booking cancellation returns 204': (res) => res.status === 204 })) {
+    bookingsCompleted.add(1);
+  }
+}
+
+export function createConflictingBooking() {
+  bookingsCompleted.add(0);
+  bookingConflicts.add(0);
+  const { response, success } = queryAvailableSlots(BASE_URL, TARGET_DATE);
+  if (!success) return;
+
+  const slots = response.json();
+  if (!check(slots, { 'conflict booking has an available slot': (items) => items.length > 0 })) return;
+
+  // Deliberately target the very first available slot to maximize concurrency collision / 409
+  const slot = slots[0];
+  const created = http.post(
+    `${BASE_URL}/api/appointments`,
+    JSON.stringify({ customer_name: `conflict-k6-${__VU}-${__ITER}`, starts_at: slot.starts_at }),
+    {
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      tags: { name: 'POST /api/appointments' },
+      timeout: REQUEST_TIMEOUT,
+      redirects: 0,
+      responseCallback: http.expectedStatuses(201, 409),
+    }
+  );
+  httpServerErrors.add(created.status >= 500 && created.status < 600);
+  check(created, { 'conflict booking returns 201 or 409': (res) => [201, 409].includes(res.status) });
+  if (created.status === 409) {
+    bookingConflicts.add(1);
+    return;
+  }
+  if (created.status !== 201) return;
+
+  let appointment;
+  try {
+    appointment = created.json();
+  } catch (_err) {
+    return;
+  }
+  if (!check(appointment, { 'created conflict booking has valid id': (item) => UUID.test(item?.id) })) return;
+
+  const cancelled = http.del(`${BASE_URL}/api/appointments/${appointment.id}`, null, {
+    tags: { name: 'DELETE /api/appointments/:id' },
+    timeout: REQUEST_TIMEOUT,
+    redirects: 0,
+    responseCallback: http.expectedStatuses(204),
+  });
+  httpServerErrors.add(cancelled.status >= 500 && cancelled.status < 600);
+  if (check(cancelled, { 'conflict cancellation returns 204': (res) => res.status === 204 })) {
     bookingsCompleted.add(1);
   }
 }
