@@ -1,0 +1,28 @@
+# Mutation run #2 — after adding TC22 — 2026-11-07T16:10:52+00:00 — HEAD 9065503
+$ docs/vt118/mutations/run_mutations.sh
+# baseline (no mutant): 45 passed, 2 xfailed in 1.70s
+M1-failed-mapped-to-sent: KILLED by 2 test(s)
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed]
+    - backend/tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel
+M2-timeout-mapped-to-failed: KILLED by 1 test(s)
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout]
+M3-status-field-ignores-outcome: KILLED by 3 test(s)
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed]
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout]
+    - backend/tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel
+M4-starts-at-from-created-at: KILLED by 2 test(s)
+    - backend/tests/integration/test_appointment_notifications.py::test_tc22_every_field_of_the_created_response_maps_to_the_saved_row
+    - backend/tests/integration/test_appointments_api.py::test_create_booking_persists
+M5-cancelled-at-from-created-at: KILLED by 1 test(s)
+    - backend/tests/integration/test_appointment_notifications.py::test_tc22_every_field_of_the_created_response_maps_to_the_saved_row
+M6-customer-name-from-payload: SURVIVED (45 passed, 2 xfailed in 1.65s)
+M7-id-from-event-free-uuid: KILLED by 9 test(s)
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC08-N1-sent]
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed]
+    - backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout]
+    - backend/tests/integration/test_appointment_notifications.py::test_tc22_every_field_of_the_created_response_maps_to_the_saved_row
+    - backend/tests/integration/test_appointment_notifications.py::test_tc12_conflicting_booking_is_not_notified
+    - backend/tests/integration/test_appointments_api.py::test_create_booking_persists
+    - backend/tests/integration/test_appointments_api.py::test_cancel_is_idempotent_and_allows_rebooking
+    - backend/tests/integration/test_release_e08_e12_e14.py::test_e12_booking_data_preserved_across_simulated_rollback
+    - backend/tests/integration/test_release_e08_e12_e14.py::test_e14_schema_backward_compatibility_during_rollback_window
