@@ -66,4 +66,5 @@ Mutant không bao giờ được commit lên nhánh nộp bài: M1 được ch�
 | `06-red-3-review-findings.log`, `07-green-after-review.log` | 2 lỗi tìm khi review patch AI (F1, F2): đỏ → sửa → 195 passed |
 | `08`–`10` | mutation: nhánh tạm M1; run 1 (M5 sống sót); run 2 sau TC22 (6/7 killed, M6 tương đương) |
 | `11-coverage.log`, `12-flaky.log` | coverage line+branch; 30 lần lặp, 10 thứ tự ngẫu nhiên, 10 lần dưới tải CPU |
+| `13-final-fresh-clone.log` | chạy lại toàn bộ từ clone mới + venv mới: 196 passed, 2 xfailed, ruff sạch |
 | `load/SUMMARY.md` + `load/*.json` | 60 tác vụ đồng thời: baseline, sau patch, biến thể thứ tự của AI plan |
