@@ -18,6 +18,7 @@ from app.services.notifications import (
     BookingNotifier,
     LoggingBookingNotifier,
     NotificationOutcome,
+    notify_appointment_created,
 )
 from app.telemetry import TelemetryRuntime
 
@@ -76,14 +77,21 @@ class BookingService:
             normalized_start = normalize_start_time(starts_at, self.now_provider())
             await self.fault_injector.before_create()
             appointment = await self.repository.create(customer_name, normalized_start)
-            await self.repository.commit()
+            # Refresh inside the transaction so that commit is the last DB call and releases the
+            # pooled connection before any slow side effect runs (NFR2).
             await self.repository.refresh(appointment)
+            await self.repository.commit()
             return appointment
 
     async def create_and_notify(self, customer_name: str, starts_at: datetime) -> CreatedBooking:
-        # STUB (VT-118): books exactly like create() and sends nothing yet.
+        """Book, then notify once; the notification outcome never changes the booking outcome."""
         appointment = await self.create(customer_name, starts_at)
-        return CreatedBooking(appointment=appointment, notification=NotificationOutcome.DELIVERED)
+        notification = await notify_appointment_created(
+            self.notifier,
+            appointment,
+            timeout_seconds=self.notification_timeout_seconds,
+        )
+        return CreatedBooking(appointment=appointment, notification=notification)
 
     async def list(self, limit: int, offset: int) -> tuple[list[Appointment], int]:
         return await self.repository.list(limit, offset)
