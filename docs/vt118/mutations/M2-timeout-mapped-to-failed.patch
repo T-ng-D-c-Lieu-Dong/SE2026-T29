@@ -1,0 +1,11 @@
+--- a/backend/app/api/appointments.py
++++ b/backend/app/api/appointments.py
+@@ -25,7 +25,7 @@
+ NOTIFICATION_STATUS: dict[NotificationOutcome, NotificationStatus] = {
+     NotificationOutcome.DELIVERED: "sent",
+     NotificationOutcome.FAILED: "failed",
+-    NotificationOutcome.TIMED_OUT: "timeout",
++    NotificationOutcome.TIMED_OUT: "failed",
+ }
+ 
+ 

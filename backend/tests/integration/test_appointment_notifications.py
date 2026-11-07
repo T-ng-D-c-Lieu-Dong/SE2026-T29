@@ -143,6 +143,39 @@ async def test_tc08_tc10_booking_is_kept_and_notification_status_reported(
     assert saved.status == AppointmentStatus.BOOKED.value
 
 
+async def test_tc22_every_field_of_the_created_response_maps_to_the_saved_row(
+    api,
+    notifier,
+    test_session_factory,
+) -> None:
+    """Added after mutation run #1: mutant M5 (cancelled_at <- created_at) survived."""
+    response = await api.post(
+        URL, json={"customer_name": "Cuong", "starts_at": slot(26).isoformat()}
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    async with test_session_factory() as session:
+        saved = await session.get(Appointment, UUID(body["id"]))
+    assert saved is not None
+    assert set(body) == {
+        "id",
+        "customer_name",
+        "starts_at",
+        "status",
+        "created_at",
+        "cancelled_at",
+        "notification_status",
+    }
+    assert body["customer_name"] == saved.customer_name
+    assert datetime.fromisoformat(body["starts_at"]) == saved.starts_at
+    assert body["status"] == saved.status == AppointmentStatus.BOOKED.value
+    assert datetime.fromisoformat(body["created_at"]) == saved.created_at
+    assert body["cancelled_at"] is None
+    assert saved.cancelled_at is None
+    assert body["notification_status"] == "sent"
+
+
 async def test_tc11_channel_runs_after_commit_without_holding_a_db_connection(
     api,
     notifier,
