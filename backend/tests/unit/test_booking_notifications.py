@@ -30,6 +30,7 @@ from app.domain import InvalidSlot
 from app.main import create_app
 from app.models import AppointmentStatus
 from app.repositories import AppointmentRepository
+from app.request_logging import JsonLogFormatter
 from app.services.booking import BOOKING_TIMEZONE, BookingService
 from app.services.fault_injection import BookingFaultInjector, InjectedBookingFault
 from app.services.notifications import (
@@ -243,10 +244,15 @@ async def test_tc21_default_channel_and_failures_are_visible_as_json_lines() -> 
     """F1: the production default channel must emit something; INFO must not be dropped."""
     application = create_app()
     logger = logging.getLogger(NOTIFICATION_LOGGER_NAME)
+    # pytest >= 9 attaches its own StreamHandler subclasses to non-propagating loggers, so select
+    # the application's JSON handler explicitly instead of "any StreamHandler".
     handlers = [
-        handler for handler in logger.handlers if isinstance(handler, logging.StreamHandler)
+        handler
+        for handler in logger.handlers
+        if type(handler) is logging.StreamHandler
+        and isinstance(handler.formatter, JsonLogFormatter)
     ]
-    assert handlers, "no handler on the notification logger: INFO lines are silently dropped"
+    assert handlers, "no JSON handler on the notification logger: INFO lines are dropped"
     assert logger.isEnabledFor(logging.INFO)
     appointment = booked_appointment()
     buffer = io.StringIO()

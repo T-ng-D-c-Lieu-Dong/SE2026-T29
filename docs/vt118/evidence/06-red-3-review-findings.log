@@ -7,3 +7,15 @@ E   assert []
 FAILED backend/tests/unit/test_booking_notifications.py::test_tc20_error_while_mapping_the_event_is_contained
 FAILED backend/tests/unit/test_booking_notifications.py::test_tc21_default_channel_and_failures_are_visible_as_json_lines
 2 failed, 17 deselected in 0.70s
+
+# Addendum 2026-11-07T16:08:06+00:00: TC21 first selected 'any StreamHandler' and broke under pytest 9, which
+# attaches its own StreamHandler subclasses to non-propagating loggers (JSONDecodeError on the fixed code).
+# The test now selects the application's JSON handler. Re-run of TC20/TC21 against the AI patch code:
+$ git stash push backend/app/main.py backend/app/services/notifications.py  # back to AI patch
+$ pytest -q -p no:cacheprovider --tb=short -k "tc20 or tc21" backend/tests/unit/test_booking_notifications.py
+E   AttributeError: 'NoneType' object has no attribute 'astimezone'
+E   AssertionError: no JSON handler on the notification logger: INFO lines are dropped
+E   assert []
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc20_error_while_mapping_the_event_is_contained
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc21_default_channel_and_failures_are_visible_as_json_lines
+2 failed, 17 deselected in 0.72s

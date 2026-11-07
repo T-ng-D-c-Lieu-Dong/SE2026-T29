@@ -64,13 +64,15 @@ async def notify_appointment_created(
 ) -> NotificationOutcome:
     """Send ``appointment.created`` once. Raises nothing except ``asyncio.CancelledError``."""
     log = logger or logging.getLogger(NOTIFICATION_LOGGER_NAME)
-    event = AppointmentCreatedEvent(
-        appointment_id=appointment.id,
-        customer_name=appointment.customer_name,
-        starts_at=appointment.starts_at.astimezone(UTC),
-    )
+    appointment_id = getattr(appointment, "id", None)
     budget = asyncio.timeout(timeout_seconds)
     try:
+        # Mapping runs after the booking is committed, so it is guarded like the send (review F2).
+        event = AppointmentCreatedEvent(
+            appointment_id=appointment.id,
+            customer_name=appointment.customer_name,
+            starts_at=appointment.starts_at.astimezone(UTC),
+        )
         async with budget:
             await notifier.send(event)
     except Exception as exc:
@@ -78,14 +80,14 @@ async def notify_appointment_created(
         if budget.expired():
             log.warning(
                 "booking.notification.timed_out appointment_id=%s timeout_seconds=%s",
-                event.appointment_id,
+                appointment_id,
                 timeout_seconds,
             )
             return NotificationOutcome.TIMED_OUT
         # Only the error class: the exception message may contain customer data (NFR3).
         log.warning(
             "booking.notification.failed appointment_id=%s error=%s",
-            event.appointment_id,
+            appointment_id,
             type(exc).__name__,
         )
         return NotificationOutcome.FAILED
