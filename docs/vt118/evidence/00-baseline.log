@@ -1,0 +1,36 @@
+# Baseline run — VT-118 — 2026-11-07T15:41:42+00:00
+# commit: 5c8efc21e2a4eaf81d68325bc832098ffe5bf234 (branch main)
+# python: Python 3.12.3
+# postgres: PostgreSQL 16.15 @127.0.0.1:55432/booking_test
+$ pytest -v backend/tests/unit/test_booking_service.py backend/tests/integration/test_appointments_api.py
+configfile: pyproject.toml
+plugins: anyio-4.16.0, asyncio-1.4.1.post1, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 21 items
+
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_converts_to_utc PASSED [  4%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at0] PASSED [  9%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at1] PASSED [ 14%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at2] PASSED [ 19%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at3] PASSED [ 23%]
+backend/tests/unit/test_booking_service.py::test_create_uses_normalized_time_and_commits PASSED [ 28%]
+backend/tests/unit/test_booking_service.py::test_create_injects_error_before_repository_write PASSED [ 33%]
+backend/tests/unit/test_booking_service.py::test_cancel_is_idempotent PASSED [ 38%]
+backend/tests/unit/test_booking_service.py::test_cancel_unknown_appointment PASSED [ 42%]
+backend/tests/unit/test_booking_service.py::test_available_slots_excludes_booked_slot PASSED [ 47%]
+backend/tests/integration/test_appointments_api.py::test_create_booking_persists PASSED [ 52%]
+backend/tests/integration/test_appointments_api.py::test_error_fault_returns_500_before_database_write PASSED [ 57%]
+backend/tests/integration/test_appointments_api.py::test_concurrent_booking_same_slot PASSED [ 61%]
+backend/tests/integration/test_appointments_api.py::test_invalid_slot_returns_422 PASSED [ 66%]
+backend/tests/integration/test_appointments_api.py::test_cancel_is_idempotent_and_allows_rebooking PASSED [ 71%]
+backend/tests/integration/test_appointments_api.py::test_cancel_unknown_id_returns_404 PASSED [ 76%]
+backend/tests/integration/test_appointments_api.py::test_list_appointments_is_paginated PASSED [ 80%]
+backend/tests/integration/test_appointments_api.py::test_list_appointments_rejects_invalid_pagination[params0-limit] PASSED [ 85%]
+backend/tests/integration/test_appointments_api.py::test_list_appointments_rejects_invalid_pagination[params1-limit] PASSED [ 90%]
+backend/tests/integration/test_appointments_api.py::test_list_appointments_rejects_invalid_pagination[params2-offset] PASSED [ 95%]
+backend/tests/integration/test_appointments_api.py::test_slots_exclude_active_booking PASSED [100%]
+
+============================== 21 passed in 0.29s ==============================
+$ pytest -q backend/tests
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+165 passed, 1 warning in 3.13s
