@@ -10,6 +10,7 @@ from app.domain import AppointmentNotFound, InvalidSlot, SlotAlreadyBooked
 from app.repositories import AppointmentRepository
 from app.schemas import AppointmentCreate, AppointmentList, AppointmentRead
 from app.services import BookingFaultInjector, BookingService, InjectedBookingFault
+from app.services.notifications import BookingNotifier, LoggingBookingNotifier
 from app.telemetry import TelemetryRuntime
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
@@ -21,6 +22,11 @@ def get_telemetry_runtime(request: Request) -> TelemetryRuntime:
 
 
 TelemetryDependency = Annotated[TelemetryRuntime, Depends(get_telemetry_runtime)]
+
+
+def get_booking_notifier(request: Request) -> BookingNotifier:
+    # STUB (VT-118): dependency exists so tests can override it; not used by any route yet.
+    return getattr(request.app.state, "booking_notifier", None) or LoggingBookingNotifier()
 
 
 def booking_service(session: AsyncSession, telemetry: TelemetryRuntime) -> BookingService:

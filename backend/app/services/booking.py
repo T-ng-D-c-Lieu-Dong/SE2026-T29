@@ -3,6 +3,7 @@ from __future__ import annotations
 import builtins
 from collections.abc import Callable
 from contextlib import nullcontext
+from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 from uuid import UUID
@@ -12,6 +13,12 @@ from app.domain import AppointmentNotFound, InvalidSlot
 from app.models import Appointment, AppointmentStatus
 from app.repositories import AppointmentRepository
 from app.services.fault_injection import BookingFaultInjector
+from app.services.notifications import (
+    DEFAULT_NOTIFICATION_TIMEOUT_SECONDS,
+    BookingNotifier,
+    LoggingBookingNotifier,
+    NotificationOutcome,
+)
 from app.telemetry import TelemetryRuntime
 
 BOOKING_TIMEZONE = ZoneInfo("Asia/Ho_Chi_Minh")
@@ -36,6 +43,12 @@ def normalize_start_time(starts_at: datetime, now: datetime) -> datetime:
     return normalized
 
 
+@dataclass(frozen=True, slots=True)
+class CreatedBooking:
+    appointment: Appointment
+    notification: NotificationOutcome
+
+
 class BookingService:
     def __init__(
         self,
@@ -43,11 +56,15 @@ class BookingService:
         now_provider: Callable[[], datetime] = utc_now,
         fault_injector: BookingFaultInjector | None = None,
         telemetry: TelemetryRuntime | None = None,
+        notifier: BookingNotifier | None = None,
+        notification_timeout_seconds: float = DEFAULT_NOTIFICATION_TIMEOUT_SECONDS,
     ) -> None:
         self.repository = repository
         self.now_provider = now_provider
         self.fault_injector = fault_injector or BookingFaultInjector()
         self.telemetry = telemetry
+        self.notifier = notifier or LoggingBookingNotifier()
+        self.notification_timeout_seconds = notification_timeout_seconds
 
     def _booking_span(self, operation: str) -> Any:
         if self.telemetry is None:
@@ -62,6 +79,11 @@ class BookingService:
             await self.repository.commit()
             await self.repository.refresh(appointment)
             return appointment
+
+    async def create_and_notify(self, customer_name: str, starts_at: datetime) -> CreatedBooking:
+        # STUB (VT-118): books exactly like create() and sends nothing yet.
+        appointment = await self.create(customer_name, starts_at)
+        return CreatedBooking(appointment=appointment, notification=NotificationOutcome.DELIVERED)
 
     async def list(self, limit: int, offset: int) -> tuple[list[Appointment], int]:
         return await self.repository.list(limit, offset)
