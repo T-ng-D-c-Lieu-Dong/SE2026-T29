@@ -12,6 +12,8 @@ representative per class (docs/vt118/02-test-strategy.md):
 from __future__ import annotations
 
 import asyncio
+import io
+import json
 import logging
 import time
 from collections.abc import Iterator
@@ -25,12 +27,14 @@ from pydantic import ValidationError
 
 from app.config import Settings
 from app.domain import InvalidSlot
+from app.main import create_app
 from app.models import AppointmentStatus
 from app.repositories import AppointmentRepository
 from app.services.booking import BOOKING_TIMEZONE, BookingService
 from app.services.fault_injection import BookingFaultInjector, InjectedBookingFault
 from app.services.notifications import (
     APPOINTMENT_CREATED,
+    NOTIFICATION_LOGGER_NAME,
     AppointmentCreatedEvent,
     NotificationOutcome,
     notify_appointment_created,
@@ -213,6 +217,57 @@ async def test_tc07_outer_cancellation_is_propagated_not_reported_as_failure() -
 
     with pytest.raises(asyncio.CancelledError):
         await task
+
+
+# --- Added after reviewing the AI patch (review findings F1, F2) -----------------------------
+
+
+async def test_tc20_error_while_mapping_the_event_is_contained(notification_log) -> None:
+    """F2: building the event runs after commit, so a mapping error must not escape as 500."""
+    logger, handler = notification_log
+    broken = SimpleNamespace(id=uuid4(), customer_name="Cuong", starts_at=None)
+
+    outcome = await notify_appointment_created(
+        RecordingNotifier("ok"), broken, timeout_seconds=1.0, logger=logger
+    )
+
+    assert outcome is NotificationOutcome.FAILED
+    assert any(
+        "booking.notification.failed" in record.getMessage()
+        and str(broken.id) in record.getMessage()
+        for record in handler.records
+    )
+
+
+async def test_tc21_default_channel_and_failures_are_visible_as_json_lines() -> None:
+    """F1: the production default channel must emit something; INFO must not be dropped."""
+    application = create_app()
+    logger = logging.getLogger(NOTIFICATION_LOGGER_NAME)
+    handlers = [
+        handler for handler in logger.handlers if isinstance(handler, logging.StreamHandler)
+    ]
+    assert handlers, "no handler on the notification logger: INFO lines are silently dropped"
+    assert logger.isEnabledFor(logging.INFO)
+    appointment = booked_appointment()
+    buffer = io.StringIO()
+    previous = handlers[0].setStream(buffer)
+    try:
+        delivered = await notify_appointment_created(
+            application.state.booking_notifier, appointment, timeout_seconds=1.0
+        )
+        failed = await notify_appointment_created(
+            RecordingNotifier("raise"), appointment, timeout_seconds=1.0
+        )
+    finally:
+        handlers[0].setStream(previous)
+
+    lines = [json.loads(line) for line in buffer.getvalue().splitlines()]
+    assert (delivered, failed) == (NotificationOutcome.DELIVERED, NotificationOutcome.FAILED)
+    assert [line["level"] for line in lines] == ["INFO", "WARNING"]
+    assert lines[0]["event"].startswith(APPOINTMENT_CREATED)
+    assert lines[1]["event"].startswith("booking.notification.failed")
+    assert all(str(appointment.id) in line["event"] for line in lines)
+    assert SECRET_NAME not in buffer.getvalue()
 
 
 # --- Service: the invariant "notification outcome never changes the booking outcome" -------

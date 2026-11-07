@@ -1,0 +1,9 @@
+# Red run #3 — tests added after reviewing the AI patch (findings F1, F2) — 2026-11-07T16:04:32+00:00
+# HEAD: 6a34476 (AI patch) + new tests TC20/TC21
+$ pytest -q -p no:cacheprovider --tb=short -k "tc20 or tc21" backend/tests/unit/test_booking_notifications.py
+E   AttributeError: 'NoneType' object has no attribute 'astimezone'
+E   AssertionError: no handler on the notification logger: INFO lines are silently dropped
+E   assert []
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc20_error_while_mapping_the_event_is_contained
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc21_default_channel_and_failures_are_visible_as_json_lines
+2 failed, 17 deselected in 0.70s
