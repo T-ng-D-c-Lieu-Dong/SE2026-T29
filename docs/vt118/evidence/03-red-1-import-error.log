@@ -1,0 +1,14 @@
+# Red run #1 (tests only, no production code yet) — 2026-11-07T15:57:23+00:00
+# HEAD: aad4653 + new test files (uncommitted at run time)
+# Expected: collection ImportError = red for the WRONG reason (not counted as red evidence)
+$ pytest -p no:cacheprovider backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py
+collected 0 items / 2 errors
+==================================== ERRORS ====================================
+__________ ERROR collecting tests/unit/test_booking_notifications.py ___________
+E   ModuleNotFoundError: No module named 'app.services.notifications'
+_____ ERROR collecting tests/integration/test_appointment_notifications.py _____
+E   ImportError: cannot import name 'get_booking_notifier' from 'app.api.appointments' (/home/claude/repo/backend/app/api/appointments.py)
+ERROR backend/tests/unit/test_booking_notifications.py
+ERROR backend/tests/integration/test_appointment_notifications.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 2 errors in 0.14s ===============================
