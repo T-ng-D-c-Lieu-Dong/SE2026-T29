@@ -2,7 +2,7 @@
 
 Generated 2026-11-07T16:27:54+00:00 from the JSON files in this folder (`loadtest/vt118/run_all.sh`).
 
-- Environment: one cloud container, **2 vCPU / 7 GB RAM**, client + uvicorn (1 worker, như Dockerfile) + PostgreSQL 16.15 trên cùng máy, kết nối loopback; không có nginx.
+- Environment: one cloud container, **2 vCPU / 7 GB RAM**, client + uvicorn (1 worker, as in backend/Dockerfile) + PostgreSQL 16.15 on the same host over loopback; no nginx in front.
 - Code: `baseline` = commit 5c8efc2 (main); `after` = submission branch; `variant-commit-then-refresh` = submission branch with only the order of `commit()`/`refresh()` reverted (temporary branch `tmp/vt118-variant-commit-then-refresh` @ 3fc0692, not merged) to test plan review R2.
 - Notifier: `default` = LoggingBookingNotifier; `ok` returns immediately; `fail` raises ConnectionError; `hang` never returns (cut by the 0.5 s timeout).
 - p95 = nearest-rank over 600 requests per run; peak in-flight = 60 in every run.
