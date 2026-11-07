@@ -1,5 +1,0 @@
-# Baseline load (before patch) — 2026-11-07T15:54:06+00:00 — commit 5c8efc2
-# 60 concurrent workers x 10 requests, uvicorn 1 worker, PostgreSQL 16 local, 16 vCPU container
-baseline-default-valid           n=600  peak=60  p50=0.128s p95=0.626s p99=0.929s max=1.419s status={'201': 600} notif={'<missing>': 600} rows_ok=True p95<=2.0s=True no5xx=True
-baseline-default-valid-100       n=600  peak=60  p50=0.151s p95=0.491s p99=0.799s max=1.277s status={'201': 600} notif={'<missing>': 600} rows_ok=True p95<=2.0s=True no5xx=True
-baseline-default-oversized-1mb   n=600  peak=60  p50=0.449s p95=0.761s p99=0.823s max=0.834s status={'422': 600} notif={} rows_ok=True p95<=2.0s=True no5xx=True

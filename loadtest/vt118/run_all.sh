@@ -3,6 +3,10 @@
 #
 #   LABEL=after loadtest/vt118/run_all.sh            # after the patch (all scenarios)
 #   LABEL=baseline SCENARIOS="default:valid" loadtest/vt118/run_all.sh
+#   BACKEND_DIR=../baseline-worktree/backend LABEL=baseline-r2 loadtest/vt118/run_all.sh
+#
+# BACKEND_DIR selects which backend code the API process runs (default: ./backend), so the same
+# harness can measure the baseline commit or an experimental variant from a git worktree.
 #
 # Requirements: PostgreSQL reachable at $PG_URL with a database whose name ends in _test,
 # Python env with backend[dev] installed. Run from the repository root.
@@ -15,12 +19,13 @@ OUT_DIR="${OUT_DIR:-docs/vt118/evidence/load}"
 CONCURRENCY="${CONCURRENCY:-60}"
 REQUESTS_PER_WORKER="${REQUESTS_PER_WORKER:-10}"
 SCENARIOS="${SCENARIOS:-default:valid ok:valid fail:valid hang:valid ok:valid-100 ok:oversized-1mb}"
+BACKEND_DIR="${BACKEND_DIR:-backend}"
 
 export BOOKING_DATABASE_URL="${PG_URL/postgresql:/postgresql+asyncpg:}"
-export PYTHONPATH="backend${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="${BACKEND_DIR}${PYTHONPATH:+:$PYTHONPATH}"
 mkdir -p "$OUT_DIR"
 
-(cd backend && alembic upgrade head >/dev/null)
+(cd backend && alembic upgrade head >/dev/null 2>&1)
 
 for item in $SCENARIOS; do
   notifier="${item%%:*}"

@@ -1,0 +1,29 @@
+{
+  "scenario": "variant-commit-then-refresh-ok-valid",
+  "payload": "valid",
+  "payload_customer_name_chars": 13,
+  "concurrency": 60,
+  "requests_per_worker": 10,
+  "total_requests": 600,
+  "peak_in_flight": 60,
+  "wall_seconds": 2.647,
+  "throughput_rps": 226.7,
+  "latency_seconds": {
+    "p50": 0.1396,
+    "p95": 0.6672,
+    "p99": 1.1344,
+    "max": 1.4497
+  },
+  "status_counts": {
+    "201": 600
+  },
+  "client_errors": {},
+  "notification_status_counts": {
+    "sent": 600
+  },
+  "booked_rows_in_db": 600,
+  "rows_match_201": true,
+  "target_p95_seconds": 2.0,
+  "p95_within_target": true,
+  "no_5xx": true
+}

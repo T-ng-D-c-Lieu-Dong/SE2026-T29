@@ -37,8 +37,10 @@ class LoadTestNotifier:
 
 
 def build_app(mode: str):
+    import app.main
     from app.main import create_app
 
+    logging.getLogger(__name__).warning("serving backend code from %s", app.main.__file__)
     application = create_app()
     if mode == "default":
         return application
