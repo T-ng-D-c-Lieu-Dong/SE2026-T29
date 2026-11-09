@@ -66,8 +66,8 @@ class TelemetryRuntime:
     ) -> AbstractContextManager[Span]:
         """Create a low-cardinality span such as ``booking.create`` or ``booking.cancel``."""
 
-        if operation not in {"create", "cancel"}:
-            raise ValueError("booking operation must be 'create' or 'cancel'")
+        if operation not in {"create", "cancel", "soft_delete", "restore"}:
+            raise ValueError("booking operation must be 'create', 'cancel', 'soft_delete', or 'restore'")
         return self.tracer.start_as_current_span(
             f"booking.{operation}",
             attributes=attributes,

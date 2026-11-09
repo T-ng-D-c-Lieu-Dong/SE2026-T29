@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.2.0, pluggy-1.7.0 -- /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend
+configfile: pyproject.toml
+plugins: anyio-4.16.0, asyncio-1.4.1.post1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 13 items
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_success PASSED [  7%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_unauthorized PASSED [ 15%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_success PASSED [ 23%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_conflict_when_slot_rebooked PASSED [ 30%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc01_soft_delete_happy_path PASSED [ 38%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc02_restore_happy_path PASSED [ 46%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc06_cross_user_soft_delete_forbidden PASSED [ 53%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc07_cross_user_restore_forbidden PASSED [ 61%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc08_cross_user_get_detail_isolation PASSED [ 69%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc09_trash_api_isolation PASSED [ 76%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc10_restore_slot_conflict_returns_409 PASSED [ 84%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc04_tc05_idempotency_soft_delete_and_restore PASSED [ 92%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc12_soft_delete_not_found PASSED [100%]
+
+=============================== warnings summary ===============================
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:55
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:55: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:74
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:74: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:92
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:92: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:112
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:112: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 13 passed, 4 warnings in 0.44s ========================

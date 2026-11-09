@@ -42,6 +42,9 @@ class InMemoryAppointmentRepository:
     async def commit(self) -> None:
         pass
 
+    async def refresh(self, appointment) -> None:
+        pass
+
 
 def make_service(items: dict, now_dt: datetime) -> BookingService:
     repo = InMemoryAppointmentRepository()
