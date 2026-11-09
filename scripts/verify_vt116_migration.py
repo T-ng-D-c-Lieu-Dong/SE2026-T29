@@ -33,7 +33,8 @@ async def seed_or_verify(seed):
             await connection.execute(
                 text(
                     "INSERT INTO appointments (id, customer_name, starts_at) VALUES "
-                    "('00000000-0000-0000-0000-000000000001', 'Legacy Patient', '2030-01-01T03:00Z')"
+                    "('00000000-0000-0000-0000-000000000001', "
+                    "'Legacy Patient', '2030-01-01T03:00Z')"
                 )
             )
         else:
