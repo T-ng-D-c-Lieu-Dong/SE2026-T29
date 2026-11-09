@@ -2,11 +2,11 @@
 
 Spoofing tests characterize an OPEN limitation; they do not prove authentication.
 """
+
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import select
 
 from app.models import Appointment
 from app.services.booking import BOOKING_TIMEZONE
@@ -68,7 +68,8 @@ async def test_same_customer_name_does_not_confer_ownership(client):
 
 async def test_payload_owner_cannot_override_caller(client):
     response = await client.post(
-        "/api/appointments", headers={"X-User-Id": "bob"},
+        "/api/appointments",
+        headers={"X-User-Id": "bob"},
         json={"customer_name": "Alice", "owner_id": "alice", "starts_at": slot().isoformat()},
     )
     assert response.status_code == 422
@@ -80,10 +81,16 @@ async def test_legacy_ownership_is_quarantined_even_when_identifier_is_known(
 ):
     appointment_id = uuid4()
     async with test_session_factory() as session:
-        session.add(Appointment(
-            id=appointment_id, customer_name="Known Patient", owner_id=owner,
-            starts_at=slot(), status="booked", is_deleted=False,
-        ))
+        session.add(
+            Appointment(
+                id=appointment_id,
+                customer_name="Known Patient",
+                owner_id=owner,
+                starts_at=slot(),
+                status="booked",
+                is_deleted=False,
+            )
+        )
         await session.commit()
     # A valid caller cannot read the historical row.
     response = await client.get("/api/appointments", headers={"X-User-Id": "alice"})
@@ -119,7 +126,9 @@ async def test_forged_identity_still_reads_owner_data_without_gateway_OPEN_RISK(
     assert response.json()["id"] == appointment_id
 
 
-async def test_tc11_restore_past_booking_rejected_without_state_change(client, test_session_factory):
+async def test_tc11_restore_past_booking_rejected_without_state_change(
+    client, test_session_factory
+):
     appointment_id = UUID(await create(client))
     await client.patch(
         f"/api/appointments/{appointment_id}/soft-delete", headers={"X-User-Id": "alice"}
@@ -172,3 +181,34 @@ async def test_cancel_soft_deleted_booking_returns_404(client):
         f"/api/appointments/{appointment_id}", headers={"X-User-Id": "alice"}
     )
     assert response.status_code == 404
+
+
+async def test_unverified_historical_name_owner_is_not_claimable(client, test_session_factory):
+    """Old name-based ownership must not be claimed by asserting the known name."""
+    appointment_id = uuid4()
+    async with test_session_factory() as session:
+        session.add(
+            Appointment(
+                id=appointment_id,
+                customer_name="Known Name",
+                owner_id="Known Name",
+                owner_access_enabled=False,
+                starts_at=slot(),
+                status="booked",
+                is_deleted=False,
+            )
+        )
+        await session.commit()
+    identity = {"X-User-Id": "Known Name"}
+    listed = await client.get("/api/appointments", headers=identity)
+    assert listed.status_code == 200
+    assert listed.json()["items"] == []
+    detail = await client.get(f"/api/appointments/{appointment_id}", headers=identity)
+    assert detail.status_code == 404
+    for action in ("soft-delete", "restore"):
+        response = await client.patch(
+            f"/api/appointments/{appointment_id}/{action}", headers=identity
+        )
+        assert response.status_code == 403
+    response = await client.delete(f"/api/appointments/{appointment_id}", headers=identity)
+    assert response.status_code == 403

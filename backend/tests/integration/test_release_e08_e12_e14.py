@@ -24,6 +24,12 @@ from app.main import create_app
 pytestmark = pytest.mark.integration
 
 
+@pytest.fixture(autouse=True)
+def explicit_regression_identity(client):
+    """Preserve release assertions under the deliberate private API contract change."""
+    client.headers["X-User-Id"] = "regression-user"
+
+
 def get_repo_root() -> Path:
     current = Path.cwd()
     if (current / "docs" / "releases" / "v0.1.0.json").exists():
@@ -89,7 +95,9 @@ async def test_e12_booking_data_preserved_across_simulated_rollback(
     app.dependency_overrides[get_session] = override_get_session
 
     async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        headers={"X-User-Id": "regression-user"},
     ) as rolled_back_client:
         # Check /api/version matches restored release
         ver_resp = await rolled_back_client.get("/api/version")

@@ -42,6 +42,7 @@ asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
 markers = [
     "integration: requires a dedicated PostgreSQL test database",
+    "unit: isolated unit tests",
 ]
 
 [tool.ruff]

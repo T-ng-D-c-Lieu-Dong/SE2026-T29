@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from app.domain import AccessDeniedError, AppointmentNotFound, InvalidSlot, SlotAlreadyBooked
 from app.models import Appointment, AppointmentStatus
+from app.ownership import is_quarantined_owner
 from app.repositories import AppointmentRepository
 from app.services.fault_injection import BookingFaultInjector
 from app.telemetry import TelemetryRuntime
@@ -94,6 +95,10 @@ class BookingService:
             raise AppointmentNotFound("Appointment was not found")
 
         owner = getattr(appointment, "owner_id", None)
+        if getattr(appointment, "owner_access_enabled", True) is False or (
+            owner is not None and is_quarantined_owner(owner)
+        ):
+            raise AppointmentNotFound("Appointment was not found")
         if caller_id is not None and owner is not None and owner != caller_id:
             raise AppointmentNotFound("Appointment was not found")
 
@@ -125,6 +130,10 @@ class BookingService:
                 raise AppointmentNotFound("Appointment was not found")
 
             owner = getattr(appointment, "owner_id", "anonymous")
+            if getattr(appointment, "owner_access_enabled", True) is False or is_quarantined_owner(
+                owner
+            ):
+                raise AccessDeniedError("Historical ownership has not been verified")
             if owner != caller_id:
                 raise AccessDeniedError("You do not have permission to delete this appointment")
 
@@ -145,6 +154,10 @@ class BookingService:
                 raise AppointmentNotFound("Appointment was not found")
 
             owner = getattr(appointment, "owner_id", "anonymous")
+            if getattr(appointment, "owner_access_enabled", True) is False or is_quarantined_owner(
+                owner
+            ):
+                raise AccessDeniedError("Historical ownership has not been verified")
             if owner != caller_id:
                 raise AccessDeniedError("You do not have permission to restore this appointment")
 
@@ -186,6 +199,10 @@ class BookingService:
                 raise AppointmentNotFound("Appointment was not found")
 
             owner = getattr(appointment, "owner_id", None)
+            if getattr(appointment, "owner_access_enabled", True) is False or (
+                owner is not None and is_quarantined_owner(owner)
+            ):
+                raise AccessDeniedError("Historical ownership has not been verified")
             if caller_id is not None and owner is not None and owner != caller_id:
                 raise AccessDeniedError("You do not have permission to cancel this appointment")
 

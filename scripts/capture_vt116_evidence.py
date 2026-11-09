@@ -1,4 +1,5 @@
 """Capture a command's actual output with provenance; never edit generated logs."""
+
 import importlib.metadata
 import os
 import platform

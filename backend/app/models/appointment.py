@@ -42,6 +42,11 @@ class Appointment(Base):
         String(100),
         nullable=False,
     )
+    # True for new upstream-asserted bookings; NOT proof of authentication.
+    # Migration leaves all pre-existing rows disabled pending verified reassignment.
+    owner_access_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("false")
+    )
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(
         String(16),

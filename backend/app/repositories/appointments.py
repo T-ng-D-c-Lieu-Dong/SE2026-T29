@@ -51,9 +51,16 @@ class AppointmentRepository:
         offset: int,
         owner_id: str | None = None,
     ) -> tuple[list[Appointment], int]:
-        query = select(Appointment).where(Appointment.is_deleted.is_(False))
+        accessible_owner = (
+            Appointment.owner_access_enabled.is_(True)
+            & ~Appointment.owner_id.startswith("legacy_", autoescape=True)
+            & Appointment.owner_id.not_in(["anonymous", "unassigned"])
+        )
+        query = select(Appointment).where(Appointment.is_deleted.is_(False), accessible_owner)
         count_query = (
-            select(func.count()).select_from(Appointment).where(Appointment.is_deleted.is_(False))
+            select(func.count())
+            .select_from(Appointment)
+            .where(Appointment.is_deleted.is_(False), accessible_owner)
         )
 
         if owner_id is not None:
@@ -76,7 +83,11 @@ class AppointmentRepository:
     ) -> tuple[list[Appointment], int]:
         query = (
             select(Appointment)
-            .where(Appointment.is_deleted.is_(True), Appointment.owner_id == owner_id)
+            .where(
+                Appointment.is_deleted.is_(True),
+                Appointment.owner_id == owner_id,
+                Appointment.owner_access_enabled.is_(True),
+            )
             .order_by(Appointment.starts_at.desc())
             .limit(limit)
             .offset(offset)
@@ -84,7 +95,11 @@ class AppointmentRepository:
         count_query = (
             select(func.count())
             .select_from(Appointment)
-            .where(Appointment.is_deleted.is_(True), Appointment.owner_id == owner_id)
+            .where(
+                Appointment.is_deleted.is_(True),
+                Appointment.owner_id == owner_id,
+                Appointment.owner_access_enabled.is_(True),
+            )
         )
         rows = await self.session.scalars(query)
         total = await self.session.scalar(count_query)

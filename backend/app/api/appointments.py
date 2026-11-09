@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db import get_session
 from app.domain import AccessDeniedError, AppointmentNotFound, InvalidSlot, SlotAlreadyBooked
+from app.ownership import is_quarantined_owner
 from app.repositories import AppointmentRepository
 from app.schemas import AppointmentCreate, AppointmentList, AppointmentRead
 from app.services import BookingFaultInjector, BookingService, InjectedBookingFault
@@ -31,7 +32,10 @@ def require_authenticated_caller(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required: X-User-Id header is missing or empty",
         )
-    return caller_id.strip()
+    identity = caller_id.strip()
+    if len(identity) > 100 or is_quarantined_owner(identity):
+        raise HTTPException(status_code=401, detail="Identity is invalid or reserved")
+    return identity
 
 
 AuthenticatedCallerDependency = Annotated[str, Depends(require_authenticated_caller)]
@@ -50,17 +54,15 @@ async def create_appointment(
     payload: AppointmentCreate,
     session: SessionDependency,
     telemetry: TelemetryDependency,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    caller_id: AuthenticatedCallerDependency,
 ) -> AppointmentRead:
-    if caller_id and caller_id.strip():
-        effective_owner = caller_id.strip()
-    else:
-        effective_owner = payload.owner_id or payload.customer_name
+    if payload.owner_id is not None and payload.owner_id != caller_id:
+        raise HTTPException(status_code=422, detail="owner_id must match the asserted caller")
     try:
         appointment = await booking_service(session, telemetry).create(
             customer_name=payload.customer_name,
             starts_at=payload.starts_at,
-            owner_id=effective_owner,
+            owner_id=caller_id,
         )
     except InvalidSlot as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -78,14 +80,14 @@ async def create_appointment(
 @router.get("", response_model=AppointmentList)
 async def list_appointments(
     session: SessionDependency,
+    caller_id: AuthenticatedCallerDependency,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
 ) -> AppointmentList:
     appointments, total = await BookingService(AppointmentRepository(session)).list(
         limit,
         offset,
-        owner_id=caller_id.strip() if caller_id and caller_id.strip() else None,
+        owner_id=caller_id,
     )
     return AppointmentList(
         items=[AppointmentRead.model_validate(item) for item in appointments],
@@ -121,12 +123,12 @@ async def get_appointment(
     appointment_id: UUID,
     session: SessionDependency,
     telemetry: TelemetryDependency,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    caller_id: AuthenticatedCallerDependency,
 ) -> AppointmentRead:
     try:
         appointment = await booking_service(session, telemetry).get(
             appointment_id,
-            caller_id=caller_id.strip() if caller_id and caller_id.strip() else None,
+            caller_id=caller_id,
         )
     except AppointmentNotFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
@@ -180,7 +182,7 @@ async def cancel_appointment(
     appointment_id: UUID,
     session: SessionDependency,
     telemetry: TelemetryDependency,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    caller_id: AuthenticatedCallerDependency,
 ) -> Response:
     try:
         await booking_service(session, telemetry).cancel(appointment_id, caller_id=caller_id)
