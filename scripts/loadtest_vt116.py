@@ -1,4 +1,5 @@
 """Load test harness for VT-116: 40 concurrent tasks, target p95 <= 1.5s.
+
 Measures latency of appointment creation, soft-delete, and restore against live PostgreSQL.
 """
 
@@ -12,13 +13,12 @@ import sys
 import time
 from datetime import datetime, timedelta
 from typing import Any
-from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # Add repository root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
@@ -86,12 +86,8 @@ async def run_load_test() -> dict[str, Any]:
         nonlocal success_count, error_count
         async with sem:
             caller_id = f"load_user_{worker_id}"
-            # Ensure each task has a completely independent 30-min slot in the future
-            slot = (base_time + timedelta(minutes=30 * worker_id)).replace(
-                second=0, microsecond=0
-            )
+            slot = (base_time + timedelta(minutes=30 * worker_id)).replace(second=0, microsecond=0)
 
-            # Measure full lifecycle: Create -> Soft-Delete -> Restore
             t0 = time.perf_counter()
             try:
                 # 1. Create booking
@@ -126,10 +122,12 @@ async def run_load_test() -> dict[str, Any]:
                 duration = time.perf_counter() - t0
                 latencies.append(duration)
                 success_count += 1
-            except Exception as e:
+            except Exception:
                 error_count += 1
 
-    print(f"[*] Starting Load Test: {TOTAL_REQUESTS} lifecycle tasks with {CONCURRENCY} concurrent workers...")
+    print(
+        f"[*] Starting Load Test: {TOTAL_REQUESTS} tasks with {CONCURRENCY} concurrent workers..."
+    )
     test_start = time.perf_counter()
 
     async with AsyncClient(transport=transport, base_url="http://loadtest", timeout=30.0) as client:
@@ -152,6 +150,9 @@ async def run_load_test() -> dict[str, Any]:
     avg_latency = sum(latencies) / len(latencies) if latencies else 0.0
     throughput = len(latencies) / total_duration if total_duration > 0 else 0.0
 
+    goal_met = p95 <= TARGET_P95_SECONDS
+    status_str = "PASSED (MEETS P95 <= 1.5s)" if goal_met else "FAILED"
+
     result = {
         "variant": "VT-116",
         "timestamp": datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(),
@@ -172,7 +173,7 @@ async def run_load_test() -> dict[str, Any]:
             "max": round(max(latencies), 4) if latencies else 0.0,
         },
         "target_p95_seconds": TARGET_P95_SECONDS,
-        "passed_performance_goal": p95 <= TARGET_P95_SECONDS,
+        "passed_performance_goal": goal_met,
     }
 
     print("\n" + "=" * 60)
@@ -188,7 +189,7 @@ async def run_load_test() -> dict[str, Any]:
     print(f"p95 Latency                   : {result['latency_stats_seconds']['p95'] * 1000:.2f} ms")
     print(f"p99 Latency                   : {result['latency_stats_seconds']['p99'] * 1000:.2f} ms")
     print(f"Target p95                    : <= {TARGET_P95_SECONDS * 1000:.1f} ms")
-    print(f"Performance Goal Status       : {'PASSED (MEETS P95 <= 1.5s)' if result['passed_performance_goal'] else 'FAILED'}")
+    print(f"Performance Goal Status       : {status_str}")
     print("=" * 60)
 
     # Cleanup
@@ -198,7 +199,8 @@ async def run_load_test() -> dict[str, Any]:
 
 if __name__ == "__main__":
     res = asyncio.run(run_load_test())
-    output_path = os.path.join(os.path.dirname(__file__), "..", "docs", "bt3-vt116", "evidence", "04-performance.json")
+    output_dir = os.path.join(os.path.dirname(__file__), "..", "docs", "bt3-vt116", "evidence")
+    output_path = os.path.join(output_dir, "04-performance.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(res, f, indent=2, ensure_ascii=False)
     print(f"\n[+] Results saved to {output_path}")

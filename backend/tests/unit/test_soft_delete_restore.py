@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
+from typing import Any, cast
+from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -16,7 +17,7 @@ BOOKING_TIMEZONE = ZoneInfo("Asia/Ho_Chi_Minh")
 
 class InMemoryAppointmentRepository:
     def __init__(self) -> None:
-        self.items: dict[uuid4, Appointment] = {}
+        self.items: dict[UUID, Appointment] = {}
 
     async def get(self, appointment_id, include_deleted: bool = False):
         item = self.items.get(appointment_id)
@@ -45,10 +46,10 @@ class InMemoryAppointmentRepository:
         pass
 
 
-def make_service(items: dict, now_dt: datetime) -> BookingService:
+def make_service(items: dict[UUID, Appointment], now_dt: datetime) -> BookingService:
     repo = InMemoryAppointmentRepository()
     repo.items = items
-    return BookingService(repository=repo, now_provider=lambda: now_dt)
+    return BookingService(repository=cast(Any, repo), now_provider=lambda: now_dt)
 
 
 @pytest.mark.unit
