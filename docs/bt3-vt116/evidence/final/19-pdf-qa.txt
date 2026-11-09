@@ -1,6 +1,6 @@
 PDF QA: PASS
-Main pages: 6
-Appendix pages: 3
+Main pages: 8 (INCLUDING full traceability)
+Appendix pages: 1 (AI Usage Log only)
 Total pages: 9
 Overfull hbox/vbox: 0
 Words outside horizontal print bounds41..554pt:0
@@ -12,3 +12,6 @@ Visual QA:all final rendered pages inspected; equations, connectors and state la
 Build:XeLaTeX0.99992 in Docker blang/latex:ubuntu,two successful passes
 Source and PDF:workspace parent only; NO .tex/.pdf inside repository deliverable folder
 Previews:/tmp/bt3-final-pdf; raw build log16-xelatex-build.log
+
+Supplement review:added actual data-consistency scope, patch review and RED assertion example, per-AC risk coverage with limits. No backend/test/metric changes. Removed duplicated acceptance table.
+Final supplement QA:29 exact trace mappings retained; per-unit ACs corrected; traceability counted in main content. All9pages visually reviewed; no clipping or diagram overlaps. PDF/LaTeX remain outside repo.
