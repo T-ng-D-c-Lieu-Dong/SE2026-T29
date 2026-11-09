@@ -13,6 +13,14 @@ backend/postgres-test.log
 # CI reports
 reports/
 
+# Personal Academic Reports (kept outside repository)
+*.pdf
+*.tex
+*.aux
+*.log
+*.out
+.vscode/
+
 # Local alert receiver secret
 deploy/observability/alertmanager/discord-webhook-url
 deploy/observability.env
