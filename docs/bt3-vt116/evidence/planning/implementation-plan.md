@@ -1,4 +1,4 @@
-> HISTORICAL BASELINE / ORIGINAL PLAN. Final corrections, current ownership policy and verified results are in `final-correction-plan.md`, `README.md`, `test-strategy.md` and `traceability-and-ai-log.md`. Original assumptions and results below are retained for provenance, not current safety claims.
+> Kế hoạch/audit tại baseline, giữ làm evidence review assumptions trước code. Một số đề xuất bên dưới đã được bác bỏ; hành vi cuối và lệnh chạy lại được ghi trong `../../README.md`.
 
 # KẾ HOẠCH TRIỂN KHAI DO AI LẬP & RÀNG BUỘC KIỂM TRA GIẢ ĐỊNH (AI IMPLEMENTATION PLAN & ASSUMPTION REVIEW)
 **Bài tập cá nhân 3 — VT-116 | Production Readiness Lab (APP-03)**
