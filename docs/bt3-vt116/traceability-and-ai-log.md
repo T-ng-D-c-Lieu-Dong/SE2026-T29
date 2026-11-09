@@ -1,60 +1,77 @@
-# MA TRẬN TRUY VẾT (TRACEABILITY MATRIX) & NHẬT KÝ SỬ DỤNG AI (AI USAGE LOG)
-**Bài tập cá nhân 3 — VT-116 | Production Readiness Lab (APP-03)**
-- **Sinh viên thực hiện**: Nguyễn Việt Anh (MSSV: 23001827)
-- **Nhóm**: SE2026-T29
-- **Working Branch**: `bt3/23001827-vt116-soft-delete-restore`
+# VT-116 final traceability and AI usage log
 
----
+This document supersedes the earlier unverified summaries. Baseline: `8fe9de89b719bde237a118e18a671db1d3dfd6cd`.
+Executable backend/harness revision tested: `c3421e27c5885857dea0b14f6358954b5a80ddb1`. Later documentation/verification commits do not alter that backend/harness.
+TC-03 shares an executable test with TC-01; TC-04/05 share a test; TC-17 expands to four functions. Design case count is not pytest item count.
+The full suite contains 117 items; VT-116 security/state subset contains 33 items (4 unit + 13 original API + 16 correction API items).
 
-## 1. MA TRẬN TRUY VẾT YÊU CẦU & KIỂM THỬ (TRACEABILITY MATRIX)
+## 1. Exact traceability
 
-| Mã Yêu cầu / Rủi ro | Test Case ID | Cấp độ | File Kiểm thử | Git Commit | Bằng chứng Thực thi | Trạng thái |
+| AC/Risk | TC ID | Exact test function | Exact file | Tested commit | Evidence (`evidence/final/`) | Result |
 |---|---|---|---|---|---|---|
-| **AC-01** (Soft Delete & Slot Release) | `test_tc01_soft_delete_happy_path` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-02** (Restore to Active Slot) | `test_tc02_restore_happy_path` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-03** / **INV-01** (Slot Conflict Prevention) | `test_tc10_restore_slot_conflict_returns_409` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-04** / **RISK-01** (Cross-User Soft Delete) | `test_tc06_cross_user_soft_delete_forbidden` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-04** / **RISK-01** (Cross-User Restore) | `test_tc07_cross_user_restore_forbidden` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-04** / **RISK-01** (Anti-enumeration Read) | `test_tc08_cross_user_get_detail_isolation` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-05** (Trash API Isolation) | `test_tc09_trash_api_isolation` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **AC-06** (Idempotency Soft Delete & Restore) | `test_tc04_tc05_idempotency_soft_delete_and_restore` | Integration | `backend/tests/integration/test_soft_delete_restore_api.py` | `b417dc9`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **RISK-01** (Authentication Enforcement) | `test_auth_missing_header_returns_401` | Security | `backend/tests/integration/test_soft_delete_restore_api.py` | `06cd0b4`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **RISK-01** (Residual Risk Header Spoofing) | `test_auth_header_spoofing_limitation_demonstration` | Security | `backend/tests/integration/test_soft_delete_restore_api.py` | `06cd0b4`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **INV-01** (Race Condition Concurrency Restores) | `test_concurrent_restore_same_slot_race_condition` | Concurrency | `backend/tests/integration/test_soft_delete_restore_api.py` | `06cd0b4`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **INV-01** (Race Condition Booking + Restore) | `test_concurrent_booking_and_restore_same_slot` | Concurrency | `backend/tests/integration/test_soft_delete_restore_api.py` | `06cd0b4`, `4c6c9b2` | `02-green-test.log` | **VERIFIED** |
-| **NFC-01** (40 Concurrency, p95 ≤ 1.5s) | Load test 200 tasks in-flight | Load Test | `scripts/loadtest_vt116.py` | `4c6c9b2` | `04-performance.log`, `.json` | **VERIFIED (p95=0.48s)** |
-| **MUTATION** (Deliberate Condition Inversion) | Invert `owner == caller_id` | Mutation | `app/services/booking.py` | Branch tạm thời | `03-mutation.log` | **VERIFIED (KILLED)** |
+| AC-01 | TC-01 | `test_tc01_soft_delete_happy_path` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-02 | TC-02 | `test_tc02_restore_happy_path` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 | TC-03 | `test_tc01_soft_delete_happy_path` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 | TC-04 | `test_tc04_tc05_idempotency_soft_delete_and_restore` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-02 | TC-05 | `test_tc04_tc05_idempotency_soft_delete_and_restore` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 / RISK-01 | TC-06 | `test_tc06_cross_user_soft_delete_forbidden` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 / RISK-01 | TC-07 | `test_tc07_cross_user_restore_forbidden` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 / RISK-01 | TC-08 | `test_tc08_cross_user_get_detail_isolation` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-05 | TC-09 | `test_tc09_trash_api_isolation` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-03 / INV-01 | TC-10 | `test_tc10_restore_slot_conflict_returns_409` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 | TC-12 | `test_tc12_soft_delete_not_found` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 | TC-13 | `test_auth_missing_header_returns_401` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-03 / INV-01 | TC-15 | `test_concurrent_restore_same_slot_race_condition` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-03 / INV-01 | TC-16 | `test_concurrent_booking_and_restore_same_slot` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 / OPEN RISK | TC-14 | `test_auth_header_spoofing_limitation_demonstration` | `backend/tests/integration/test_soft_delete_restore_api.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PARTIAL (spoofing reproduced) |
+| AC-02 | TC-11 | `test_tc11_restore_past_booking_rejected_without_state_change` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 / AC-02 / AC-03 / AC-04 | TC-17a | `test_unit_soft_delete_success` | `backend/tests/unit/test_soft_delete_restore.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 / AC-02 / AC-03 / AC-04 | TC-17b | `test_unit_soft_delete_unauthorized` | `backend/tests/unit/test_soft_delete_restore.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 / AC-02 / AC-03 / AC-04 | TC-17c | `test_unit_restore_success` | `backend/tests/unit/test_soft_delete_restore.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 / AC-02 / AC-03 / AC-04 | TC-17d | `test_unit_restore_conflict_when_slot_rebooked` | `backend/tests/unit/test_soft_delete_restore.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 | SEC-01 | `test_private_routes_missing_identity_fail_closed` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS (4 parameters) |
+| AC-04 | SEC-02 | `test_invalid_identity_is_rejected` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS (2 parameters) |
+| AC-04 | SEC-03 | `test_same_customer_name_does_not_confer_ownership` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 | SEC-04 | `test_payload_owner_cannot_override_caller` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 | SEC-05 | `test_legacy_ownership_is_quarantined_even_when_identifier_is_known` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS (3 parameters) |
+| AC-04 | SEC-06 | `test_unverified_historical_name_owner_is_not_claimable` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-04 / OPEN RISK | SEC-07 | `test_forged_identity_still_reads_owner_data_without_gateway_OPEN_RISK` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PARTIAL (spoofing reproduced) |
+| AC-01 / AC-02 | ST-01 | `test_cancelled_delete_restore_preserves_cancellation_and_free_slot` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
+| AC-01 | ST-02 | `test_cancel_soft_deleted_booking_returns_404` | `backend/tests/integration/test_vt116_security_transitions.py` | `c3421e27c5885857dea0b14f6358954b5a80ddb1` | `09-full-pytest.log` | PASS |
 
----
+## 2. Experiments outside individual test cases
 
-## 2. NHẬT KÝ SỬ DỤNG VÀ HỢP TÁC VỚI AI (AI USAGE LOG)
+| Requirement | Executable | Commit | Evidence | Result |
+|---|---|---|---|---|
+| Migration/quarantine | `scripts/verify_vt116_migration.py` | `c3421e2` | `08-migration.log` | PASS baseline -> 0002 -> 0003 with retained legacy row |
+| One inverted business condition | `BookingService.soft_delete`, `backend/app/services/booking.py` | temporary `1b707ea` | `13-mutation.log` | KILLED: 12 fail / 21 pass; not merged |
+| Line/branch coverage | `coverage run --branch --source=backend/app -m pytest backend/tests` | `c3421e2` | `10-coverage-sysmon.log`, `11-coverage-report.log`, `coverage.json` | PASS measurement; 808/859 statements, 166/200 branches |
+| Time / shared state / order | `scripts/verify_vt116_flaky.py` | `0c65e34` | `14-flaky-review.log` | 33 pass each of 3 runs; no failures observed |
+| NFC-01 / performance | `scripts/loadtest_vt116.py::run_load_test` | `c3421e2` | `performance-20261109T063500Z-038fb4c8.json`, `.log`, `15-performance-consistency.log` | PASS local harness; p95 420.11 ms; peak 40 |
+| Paired metrics audit | `scripts/verify_vt116_performance_evidence.py` | recorded working tree in log | `15-performance-consistency.log` | PASS samples/log/JSON agree |
+| Verdict correctness | `backend/tests/unit/test_loadtest_vt116.py` | `c3421e2` | `09-full-pytest.log` | 5 PASS; rejects empty/failed/slow workloads |
 
-- **Môi trường & Công cụ AI**: Google Antigravity IDE (Pair-programming Assistant).
-- **Quy trình tương tác thực tế**:
-  1. *Khảo sát & Lập kế hoạch*: AI quét source code và lập giả định. AI ban đầu đề xuất gán `status = 'cancelled'` làm soft delete và giả định hệ thống đã có auth table.
-  2. *Phản biện Checkpoint 1*: Sinh viên Nguyễn Việt Anh trực tiếp bác bỏ 2 giả định của AI:
-     - Bác bỏ Giả định A: Yêu cầu Soft Delete phải giải phóng slot, cho phép người khác đặt; khi restore phải kiểm tra xung đột slot và trả 409 Conflict.
-     - Bác bỏ Giả định B: Yêu cầu ẩn hoàn toàn bản ghi đã xóa khỏi API đọc thông thường (`404 Not Found`), chỉ cho phép xem qua endpoint thùng rác riêng có xác thực.
-  3. *Triển khai Test-First (RED → GREEN)*: AI sinh test trước (12 tests FAILED do thiếu tính năng, commit `67d7fb7`), sau đó tạo patch tối thiểu trên Model, Migration, Repository, Service và API (92 tests PASS, commit `b417dc9`).
-  4. *Phản biện Checkpoint 2*: Sinh viên tiếp tục chỉ ra 3 lỗ hổng bảo mật nghiêm trọng trong patch ban đầu:
-     - Lỗ hổng gán `owner_id = 'anonymous'` hoặc `customer_name` có thể bị chiếm đoạt do trùng tên.
-     - Thiếu xác thực danh tính bắt buộc khi gọi thao tác xóa mềm/khôi phục.
-     - Nguy cơ crash 500 do unhandled `IntegrityError` khi có race condition đồng thời ở tầng DB.
-  5. *Vá lỗi & Hoàn thiện*: AI khắc phục triệt để: bọc rollback bắt `IntegrityError`, bổ sung `401 Unauthorized` khi thiếu auth, gán `legacy_` unguessable ID cho dữ liệu cũ, chuẩn hóa Ruff/Pyright (commit `06cd0b4`, `4c6c9b2`), và chạy kiểm chứng 40 concurrency p95 đạt 0.48s.
+## 3. AI usage log (current correction session)
 
----
+Tool: Codex assistant, shell/Python/pytest/Git/Docker/XeLaTeX. No external model identity is inferred for past sessions.
+The earlier Antigravity narrative is a historical project assertion, not independently verified conversation evidence.
 
-## 3. PHÂN TÍCH ĐỘ TIN CẬY CỦA AI (AI RELIABILITY ANALYSIS)
+| User prompt / stage | Output actually used | Review, rejected assumption or change | Evidence |
+|---|---|---|---|
+| Initial request: audit assignment and PDF overflow | Compared PDF, logs, source, tests and instructions | Rejected fail-closed claim when identity absent; found clipped INV-01 and diagram | Prior audit in conversation; retained original PDF backup |
+| FINAL CORRECTION, SECURITY -> TEST/EVIDENCE -> PERFORMANCE -> README -> LATEX/PDF -> GITHUB | Wrote scoped correction plan before production patch | Rejected header presence as authentication; rejected legacy UUID secrecy and name ownership | `final-correction-plan.md`; commit `a1a7be6`; `01-security-red.log` |
+| Require missing-identity, cross-user, name-collision and legacy negative tests | Added `test_vt116_security_transitions.py`, identity dependency and quarantine migration | Model flag needed because prefix-only quarantine missed historical name owners; all old rows disabled by migration | `03-historical-owner-red.log`; security diff `aed7866`; `08-migration.log` |
+| Complete cancelled/past transitions | Real API tests for TC-11, cancelled delete/restore, deleted cancel | Corrected TC-11 from an unexecuted unit claim to a real API test | `09-full-pytest.log`, `14-flaky-review.log` |
+| Reconcile measurements and collect valid coverage | Paired run ID, raw latency samples, peak lifecycle/HTTP counters; sysmon coverage | Semaphore is only a cap; exclude warmup duration; failed workloads cannot pass p95 verdict | `05-performance-verdict-red.log`, `07-performance-verdict-green.log`, `10-coverage-sysmon.log`, `15-performance-consistency.log` |
+| Preserve genuine failures | Kept sandbox socket failure and floating point assertion failure | Socket denial is not business RED; numeric test uses approximate float comparison | Historical commits `a1a7be6` (sandbox denial), `56ec750` (float assertion); redundant local logs removed |
+| Run one mutation and flaky checks | Temporary guard inversion; reverse-order/timezone runs | One mutation killed does not imply mutation coverage; bounded repetition does not prove flake freedom | `13-mutation.log`, `14-flaky-review.log` |
+| Correct PDF and reflection | Updated evidence-backed report and marked reflection as draft | No invented student experience, sign-off, historical prompt quotation, or production safety claim | Report, PDF QA evidence and final acceptance file |
 
-### Điểm 1: AI nhầm lẫn giữa Business Cancellation và Soft Delete
-- *Hiện tượng*: AI ban đầu lập luận rằng vì hệ thống đã có `DELETE /api/appointments/{id}` chuyển `status = 'cancelled'` mà không xóa cứng DB, nên có thể tái sử dụng ngay trạng thái này làm xóa mềm.
-- *Nguy cơ tiềm ẩn*: Phá vỡ mô hình nghiệp vụ domain. Cancellation là trạng thái nghiệp vụ (khách hủy hẹn, slot giải phóng nhưng lịch sử vẫn hiển thị cho khách xem). Soft delete là thao tác kỹ thuật đưa vào thùng rác (ẩn hoàn toàn khỏi màn hình người dùng). Nếu đánh đồng hai khái niệm, hệ thống không thể phân biệt được một lịch bị hủy với một lịch bị xóa vào thùng rác.
-- *Phát hiện & Sửa đổi*: Phản biện của sinh viên tại Checkpoint 1 và đối chiếu partial unique index `uq_appointments_active_starts_at` đã buộc AI phải tách biệt trường `status` và `is_deleted`.
+## 4. Two plausible but unreliable AI outputs
 
-### Điểm 2: AI tin tưởng ngây thơ vào `customer_name` và `X-User-Id`
-- *Hiện tượng*: Khi giải quyết phân quyền, AI đề xuất gán `owner_id = customer_name` nếu thiếu header, và cho rằng chỉ cần kiểm tra header không rỗng là đã "xác thực" được danh tính.
-- *Nguy cơ tiềm ẩn*: Hai khách hàng trùng tên có thể đọc và xóa lịch của nhau; kẻ tấn công có thể dễ dàng spoofing header `X-User-Id` để mạo danh bất kỳ user nào trong hệ thống.
-- *Phát hiện & Sửa đổi*: Sinh viên tại Checkpoint 2 đã bác bỏ kết luận này. AI đã hiệu chỉnh: Dữ liệu cũ trong migration được gán `legacy_` unguessable ID; đồng thời thừa nhận rõ ràng trong báo cáo rằng việc chống spoofing bắt buộc phải dựa vào API Gateway / JWT verification ở mạng biên, đây là Residual Risk của phạm vi backend đơn lẻ.
+1. A nonempty `X-User-Id` looks like authentication but is just an assertion. Missing identity is now rejected; direct spoofing is still reproducible. Only a trusted ingress that strips client headers and injects verified identity can close this gap.
+2. An identifier `legacy_<UUID>` looks difficult to guess but may be derived from exposed IDs. A new DB access flag defaults false for historical rows; knowing any old owner string cannot re-enable access. The original migration comment calling it unguessable is historical wording, not the security mechanism.
 
----
+## 5. Limits
 
+No signed human approval, academic commitment or reflection authorship is inferred from AI output. No browser E2E, IdP, real network HTTP load, production topology or deterministic forced DB interleaving has been proved. `asyncio.gather` plus DB count assertions demonstrates observed outcomes, but does not prove every constraint rollback path was exercised.

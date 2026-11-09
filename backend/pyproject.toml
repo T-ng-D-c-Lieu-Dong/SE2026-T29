@@ -24,6 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "coverage>=7.17,<8",
     "httpx>=0.28,<1",
     "psutil>=6,<8",
     "pytest>=8.3,<10",

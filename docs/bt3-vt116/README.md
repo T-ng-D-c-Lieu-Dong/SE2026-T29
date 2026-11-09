@@ -1,113 +1,109 @@
-# BÀI TẬP CÁ NHÂN 3 — BIẾN THỂ VT-116
-## APP-03: Production Readiness Lab
-**Sinh viên:** Nguyễn Việt Anh  
-**MSSV:** 23001827  
-**Nhóm:** SE2026-T29 (Vai trò: QA Automation & Backend Engineer)  
-**Branch thực thi:** `bt3/23001827-vt116-soft-delete-restore`  
-**Baseline Commit:** `8fe9de89b719bde237a118e18a671db1d3dfd6cd` (origin/main)  
+# BT3 - VT-116 - Nguyễn Việt Anh (23001827)
 
----
+APP-03 / SE2026-T29. Personal branch: `bt3/23001827-vt116-soft-delete-restore`.
+Baseline: `8fe9de89b719bde237a118e18a671db1d3dfd6cd`. No merge into main.
+See `final-acceptance.md` for remote verification and final status; never infer a push from a local branch name.
 
-## 1. Giới thiệu & Phạm vi Triển khai
+## Contract and identity boundary
 
-Biến thể **VT-116** yêu cầu mở rộng Backend hệ thống đặt lịch khám bệnh với chức năng:
-- **Xóa mềm (Soft Delete)** và **Khôi phục (Restore)** lịch hẹn.
-- **Tính nhất quán dữ liệu liên quan:** Khi soft delete, slot thời gian phải được giải phóng cho người dùng khác đặt. Khi restore, nếu slot đã bị chiếm thì hệ thống từ chối (`409 Conflict`), không ghi đè lịch hiện hữu.
-- **Bảo mật & Phân quyền (RISK-01):** Ngăn chặn người dùng đọc, xóa mềm, khôi phục lịch hẹn của người khác (Cross-user unauthorized access/mutation). Lịch đã xóa mềm bị ẩn hoàn toàn khỏi API công khai (`GET /api/appointments/{id}` trả về `404 Not Found` chống ID enumeration), chỉ có thể truy vấn qua API thùng rác riêng `/api/appointments/trash` có xác thực quyền sở hữu.
-- **Kiểm thử chuyển trạng thái (State Transition Testing):** Thiết kế ma trận 8 trạng thái/chuyển dịch phủ kín lifecycle của cuộc hẹn.
-- **Thực nghiệm Mutation:** Đảo điều kiện `owner != caller_id` thành `owner == caller_id` trong business rule để kiểm chứng năng lực phát hiện lỗi của test suite (100% mutation killed).
-- **Thực nghiệm Hiệu năng:** Đo lường 40 người dùng đồng thời, p95 đạt 482.7 ms (ràng buộc đề bài: $\le 1.5$ s).
+Public: `/api/slots`, `/health/live`, `/health/ready`, `/api/version` (slot response exposes availability, not patient records).
+Private: **all** `/api/appointments` routes, including POST create, GET list/detail/trash, PATCH soft-delete/restore and DELETE cancel.
+They require a nonempty, <=100-character `X-User-Id`; reserved `legacy_*`, `anonymous`, `unassigned` callers are rejected (401).
+Ownership is an upstream assertion, **not authenticated by this backend**. Direct forged headers still succeed for current enabled owners: negative characterization tests intentionally document OPEN RISK. Before public deployment, trusted ingress must strip client identity headers, validate tokens, inject identity and deny direct backend access. That ingress is not implemented here.
 
----
+Create uses the asserted caller only; a conflicting body `owner_id` returns 422. `customer_name` is display data, never identity evidence. Cross-user detail returns 404; cross-user writes return 403.
 
-## 2. Cấu trúc Tài liệu & Evidence
+### Intentional compatibility/migration impact
 
-Thư mục `docs/bt3-vt116/` bao gồm:
-- `repository-audit.md`: Khảo sát kiến trúc hiện hữu, baseline verification và phân tích rủi ro ban đầu.
-- `implementation-plan.md`: Kế hoạch triển khai chi tiết, ghi nhận 4 assumptions và 2 điểm phản biện của sinh viên tại Checkpoint 1 & 2.
-- `test-strategy.md`: Chiến lược kiểm thử State Transition, ma trận chuyển dịch và danh sách test cases.
-- `traceability-and-ai-log.md`: Ma trận truy vết (Traceability Matrix) từ Change Request $\rightarrow$ Risk $\rightarrow$ Architecture $\rightarrow$ Test $\rightarrow$ Evidence, kèm nhật ký tương tác AI Usage Log.
-- `evidence/`: Thư mục lưu trữ log thực nghiệm độc lập:
-  - `01-red-test.log`: Minh chứng Test-first RED (12 tests FAILED, 1 test PASS ban đầu).
-  - `02-green-test.log`: Minh chứng Test GREEN sau khi implement (96/96 tests PASSED).
-  - `03-mutation.log`: Minh chứng Mutation Test (9 tests FAILED lập tức khi đảo logic phân quyền $\rightarrow$ KILLED).
-  - `04-performance.log`: Chi tiết thực nghiệm tải 40 tác vụ đồng thời (200 lifecycles, 0 errors, p95 = 482.7 ms).
-  - `04-performance.json`: Dữ liệu JSON thô của từng transaction và metrics thống kê.
-- `BT3_23001827_VT-116.tex`: Mã nguồn LaTeX báo cáo khoa học 8 trang chính + Phụ lục.
-- `BT3_23001827_VT-116.pdf`: Báo cáo PDF chính thức hoàn chỉnh.
+Existing frontend, smoke/persistence clients and callers that omit identity now receive 401 on private routes. They must obtain identity through trusted ingress; hardcoding a name or adding a free-form browser header is not a security fix. Existing business regression tests explicitly supply a caller, retaining their original business assertions. Public slots/health/version remain accessible.
+Run Alembic `upgrade head` before deployment. Revision `20261109_0003` sets `owner_access_enabled=false` for **all pre-existing rows**, including old name-derived owners. No client route changes this flag. Those bookings still reserve active slots, but cannot be read/mutated through the private API until an administrator independently verifies ownership and reassigns/enables the row. Do not bulk-enable or infer owners from names/UUIDs. This task supplies no administrative reassignment endpoint. New ORM-created bookings are enabled for upstream-asserted ownership; that is not proof of authentication. Do not downgrade to the old unsafe application contract without a separate review.
 
----
+## Reproduce in isolation (repository root)
 
-## 3. Hướng dẫn Tái lập Thực nghiệm (Reproducibility Guide)
+Python >=3.12; recorded run: Python 3.14.4, pytest 9.2.0, asyncpg 0.32.0, coverage 7.17.2.
+The repository compose file is `backend/compose.test.yaml` with `booking:booking`, database `booking_test`, port 55432. Inspecting it is safe:
 
-### 3.1. Yêu cầu môi trường
-- Python $\ge$ 3.11 (đã kiểm thử trên Python 3.14 venv).
-- Docker & Docker Compose (cho PostgreSQL test database).
-
-### 3.2. Khởi tạo Cơ sở dữ liệu Test
 ```bash
-# Khởi chạy PostgreSQL test container (chạy trên port 55432)
-docker compose -f backend/docker-compose.test.yml up -d
+docker compose -f backend/compose.test.yaml config
 ```
 
-### 3.3. Thiết lập Virtual Environment & Cài đặt Dependencies
+For this correction, use a **new** container with no shared volume. The actual isolated setup used:
+
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+docker run -d --name vt116-final-postgres --label purpose=vt116-final-isolated \
+  -e POSTGRES_DB=vt116_final_test -e POSTGRES_USER=booking -e POSTGRES_PASSWORD=booking \
+  -p 127.0.0.1:55433:5432 --tmpfs /var/lib/postgresql postgres:18-alpine
+docker exec vt116-final-postgres pg_isready -U booking -d vt116_final_test
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -e 'backend[dev]'
+export TEST_DATABASE_URL=postgresql+asyncpg://booking:booking@127.0.0.1:55433/vt116_final_test
+export BOOKING_DATABASE_URL="$TEST_DATABASE_URL"
+export PYTHONPATH=.:backend
 ```
 
-### 3.4. Chạy Toàn bộ Test Suite (96 Tests)
+Wait until pg_isready succeeds. A container already named `vt116-final-postgres` must be inspected before reuse; do not delete an unfamiliar container. The following migration drill requires a fresh database and must run **before pytest/load**, which create/drop/truncate test tables:
+
 ```bash
-TEST_DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:55432/booking_test" \
-DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:55432/booking_test" \
-pytest tests/ -v
+backend/.venv/bin/python scripts/verify_vt116_migration.py
+backend/.venv/bin/python scripts/capture_vt116_evidence.py /tmp/vt116-targeted.log \
+  backend/.venv/bin/pytest backend/tests/unit/test_soft_delete_restore.py \
+  backend/tests/integration/test_soft_delete_restore_api.py \
+  backend/tests/integration/test_vt116_security_transitions.py -v -p no:cacheprovider
+backend/.venv/bin/python scripts/capture_vt116_evidence.py /tmp/vt116-full.log \
+  backend/.venv/bin/pytest backend/tests -v -p no:cacheprovider
 ```
-*Kết quả kỳ vọng:* 96 passed in ~3.2s.
 
-### 3.5. Tái lập Thực nghiệm Mutation Testing
-1. Mở file `backend/app/services/booking.py`, tìm phương thức `soft_delete`:
-   ```python
-   # Dòng gốc:
-   if appointment.owner_id and appointment.owner_id != caller_id:
-       raise UnauthorizedAppointmentAccess("Cannot delete appointment owned by another user")
-   ```
-2. Đảo điều kiện (deliberate mutation):
-   ```python
-   # Đảo thành:
-   if appointment.owner_id and appointment.owner_id == caller_id:
-       raise UnauthorizedAppointmentAccess("Cannot delete appointment owned by another user")
-   ```
-3. Chạy test suite:
-   ```bash
-   pytest tests/integration/test_soft_delete_restore_api.py -v
-   ```
-   *Kết quả kỳ vọng:* 9/17 tests FAILED ngay lập tức (Mutation KILLED).
-4. Hoàn nguyên code về trạng thái ban đầu (`git checkout backend/app/services/booking.py`).
+Recorded final code results: targeted 33 PASS; full **117 PASS / 0 FAIL / 0 SKIP**, one upstream Starlette deprecation warning. Historical GREEN has only 17 tests; it is preserved, not relabeled as a 96-test run.
 
-### 3.6. Tái lập Thực nghiệm Hiệu năng (Load Test 40 Concurrency)
-Đảm bảo test database đang chạy, sau đó chạy script từ thư mục gốc repository:
+## Coverage and flaky checks
+
 ```bash
-# Từ thư mục gốc SE2026-T29/
-PYTHONPATH=backend backend/.venv/bin/python scripts/loadtest_vt116.py
+COVERAGE_CORE=sysmon backend/.venv/bin/python -m coverage run --branch \
+  --source=backend/app -m pytest backend/tests -q -p no:cacheprovider
+backend/.venv/bin/python -m coverage report -m
+backend/.venv/bin/python -m coverage json -o /tmp/vt116-coverage.json
+backend/.venv/bin/python scripts/verify_vt116_flaky.py
+backend/.venv/bin/ruff check .
+backend/.venv/bin/ruff format --check .
 ```
-*Kết quả kỳ vọng:*
-- 200 lifecycle tasks hoàn tất.
-- 0 failures.
-- Latency p95 $\approx 450 - 550$ ms (thỏa mãn $\le 1500$ ms).
 
----
+sysmon applies to the recorded Python 3.14 environment; other supported Python versions may use their default coverage core. The old exit-139 root cause is NOT VERIFIED: the final sysmon run completed successfully, so no integration-coverage estimate is needed. Full-app statement coverage: 808/859 (94.06%); branch coverage: 166/200 (83.00%). These are separate from coverage.py's combined 91.97% summary. Risk coverage and open limitations are in the strategy/traceability.
 
-## 4. Tóm tắt Thay đổi Mã nguồn (Git Commits)
+## One deliberate mutation (temporary branch only)
 
-| Commit SHA | Loại | Tóm tắt thay đổi |
-|:---|:---|:---|
-| `67d7fb7` | `test(bt3)` | Thêm test suite cho soft delete và restore (RED phase - 12 tests fail) |
-| `b417dc9` | `feat(bt3)` | Triển khai soft delete, restore, ownership authorization và trash API (GREEN phase) |
-| `06cd0b4` | `fix(bt3)` | Xử lý phản biện Checkpoint 2: Auth enforcement (401), DB race rollback, legacy ownership migration |
-| `4c6c9b2` | `fix(bt3)` | Chuẩn hóa IDE diagnostics, ruff lint, migration isolation và formatting |
-| `add1990` | `feat(bt3)` | Bổ sung script load test 40 concurrency, mutation log và ma trận truy vết |
+The actual guarded rule in `backend/app/services/booking.py::BookingService.soft_delete` is `if owner != caller_id:`. Change **only that occurrence** to `if owner == caller_id:` after its historical-owner guard, on a temporary branch/worktree. Never mutate the submitted branch.
 
-*Lưu ý:* Tất cả thay đổi được cách ly trên branch `bt3/23001827-vt116-soft-delete-restore`, không merge vào `main` để bảo toàn tiến độ nhóm chung.
+```bash
+git worktree add -b vt116-mutation-reproduce /tmp/vt116-mutation HEAD
+# Edit only the soft_delete owner comparison in that worktree, review git diff, commit there.
+# From that worktree, use the original absolute venv Python path to run:
+# python -m pytest backend/tests/unit/test_soft_delete_restore.py \
+#   backend/tests/integration/test_soft_delete_restore_api.py \
+#   backend/tests/integration/test_vt116_security_transitions.py -q -p no:cacheprovider
+```
 
+Recorded temporary mutation SHA `1b707ea`: **12 FAIL / 21 PASS**, therefore that one mutation is KILLED. This is not a general mutation coverage percentage. The worktree was removed and the mutation was not merged. Original historical mutation log remains unchanged.
+
+## Performance (same workload, paired evidence)
+
+```bash
+backend/.venv/bin/python scripts/loadtest_vt116.py --output-dir /tmp/vt116-load
+# Use the exact JSON path printed by the command:
+backend/.venv/bin/python scripts/verify_vt116_performance_evidence.py \
+  docs/bt3-vt116/evidence/final/performance-20261109T063500Z-038fb4c8.json
+```
+
+Recorded run `20261109T063500Z-038fb4c8`: 200 measured create/delete/restore lifecycles, 600 requests, cap 40, measured peak lifecycle/HTTP in-flight 40/40, 0 errors, p95 **420.11 ms** <=1500 ms. Warmup: 5 lifecycles, excluded from counters/duration. Runtime 1.8398 s; throughput 108.71 lifecycle/s. Raw samples and matching metrics are in the paired JSON/log. `ASGITransport` runs HTTP in-process against real PostgreSQL; no network HTTP overhead, IdP/gateway or production capacity claim is made. Semaphore caps concurrency; it does not guarantee 40 continuously active requests.
+
+Earlier JSON/log were overwritten at different times and lack a common run ID (log p95 482.70 ms versus JSON 602.2 ms). Their precise historical execution lineage cannot be reconstructed. They are excluded from the final result and recoverable from Git commit `58ad4e4`; stale local duplicates were removed.
+
+## Documents and artifacts
+
+- `final-correction-plan.md`: assumptions/plan before patch.
+- `test-strategy.md`: five ACs, state table and risk-based cases.
+- `traceability-and-ai-log.md`: exact functions/files/commits/results and AI usage.
+- `evidence/final/`: new immutable run outputs, raw coverage and paired performance artifacts.
+- `report/BT3_23001827_VT-116.tex` and `.pdf`: final report; root workspace copies have the same content.
+- `final-acceptance.md`: final checks, limitations, GitHub status.
+
+For PDF rebuild, use the installed Docker image `blang/latex:ubuntu` and XeLaTeX as documented in the PDF QA evidence. Main content is at most 8 pages; appendix contains full traceability and AI log. The reflection and commitment are for the student's review/confirmation, not signed by AI.
