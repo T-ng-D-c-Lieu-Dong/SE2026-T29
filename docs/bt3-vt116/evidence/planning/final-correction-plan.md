@@ -18,12 +18,15 @@
 Missing/blank/oversized identity; name collisions; reserved legacy headers; client owner payload disagreement; direct forged header; cancelled/past transitions; failed workload incorrectly marked successful; shared-state/order and clock dependence.
 
 ## Execution tasks (native, as explicitly requested)
-1. [ ] Add `backend/tests/integration/test_vt116_security_transitions.py`: missing identity, cross-user list/detail, name collisions, legacy read/write, forged header characterization, TC-11, cancelled delete/restore and deleted cancel. Run RED against unmodified code and save `evidence/final/01-security-red.log`.
-2. [ ] Patch `backend/app/api/appointments.py`, ownership rules in service/repository, and adapt existing positive regression fixtures to the explicit caller contract. Run targeted GREEN, review diff, commit security/tests separately.
-3. [ ] Fix `scripts/loadtest_vt116.py`: one run ID, immutable paired JSON/log output, peaks, complete metrics, failures affect verdict. Targeted tests for workload failure verdict/percentiles. Run independent load experiment.
-4. [ ] Run final full pytest suite, line/branch coverage, temporary-branch owner-rule mutation and deterministic repeated/reversed-order runs against isolated database. Save unedited outputs and exact tested commits.
-5. [ ] Replace outdated README/strategy/traceability with exact runnable commands and five ACs. Preserve audit/plan as historical with notices. Add AI log and explicit limits. Commit evidence/docs separately.
-6. [ ] Correct root LaTeX, render all pages with XeLaTeX, verify no overfull boxes/cut text and <=8 main pages; add report source/PDF to deliverable branch as explicitly requested despite prior ignore defaults. Back up current report first.
+1. [x] Add `backend/tests/integration/test_vt116_security_transitions.py`: missing identity, cross-user list/detail, name collisions, legacy read/write, forged header characterization, TC-11, cancelled delete/restore and deleted cancel. Run RED against unmodified code and save `evidence/final/01-security-red.log`.
+2. [x] Patch `backend/app/api/appointments.py`, ownership rules in service/repository, and adapt existing positive regression fixtures to the explicit caller contract. Run targeted GREEN, review diff, commit security/tests separately.
+3. [x] Fix `scripts/loadtest_vt116.py`: one run ID, immutable paired JSON/log output, peaks, complete metrics, failures affect verdict. Targeted tests for workload failure verdict/percentiles. Run independent load experiment.
+4. [x] Run final full pytest suite, line/branch coverage, temporary-branch owner-rule mutation and deterministic repeated/reversed-order runs against isolated database. Save unedited outputs and exact tested commits.
+5. [x] Replace outdated README/strategy/traceability with exact runnable commands and five ACs. Preserve audit/plan as historical with notices. Add AI log and explicit limits. Commit evidence/docs separately.
+6. [x] Correct root LaTeX, render all pages with XeLaTeX, verify no overfull boxes/cut text and <=8 main pages; add report source/PDF to deliverable branch as explicitly requested despite prior ignore defaults. Back up current report first.
 7. [ ] Check remote, push personal branch without force if permitted; verify remote SHA. Update final acceptance evidence and report with verified URL or BLOCKED. Record final commit and status.
 
 No merge, history rewrite, broader backend refactor, invented measurements or student sign-off.
+
+## Final execution status
+Tasks 1-6 executed. Main content flows naturally; long tables paginate with repeated headers. PDF: 6 main pages plus appendices; exact final count in PDF QA. Task 7: remote read verified, push rejected by automatic approval review; no remote branch exists yet. No merge or force push. Local artifacts are reviewable; GitHub deliverable BLOCKED pending explicit remote-egress approval.

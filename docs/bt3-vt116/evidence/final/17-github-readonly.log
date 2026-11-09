@@ -1,0 +1,15 @@
+UTC: 2026-11-09T06:56:28.752830+00:00
+Tested commit: 7f5f56f96cd53fb2a2939d5ab8aa7571ea0fdb4f
+Working tree before run:
+(clean)
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: git ls-remote --heads origin bt3/23001827-vt116-soft-delete-restore
+Database: isolated vt116_final_test on 127.0.0.1:55433
+
+Exit code: 0

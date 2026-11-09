@@ -1,0 +1,14 @@
+PDF QA: PASS
+Main pages: 6
+Appendix pages: 3
+Total pages: 9
+Overfull hbox/vbox: 0
+Words outside horizontal print bounds41..554pt:0
+Expected evidence metrics and explicit GitHub BLOCKED: present
+Reflection source draft:301 whitespace words
+Only forced page break:before common appendix
+Long tables:repeat headers and footers; natural pagination
+Visual QA:all final rendered pages inspected; equations, connectors and state labels legible, not clipped
+Build:XeLaTeX0.99992 in Docker blang/latex:ubuntu,two successful passes
+Source and PDF:workspace parent only; NO .tex/.pdf inside repository deliverable folder
+Previews:/tmp/bt3-final-pdf; raw build log16-xelatex-build.log
