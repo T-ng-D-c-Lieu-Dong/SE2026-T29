@@ -32,7 +32,9 @@ Evidence paths below are relative to `docs/bt3-vt116/`.
 
 ## Remaining action
 
-Approve sending **this personal branch and its complete branch contents** to `https://github.com/CuongMotNang/SE2026-T29.git`. A normal push is needed to create the real branch URL; no merge, force push or history rewrite is required. After authorized successful push, replace the explicit BLOCKED field on PDF page1 with the verified URL, rebuild, and push the report commit.
+Automatic approval review blocked the push (exact reason above). In addition, read-only inspection found that historical commit `d864f1c` added PDF/LaTeX and `84bc880` removed them from the tree. They still exist in branch history. No push has occurred in this correction.
+
+The current user instruction excludes both PDF and LaTeX from GitHub. An ordinary push of this branch would also upload their historical objects, despite a clean current tree. A reviewed history/export decision is required before any future push. Do not bypass the approval rejection, rewrite RED/GREEN history, or assume removing files from the current tree removes them from history. The present branch and all original RED/GREEN commits are preserved.
 
 ## PDF rebuild
 
@@ -45,4 +47,4 @@ docker run --rm --user 1000:1000 \
   -interaction=nonstopmode -halt-on-error BT3_23001827_VT-116.tex
 ```
 
-Run twice. Both `.tex` and `.pdf` stay in the workspace parent, outside the repository, per the student's explicit instruction. No PDF/LaTeX is staged or pushed. PNG previews/build auxiliaries stay outside this document folder; raw XeLaTeX build log is retained as evidence.
+Run twice. Both `.tex` and `.pdf` stay in the workspace parent, outside the repository, per the student's explicit instruction. No PDF/LaTeX is staged or pushed in this correction. Historical commit d864f1c already contains old PDF/LaTeX; a future ordinary push would also send those historical objects. Therefore no ordinary push should be attempted under the current no-document-upload requirement until the branch history/export strategy is explicitly resolved. PNG previews/build auxiliaries stay outside this document folder; raw XeLaTeX build log is retained as evidence.
