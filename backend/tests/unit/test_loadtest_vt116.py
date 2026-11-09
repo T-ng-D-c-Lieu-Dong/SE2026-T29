@@ -1,7 +1,6 @@
 """The performance verdict must never pass an empty or failed workload."""
 
 import pytest
-
 from scripts.loadtest_vt116 import calculate_percentile, performance_goal_met
 
 

@@ -197,12 +197,12 @@ async def run_load_test() -> dict[str, object]:
     success_rate = round((success_count / TOTAL_REQUESTS) * 100, 2)
 
     latency_stats: dict[str, float] = {
-        "avg": round(avg_latency, 4),
-        "p50": round(p50, 4),
-        "p95": round(p95, 4),
-        "p99": round(p99, 4),
-        "min": round(min(latencies), 4) if latencies else 0.0,
-        "max": round(max(latencies), 4) if latencies else 0.0,
+        "avg": avg_latency,
+        "p50": p50,
+        "p95": p95,
+        "p99": p99,
+        "min": min(latencies) if latencies else 0.0,
+        "max": max(latencies) if latencies else 0.0,
     }
 
     result: dict[str, object] = {
@@ -253,7 +253,8 @@ async def run_load_test() -> dict[str, object]:
     print(f"p95 Latency                   : {p95 * 1000:.2f} ms")
     print(f"p99 Latency                   : {p99 * 1000:.2f} ms")
     print(
-        f"Min / Max latency             : {min(latencies, default=0) * 1000:.2f} / {max(latencies, default=0) * 1000:.2f} ms"
+        f"Min / Max latency             : {min(latencies, default=0) * 1000:.2f} / "
+        f"{max(latencies, default=0) * 1000:.2f} ms"
     )
     print(f"Errors / error rate            : {error_count} / {result['error_rate_percent']}%")
     print(f"Warmup errors                 : {warmup_errors}")
