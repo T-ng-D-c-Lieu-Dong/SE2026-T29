@@ -23,6 +23,20 @@ def get_telemetry_runtime(request: Request) -> TelemetryRuntime:
 TelemetryDependency = Annotated[TelemetryRuntime, Depends(get_telemetry_runtime)]
 
 
+def require_authenticated_caller(
+    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+) -> str:
+    if not caller_id or not caller_id.strip():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required: X-User-Id header is missing or empty",
+        )
+    return caller_id.strip()
+
+
+AuthenticatedCallerDependency = Annotated[str, Depends(require_authenticated_caller)]
+
+
 def booking_service(session: AsyncSession, telemetry: TelemetryRuntime) -> BookingService:
     return BookingService(
         AppointmentRepository(session),
@@ -38,7 +52,7 @@ async def create_appointment(
     telemetry: TelemetryDependency,
     caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
 ) -> AppointmentRead:
-    effective_owner = caller_id or payload.owner_id or payload.customer_name
+    effective_owner = caller_id.strip() if caller_id and caller_id.strip() else (payload.owner_id or payload.customer_name)
     try:
         appointment = await booking_service(session, telemetry).create(
             customer_name=payload.customer_name,
@@ -68,7 +82,7 @@ async def list_appointments(
     appointments, total = await BookingService(AppointmentRepository(session)).list(
         limit,
         offset,
-        owner_id=caller_id,
+        owner_id=caller_id.strip() if caller_id and caller_id.strip() else None,
     )
     return AppointmentList(
         items=[AppointmentRead.model_validate(item) for item in appointments],
@@ -82,13 +96,12 @@ async def list_appointments(
 async def list_trash(
     session: SessionDependency,
     telemetry: TelemetryDependency,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    caller_id: AuthenticatedCallerDependency,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AppointmentList:
-    effective_caller = caller_id or "anonymous"
     appointments, total = await booking_service(session, telemetry).list_trash(
-        caller_id=effective_caller,
+        caller_id=caller_id,
         limit=limit,
         offset=offset,
     )
@@ -110,7 +123,7 @@ async def get_appointment(
     try:
         appointment = await booking_service(session, telemetry).get(
             appointment_id,
-            caller_id=caller_id,
+            caller_id=caller_id.strip() if caller_id and caller_id.strip() else None,
         )
     except AppointmentNotFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
@@ -122,13 +135,12 @@ async def soft_delete_appointment(
     appointment_id: UUID,
     session: SessionDependency,
     telemetry: TelemetryDependency,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    caller_id: AuthenticatedCallerDependency,
 ) -> AppointmentRead:
-    effective_caller = caller_id or "anonymous"
     try:
         appointment = await booking_service(session, telemetry).soft_delete(
             appointment_id,
-            caller_id=effective_caller,
+            caller_id=caller_id,
         )
     except AppointmentNotFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
@@ -142,13 +154,12 @@ async def restore_appointment(
     appointment_id: UUID,
     session: SessionDependency,
     telemetry: TelemetryDependency,
-    caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    caller_id: AuthenticatedCallerDependency,
 ) -> AppointmentRead:
-    effective_caller = caller_id or "anonymous"
     try:
         appointment = await booking_service(session, telemetry).restore(
             appointment_id,
-            caller_id=effective_caller,
+            caller_id=caller_id,
         )
     except AppointmentNotFound as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

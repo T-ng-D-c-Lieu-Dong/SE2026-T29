@@ -17,15 +17,24 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    # 1. Add owner_id as nullable first, populate from customer_name to prevent shared anonymous ownership, then make NOT NULL
     op.add_column(
         "appointments",
         sa.Column(
             "owner_id",
             sa.String(length=100),
-            server_default=sa.text("'anonymous'"),
-            nullable=False,
+            nullable=True,
         ),
     )
+    op.execute("UPDATE appointments SET owner_id = customer_name WHERE owner_id IS NULL")
+    op.alter_column(
+        "appointments",
+        "owner_id",
+        nullable=False,
+        server_default=sa.text("'unassigned'"),
+    )
+
+    # 2. Add soft delete flags
     op.add_column(
         "appointments",
         sa.Column(
@@ -40,7 +49,7 @@ def upgrade() -> None:
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
     )
 
-    # Recreate partial index to exclude soft-deleted records
+    # 3. Recreate partial unique index to exclude soft-deleted records
     op.drop_index("uq_appointments_active_starts_at", table_name="appointments")
     op.create_index(
         "uq_appointments_active_starts_at",
@@ -63,3 +72,4 @@ def downgrade() -> None:
     op.drop_column("appointments", "deleted_at")
     op.drop_column("appointments", "is_deleted")
     op.drop_column("appointments", "owner_id")
+

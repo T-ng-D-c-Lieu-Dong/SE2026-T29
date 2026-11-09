@@ -41,8 +41,6 @@ class Appointment(Base):
     owner_id: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
-        default="anonymous",
-        server_default=text("'anonymous'"),
     )
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(

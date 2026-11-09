@@ -21,12 +21,13 @@ class AppointmentRepository:
         self,
         customer_name: str,
         starts_at: datetime,
-        owner_id: str = "anonymous",
+        owner_id: str | None = None,
     ) -> Appointment:
+        effective_owner = owner_id or customer_name
         appointment = Appointment(
             customer_name=customer_name,
             starts_at=starts_at,
-            owner_id=owner_id,
+            owner_id=effective_owner,
         )
         self.session.add(appointment)
         try:
@@ -114,7 +115,13 @@ class AppointmentRepository:
         return set(rows)
 
     async def commit(self) -> None:
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            if ACTIVE_SLOT_CONSTRAINT in str(exc.orig):
+                raise SlotAlreadyBooked("This slot already has an active booking") from exc
+            raise
 
     async def refresh(self, appointment: Appointment) -> None:
         await self.session.refresh(appointment)
