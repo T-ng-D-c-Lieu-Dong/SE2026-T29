@@ -1,14 +1,17 @@
 from contextlib import contextmanager
 from datetime import UTC, date, datetime, timedelta
 from types import SimpleNamespace
+from typing import cast
 from uuid import uuid4
 
 import pytest
 
 from app.domain import AppointmentNotFound, InvalidSlot
 from app.models import AppointmentStatus
+from app.repositories import AppointmentRepository
 from app.services.booking import BOOKING_TIMEZONE, BookingService, normalize_start_time
 from app.services.fault_injection import BookingFaultInjector, InjectedBookingFault
+from app.telemetry import TelemetryRuntime
 
 NOW = datetime(2026, 10, 7, 3, 0, tzinfo=UTC)
 
@@ -85,7 +88,11 @@ def test_normalize_start_time_rejects_invalid_slots(starts_at: datetime) -> None
 async def test_create_uses_normalized_time_and_commits() -> None:
     repository = FakeRepository()
     telemetry = FakeTelemetry()
-    service = BookingService(repository, now_provider=lambda: NOW, telemetry=telemetry)
+    service = BookingService(
+        cast(AppointmentRepository, repository),
+        now_provider=lambda: NOW,
+        telemetry=cast(TelemetryRuntime, telemetry),
+    )
 
     appointment = await service.create(
         "Cuong",
@@ -107,7 +114,7 @@ async def test_create_injects_error_before_repository_write() -> None:
         random_provider=lambda: 0.0,
     )
     service = BookingService(
-        repository,
+        cast(AppointmentRepository, repository),
         now_provider=lambda: NOW,
         fault_injector=injector,
     )
@@ -125,7 +132,11 @@ async def test_create_injects_error_before_repository_write() -> None:
 async def test_cancel_is_idempotent() -> None:
     repository = FakeRepository()
     telemetry = FakeTelemetry()
-    service = BookingService(repository, now_provider=lambda: NOW, telemetry=telemetry)
+    service = BookingService(
+        cast(AppointmentRepository, repository),
+        now_provider=lambda: NOW,
+        telemetry=cast(TelemetryRuntime, telemetry),
+    )
     appointment = await service.create(
         "Cuong",
         datetime(2026, 10, 10, 10, 0, tzinfo=BOOKING_TIMEZONE),
@@ -142,7 +153,7 @@ async def test_cancel_is_idempotent() -> None:
 
 async def test_cancel_unknown_appointment() -> None:
     repository = FakeRepository()
-    service = BookingService(repository, now_provider=lambda: NOW)
+    service = BookingService(cast(AppointmentRepository, repository), now_provider=lambda: NOW)
 
     with pytest.raises(AppointmentNotFound):
         await service.cancel(uuid4())
@@ -150,7 +161,7 @@ async def test_cancel_unknown_appointment() -> None:
 
 async def test_available_slots_excludes_booked_slot() -> None:
     repository = FakeRepository()
-    service = BookingService(repository, now_provider=lambda: NOW)
+    service = BookingService(cast(AppointmentRepository, repository), now_provider=lambda: NOW)
     booked = await service.create(
         "Cuong",
         datetime(2026, 10, 10, 10, 0, tzinfo=BOOKING_TIMEZONE),

@@ -39,3 +39,10 @@ Thu thập metrics, traces và logs để phát hiện, điều tra lỗi và li
   blackbox exporter, node-exporter, cAdvisor; CI kiểm tra cấu hình bằng validator của từng công cụ.
 - Còn thiếu lần chạy trên máy demo, webhook thật và evidence từ reliability drill; vì vậy task
   chưa thể chuyển sang `Done`.
+
+## Đối chiếu tuần 2 ngày 28/10/2026
+
+- C061–C070 và C091–C100 đã có code, test hoặc local evidence tương ứng.
+- Bổ sung explicit HTTP duration buckets và trace-based exemplar filter tại `072ba36`.
+- Trạng thái task vẫn là `In Progress` vì tiêu chí hoàn thành yêu cầu demo chung, webhook thật và
+  reliability drill; xem [bảng đối chiếu](../evidence/2026-10-28-week2-reconciliation.md).

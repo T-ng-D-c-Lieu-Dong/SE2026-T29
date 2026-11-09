@@ -28,7 +28,7 @@ Phát hành image có định danh, triển khai đúng artifact và khôi phụ
 
 - Workflows: `.github/workflows/release.yml`, `.github/workflows/rollback.yml`, `.github/workflows/ci.yml`.
 - Dockerfile và Compose: `backend/Dockerfile`, `deploy/compose.production.yaml`, `deploy/compose.yaml`.
-- Scripts & Tools: `scripts/release_manifest.py`, `scripts/deploy_lock.py`, `scripts/smoke_test.py`, `scripts/deploy.py`, `scripts/rollback.py`, `scripts/deploy.sh`, `scripts/rollback.sh`.
-- Tài liệu quy định: `docs/releases/migration-policy.md`, manifest mẫu `docs/releases/v0.1.0.json`.
-- Kiểm chứng: 34 unit và integration tests pass 100%, Ruff check & format pass.
+- Scripts & Tools: `scripts/release_manifest.py`, `scripts/deploy_lock.py`, `scripts/deploy_history.py`, `scripts/smoke_test.py`, `scripts/deploy.py`, `scripts/rollback.py`, `scripts/deploy.sh`, `scripts/rollback.sh`, bộ công cụ load test `loadtest/` (`slots.js`, `booking.js`).
+- Tài liệu quy định: [Quy trình Release và Deploy](../releases/release-process.md), [Chính sách Migration](../releases/migration-policy.md), manifest mẫu `docs/releases/v0.1.0.json`, tài liệu load test `loadtest/README.md`.
+- Kiểm chứng: 84 unit tests pass 100%, Ruff check & format pass.
 - Bằng chứng chi tiết: [Release and Rollback evidence](../evidence/2026-10-14-release-deploy.md).

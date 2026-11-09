@@ -24,7 +24,9 @@ Production Readiness Lab xây một dịch vụ đặt lịch nhỏ để thực
 - MVP dùng dữ liệu giả trong môi trường demo giới hạn truy cập. Chưa có tài khoản khách hàng; các thao tác xem/hủy thuộc lịch dùng chung. Cần thiết kế danh tính và quyền sở hữu booking trước khi mở dịch vụ cho khách hàng thật.
 - Chưa có thanh toán, gửi email, nhiều cơ sở, lịch lặp hay đồng bộ lịch bên ngoài.
 
-Các giả định này là lựa chọn thiết kế ban đầu, chưa phải yêu cầu đã được team xác nhận.
+Các quy tắc trên được giữ làm hợp đồng MVP khi chốt TASK-001 ngày 25/10/2026, sau khi đối chiếu
+API, service, model và frontend. Căn cứ và giới hạn được ghi trong
+[kết quả review](../evidence/2026-10-25-architecture-review.md).
 
 ## 4. Ranh giới hệ thống
 
@@ -40,19 +42,19 @@ flowchart TD
 
 UI/API và dữ liệu booking thuộc hệ thống nghiệp vụ. GitHub Actions, registry và hệ thống observability hỗ trợ xây dựng, phát hành và vận hành. PostgreSQL và các dịch vụ observability được triển khai cùng môi trường lab nhưng có vòng đời dữ liệu riêng với container ứng dụng.
 
-## 5. Ràng buộc và lựa chọn ban đầu
+## 5. Ràng buộc và lựa chọn kiến trúc
 
 | Nội dung | Cơ sở | Áp dụng |
 | --- | --- | --- |
 | API + UI, tests, container, CI/CD, observability, rollback | Đề bài | Deliverable bắt buộc |
 | GitHub Actions và OpenTelemetry | Công nghệ trong đề bài | Workflow tự động và instrumentation |
 | React + FastAPI + PostgreSQL | Stack đã đề xuất trong trao đổi | UI, API, dữ liệu có transaction |
-| Một Linux VM chạy Docker Compose | Giả định để kiểm soát chi phí và độ phức tạp | ADR-001; chưa chọn nhà cung cấp hoặc tạo VM |
+| Một Linux VM chạy Docker Compose | Quyết định trong ADR-001 đã Accepted | Đích triển khai demo; các kết quả local hiện có chưa chứng minh máy demo đã sẵn sàng |
 | Một backend dạng modular monolith | Quy mô nghiệp vụ nhỏ | Một tiến trình API, chia module trong code |
 | Tài nguyên lab có giới hạn | Điều kiện thiết kế | Giới hạn retention telemetry, đo tài nguyên trước demo |
 | Có thể chạy từ máy Windows | Bối cảnh học tập | Code tương thích local; server đích là Linux |
 
-## 6. Hợp đồng API dự kiến
+## 6. Hợp đồng API hiện tại
 
 | API | Mục đích | Kết quả chính |
 | --- | --- | --- |
@@ -66,13 +68,14 @@ UI/API và dữ liệu booking thuộc hệ thống nghiệp vụ. GitHub Action
 
 Ví dụ dữ liệu tạo booking: `{"customer_name":"Cuong","starts_at":"2026-10-10T10:00:00+07:00"}`. Kết quả lưu thời điểm tương ứng `2026-10-10T03:00:00Z`.
 
-Schema dự kiến: `appointments(id UUID, customer_name TEXT, starts_at TIMESTAMPTZ, status TEXT, created_at TIMESTAMPTZ, cancelled_at TIMESTAMPTZ NULL)`.
+Schema hiện tại: `appointments(id UUID, customer_name VARCHAR(100), starts_at TIMESTAMPTZ, status VARCHAR(16), created_at TIMESTAMPTZ, cancelled_at TIMESTAMPTZ NULL)`; các cột trừ `cancelled_at` đều bắt buộc.
 
 Database phải kiểm soát trạng thái hợp lệ và uniqueness của `starts_at` khi `status = 'booked'` bằng partial unique index. Chỉ kiểm tra slot trước khi INSERT trong Python chưa đủ khi hai request chạy đồng thời.
 
 ## 7. Thuộc tính chất lượng và tiêu chí đo
 
-Các số dưới đây là **mục tiêu đề xuất**, không phải kết quả đã đo.
+Các số dưới đây là **mục tiêu chất lượng của lab**, không phải kết quả đã đo. Kết quả thực tế
+theo từng môi trường được ghi riêng trong [Evidence](../evidence.md).
 
 | Thuộc tính | Tình huống | Phản ứng mong đợi | Cách kiểm chứng |
 | --- | --- | --- | --- |
@@ -105,4 +108,4 @@ Dashboard và telemetry chỉ nằm trong mạng quản trị. Giữ secret ngo�
 - [PostgreSQL: Partial indexes](https://www.postgresql.org/docs/18/indexes-partial.html) — partial unique index cho tập bản ghi thỏa điều kiện.
 - [OpenTelemetry: Collector](https://opentelemetry.io/docs/collector/) — tiếp nhận, xử lý và xuất telemetry.
 
-Các mục tiêu, API và quy tắc nghiệp vụ trong tài liệu là đề xuất riêng cho lab.
+Các mục tiêu, API và quy tắc nghiệp vụ trong tài liệu là phạm vi riêng của lab.

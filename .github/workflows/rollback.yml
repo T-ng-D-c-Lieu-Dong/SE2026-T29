@@ -4,34 +4,97 @@ on:
   workflow_dispatch:
     inputs:
       target_manifest:
-        description: "Path to release manifest to restore (defaults to deploy/previous-manifest.json)"
+        description: "Manifest path on the demo host to restore (empty = <state dir>/previous-manifest.json)"
         required: false
-        default: "deploy/previous-manifest.json"
+        default: ""
       reason:
         description: "Reason for initiating rollback"
         required: true
         default: "Manual rollback triggered after incident drill or alert"
+  repository_dispatch:
+    types: [alert-rollback, automated-rollback]
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  # Shared with deploy.yml so the demo host never runs deploy and rollback at once.
+  # Queue instead of cancelling: an interrupted deploy leaves the stack half-updated.
+  group: deploy-demo
+  cancel-in-progress: false
+
+env:
+  # Must match deploy.yml so Compose recreates the same containers.
+  COMPOSE_PROJECT_NAME: booking
+  BOOKING_STATE_DIR: ${{ vars.BOOKING_STATE_DIR || '/opt/booking/state' }}
+  # Smoke tests go through the web proxy, the only port the demo host publishes.
+  DEPLOY_BASE_URL: http://localhost
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   rollback:
     name: Execute Rollback
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, demo]
+    env:
+      TARGET_MANIFEST: ${{ github.event.inputs.target_manifest || github.event.client_payload.target_manifest || '' }}
+      ROLLBACK_REASON: ${{ github.event.inputs.reason || github.event.client_payload.reason || 'Automated rollback triggered via repository_dispatch' }}
+      ALERT_NAME: ${{ github.event.client_payload.alert_name || 'manual' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
+      - name: Prepare Python environment
         run: |
-          python -m pip install --upgrade pip
-          pip install -e "./backend[dev]"
-          pip install psutil
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet "psutil>=5.9"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
       - name: Run rollback script
         run: |
-          echo "Initiating rollback. Reason: ${{ github.event.inputs.reason }}"
-          python -m scripts.rollback --target-manifest "${{ github.event.inputs.target_manifest }}"
+          mkdir -p "$RUNNER_TEMP/rollback-evidence"
+          echo "Initiating rollback. Trigger source: ${{ github.event_name }} (alert: $ALERT_NAME). Reason: $ROLLBACK_REASON"
+          args=(--state-dir "$BOOKING_STATE_DIR" --base-url "$DEPLOY_BASE_URL" --timeout 120 --verify-slo)
+          if [[ -n "$TARGET_MANIFEST" ]]; then
+            args+=(--target-manifest "$TARGET_MANIFEST")
+          fi
+          python -m scripts.rollback "${args[@]}" \
+            2>&1 | tee "$RUNNER_TEMP/rollback-evidence/rollback.log"
+
+      - name: Verify Rollback Duration SLO (E12 <= 300s)
+        run: |
+          python -m scripts.verify_rollback_slo \
+            --state-dir "$BOOKING_STATE_DIR" \
+            --target-seconds 300.0 \
+            --fail-on-violation \
+            2>&1 | tee -a "$RUNNER_TEMP/rollback-evidence/rollback.log"
+
+      - name: Collect rollback state
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/rollback-evidence"
+          for file in current-manifest.json previous-manifest.json history.json; do
+            if [[ -f "$BOOKING_STATE_DIR/$file" ]]; then
+              cp "$BOOKING_STATE_DIR/$file" "$RUNNER_TEMP/rollback-evidence/"
+            fi
+          done
+          docker compose -f deploy/compose.production.yaml ps -a \
+            > "$RUNNER_TEMP/rollback-evidence/compose-ps.txt" 2>&1 || true
+
+      - name: Upload rollback evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/rollback-evidence
+          if-no-files-found: ignore

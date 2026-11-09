@@ -16,6 +16,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from scripts.fault_config import FaultConfig
+
 HEX_SHA_REGEX = re.compile(r"^[0-9a-fA-F]{7,40}$")
 DIGEST_REGEX = re.compile(r"^sha256:[0-9a-fA-F]{64}$")
 
@@ -65,6 +67,7 @@ class ReleaseManifest:
             "rollback_window_supported": True,
         }
     )
+    fault: FaultConfig = field(default_factory=FaultConfig)
 
     @property
     def backend_image(self) -> ImageSpec | None:
@@ -97,6 +100,7 @@ class ReleaseManifest:
             for service_name, spec in self.images.items():
                 errors.extend(spec.validate(service_name))
 
+        errors.extend(self.fault.validate())
         return errors
 
     def to_dict(self) -> dict[str, Any]:
@@ -140,6 +144,7 @@ class ReleaseManifest:
             created_at=str(data.get("created_at") or datetime.now(UTC).isoformat()),
             schema_version=str(data.get("schema_version", "1.0.0")),
             compatibility=dict(data.get("compatibility", {})),
+            fault=FaultConfig(**data.get("fault", {})),
         )
         return manifest
 
@@ -194,6 +199,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Frontend image digest (optional, must start with sha256: if provided)",
     )
     create_parser.add_argument(
+        "--fault-config",
+        help="Optional JSON fault config (mode, rate, until or duration_seconds, latency_seconds)",
+    )
+    create_parser.add_argument(
         "--output",
         required=True,
         help="Path where the JSON manifest will be saved",
@@ -230,6 +239,9 @@ def main() -> None:
             commit_sha=args.commit_sha,
             migration_revision=args.migration_revision,
             images=images,
+            fault=FaultConfig(**json.loads(Path(args.fault_config).read_text(encoding="utf-8")))
+            if args.fault_config
+            else FaultConfig(),
         )
         manifest.save(args.output)
         print(f"Manifest successfully created and saved to: {args.output}")

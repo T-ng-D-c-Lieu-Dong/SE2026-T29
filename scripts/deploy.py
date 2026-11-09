@@ -17,6 +17,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+from scripts.deploy_history import DeploymentHistory
 from scripts.deploy_lock import DeploymentLock, DeploymentLockError
 from scripts.release_manifest import ReleaseManifest
 from scripts.smoke_test import SmokeTestRunner
@@ -73,6 +74,8 @@ class Deployer:
         self.previous_manifest_file = self.state_dir / "previous-manifest.json"
         self.env_file = self.state_dir / ".env.production"
         self.lock_dir = self.state_dir / ".deploy.lock"
+        self.history = DeploymentHistory(state_dir=self.state_dir)
+        self.history_file = self.history.history_file
 
     def execute_command(self, cmd: list[str], cwd: Path | None = None) -> None:
         cmd_str = " ".join(cmd)
@@ -106,6 +109,14 @@ class Deployer:
             f"BOOKING_RELEASE={manifest.release}\n"
             f"BOOKING_COMMIT_SHA={manifest.commit_sha}\n"
         )
+        if manifest.frontend_image:
+            env_content += f"FRONTEND_IMAGE_REF={manifest.frontend_image.pinned_reference}\n"
+        # Record the activation expiry on the effective manifest saved in state.
+        # Approval waiting time does not consume the drill's bounded lifetime.
+        manifest.fault = manifest.fault.activate()
+        env_content += "".join(
+            f"{key}={value}\n" for key, value in manifest.fault.to_environment().items()
+        )
         if self.dry_run:
             print(f"[DRY-RUN] Would write .env.production:\n{env_content}")
             return
@@ -118,15 +129,33 @@ class Deployer:
         print(f"[INFO] Checking database migration for revision: {manifest.migration_revision}")
         if self.dry_run or self.skip_container_ops:
             return
-        cmd = [sys.executable, "-m", "alembic", "upgrade", "head"]
-        self.execute_command(cmd, cwd=Path("backend"))
+        # Run Alembic from the release image itself: the demo host has neither the
+        # backend dependencies nor a published database port.
+        cmd = [
+            "docker",
+            "compose",
+            "--env-file",
+            str(self.env_file),
+            "-f",
+            str(self.compose_file),
+            "--profile",
+            "migrate",
+            "run",
+            "--rm",
+            "migrate",
+        ]
+        self.execute_command(cmd)
 
     def deploy_containers(self, manifest: ReleaseManifest) -> None:
-        backend_spec = manifest.images["backend"]
-        print(f"[INFO] Pulling immutable image by digest: {backend_spec.pinned_reference}")
+        pinned_images = [manifest.images["backend"]]
+        if manifest.frontend_image:
+            pinned_images.append(manifest.frontend_image)
+        for spec in pinned_images:
+            print(f"[INFO] Pulling immutable image by digest: {spec.pinned_reference}")
         if not self.skip_container_ops:
-            # 1. Pull pinned digest
-            self.execute_command(["docker", "pull", backend_spec.pinned_reference])
+            # 1. Pull pinned digests
+            for spec in pinned_images:
+                self.execute_command(["docker", "pull", spec.pinned_reference])
 
             # 2. Recreate containers using docker compose builder
             compose_cmd = build_compose_up_command(self.env_file, self.compose_file)
@@ -146,7 +175,11 @@ class Deployer:
             expected_release=manifest.release,
             expected_commit_sha=manifest.commit_sha,
         )
-        results = runner.run_all()
+        if manifest.fault.is_active():
+            print("[DRILL] Intentional fault active; checking readiness and version only.")
+            results = runner.run_health_checks()
+        else:
+            results = runner.run_all()
         for res in results:
             status = "PASS" if res.success else "FAIL"
             print(f"[{status}] ({res.duration_seconds:.2f}s) {res.step}: {res.message}")
@@ -193,50 +226,58 @@ class Deployer:
         print(f"Target migration: {manifest.migration_revision}")
         print("=" * 60)
 
-        with DeploymentLock(
-            lock_dir=self.lock_dir,
+        with self.history.track_operation(
             operation="deploy",
-            target_release=manifest.release,
-            timeout_seconds=5.0,
+            release=manifest.release,
+            commit_sha=manifest.commit_sha,
+            dry_run=self.dry_run,
         ):
-            # 1. Backup current manifest to previous before updating
-            if self.current_manifest_file.exists():
-                curr_content = self.current_manifest_file.read_text(encoding="utf-8")
-                self.previous_manifest_file.write_text(curr_content, encoding="utf-8")
-                print(f"[INFO] Backed up current manifest to {self.previous_manifest_file}")
+            with DeploymentLock(
+                lock_dir=self.lock_dir,
+                operation="deploy",
+                target_release=manifest.release,
+                timeout_seconds=5.0,
+            ):
+                # 1. Backup current manifest to previous before updating
+                if self.current_manifest_file.exists():
+                    curr_content = self.current_manifest_file.read_text(encoding="utf-8")
+                    self.previous_manifest_file.write_text(curr_content, encoding="utf-8")
+                    print(f"[INFO] Backed up current manifest to {self.previous_manifest_file}")
 
-            # 2. Write environment variables for compose
-            self.prepare_environment_file(manifest)
+                # 2. Write environment variables for compose
+                self.prepare_environment_file(manifest)
 
-            # 3. Apply database migrations
-            self.apply_migrations(manifest)
+                # 3. Apply database migrations
+                self.apply_migrations(manifest)
 
-            # 4. Deploy containers via compose
-            try:
-                self.deploy_containers(manifest)
-            except Exception as exc:
-                print(f"[ERROR] Container recreation failed: {exc}", file=sys.stderr)
-                self.trigger_auto_rollback()
-                raise
+                # 4. Deploy containers via compose
+                try:
+                    self.deploy_containers(manifest)
+                except Exception as exc:
+                    print(f"[ERROR] Container recreation failed: {exc}", file=sys.stderr)
+                    self.trigger_auto_rollback()
+                    raise
 
-            # 5. Run readiness and smoke test
-            smoke_ok = self.run_smoke_tests(manifest)
-            if not smoke_ok:
-                self.trigger_auto_rollback()
-                raise RuntimeError(
-                    f"Deployment failed post-deploy smoke tests for {manifest.release}. "
-                    "Automatic rollback executed."
-                )
+                # 5. Run readiness and smoke test
+                smoke_ok = self.run_smoke_tests(manifest)
+                if not smoke_ok:
+                    self.trigger_auto_rollback()
+                    raise RuntimeError(
+                        f"Deployment failed post-deploy smoke tests for {manifest.release}. "
+                        "Automatic rollback executed."
+                    )
 
-            # 6. Save current active manifest
-            if not self.dry_run:
-                self.current_manifest_file.write_text(manifest.to_json() + "\n", encoding="utf-8")
+                # 6. Save current active manifest
+                if not self.dry_run:
+                    self.current_manifest_file.write_text(
+                        manifest.to_json() + "\n", encoding="utf-8"
+                    )
 
-            elapsed = time.monotonic() - start_time
-            print("=" * 60)
-            print(f"Deployment SUCCESSFUL for {manifest.release} in {elapsed:.2f}s!")
-            print(f"Active manifest recorded at: {self.current_manifest_file}")
-            print("=" * 60)
+                elapsed = time.monotonic() - start_time
+                print("=" * 60)
+                print(f"Deployment SUCCESSFUL for {manifest.release} in {elapsed:.2f}s!")
+                print(f"Active manifest recorded at: {self.current_manifest_file}")
+                print("=" * 60)
 
 
 def main() -> None:

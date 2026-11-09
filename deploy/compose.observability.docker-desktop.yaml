@@ -1,0 +1,10 @@
+# Docker Desktop cannot apply the Linux rslave propagation used by node-exporter.
+# This override keeps local telemetry drills runnable while exposing metrics for
+# Docker Desktop's Linux VM rather than the physical Windows host.
+services:
+  node-exporter:
+    volumes:
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: true

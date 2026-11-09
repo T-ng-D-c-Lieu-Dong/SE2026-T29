@@ -1,0 +1,18 @@
+{
+  "python.analysis.extraPaths": [
+    ".",
+    "./backend",
+    "./scripts"
+  ],
+  "python.autoComplete.extraPaths": [
+    ".",
+    "./backend",
+    "./scripts"
+  ],
+  "python.testing.pytestArgs": [
+    "-c",
+    "pytest.ini"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
+}

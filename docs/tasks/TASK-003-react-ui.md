@@ -1,6 +1,6 @@
 # TASK-003 — Xây dựng React UI
 
-- Trạng thái: **Todo**
+- Trạng thái: **Done**
 - Người phụ trách: **Lê Văn Cường**
 - Mốc: **M2 — UI**
 - Phụ thuộc: TASK-002
@@ -23,3 +23,7 @@ Cung cấp giao diện để người dùng xem slot, đặt, xem và hủy lị
 - Người dùng thực hiện được luồng tạo, xem và hủy booking.
 - E2E chạy qua UI → API → PostgreSQL thành công.
 - Kiểm chứng E06 trong [Evidence](../evidence.md) đạt.
+
+## Kết quả kiểm chứng (25/10/2026)
+
+- Frontend lint, format, build, 18 unit/component tests và 8 Playwright E2E tests trên Compose/PostgreSQL đều đạt; xem [bằng chứng kiểm chứng](../evidence/frontend/2026-10-25-task-003-local.md).

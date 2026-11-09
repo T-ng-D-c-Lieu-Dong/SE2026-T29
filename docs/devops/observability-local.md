@@ -33,6 +33,21 @@ Khi đã có webhook thật, chạy lại mà không ghi URL vào lịch sử l�
 Script không in mật khẩu hoặc webhook ra terminal. Nếu chưa truyền webhook, file nhận giá trị
 placeholder và phải được cập nhật trước khi chạy alert drill.
 
+Khi chạy bằng Docker Desktop trên Windows, thêm override tương thích để bỏ mount propagation
+`rslave` mà Docker Desktop không hỗ trợ:
+
+```powershell
+docker compose `
+  --env-file deploy/observability.env `
+  -f deploy/compose.yaml `
+  -f deploy/compose.observability.yaml `
+  -f deploy/compose.observability.docker-desktop.yaml `
+  up -d --build --wait --wait-timeout 240
+```
+
+Trong chế độ này, node-exporter và cAdvisor phản ánh Linux VM của Docker Desktop, không phản ánh
+toàn bộ máy Windows. Evidence cuối cho tài nguyên host vẫn phải lấy trên máy demo Linux.
+
 `OBS_BIND_ADDRESS=127.0.0.1` chỉ cho phép truy cập dashboard từ máy chạy stack. Trên máy demo,
 chỉ đổi thành `0.0.0.0` khi các port được giới hạn bằng firewall, LAN riêng hoặc VPN.
 
@@ -84,7 +99,7 @@ Mở `http://localhost:9090/targets` và xác nhận các job sau đều `UP`:
 Sau khi gọi API vài lần, chạy các truy vấn nhanh trong Prometheus:
 
 ```promql
-sum(rate(http_server_request_duration_seconds_count{service_name="booking-api"}[1m]))
+sum(rate(http_server_duration_milliseconds_count{service_name="booking-api"}[1m]))
 ```
 
 ```promql
@@ -116,6 +131,45 @@ docker compose \
 
 Smoke test phải hoàn thành trong khi Collector dừng. Ghi thời gian và kết quả thật vào evidence;
 telemetry phát sinh trong khoảng outage có thể bị mất khi queue đầy.
+
+## Kiểm tra HighErrorRate — E11
+
+Đây là traffic dành riêng cho alert drill, không thay thế kịch bản k6 và báo cáo tải E15 của
+TASK-007. Bật fault có thời hạn dài hơn bài chạy, recreate riêng backend, rồi chạy trình tạo lỗi:
+
+```powershell
+$env:BOOKING_FAULT_MODE = "error"
+$env:BOOKING_FAULT_RATE = "1.0"
+$env:BOOKING_FAULT_UNTIL = (Get-Date).ToUniversalTime().AddMinutes(5).ToString("o")
+
+docker compose `
+  --env-file deploy/observability.env `
+  -f deploy/compose.yaml `
+  -f deploy/compose.observability.yaml `
+  -f deploy/compose.observability.docker-desktop.yaml `
+  up -d --no-deps --force-recreate --wait backend
+
+python -m scripts.observability_alert_traffic --rate 2 --duration 210
+```
+
+Theo dõi `HighErrorRate` qua Prometheus và Alertmanager, ghi timestamp `pending`, `firing`, thông
+báo Discord và `resolved`. Sau bài chạy, luôn tắt fault và recreate backend:
+
+```powershell
+$env:BOOKING_FAULT_MODE = "off"
+Remove-Item Env:BOOKING_FAULT_RATE -ErrorAction SilentlyContinue
+Remove-Item Env:BOOKING_FAULT_UNTIL -ErrorAction SilentlyContinue
+
+docker compose `
+  --env-file deploy/observability.env `
+  -f deploy/compose.yaml `
+  -f deploy/compose.observability.yaml `
+  -f deploy/compose.observability.docker-desktop.yaml `
+  up -d --no-deps --force-recreate --wait backend
+```
+
+Trình tạo traffic chỉ đạt khi toàn bộ response có status mong đợi và không có lỗi kết nối. Nó
+in đúng một JSON summary để lưu evidence, không in request body hoặc dữ liệu khách hàng.
 
 ## Dừng stack
 

@@ -389,9 +389,9 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "booking:http_requests:rate1m{http_route=~\"$route\"}",
+          "expr": "booking:http_requests:rate1m{http_target=~\"$route\"}",
           "instant": false,
-          "legendFormat": "{{http_route}}",
+          "legendFormat": "{{http_target}}",
           "range": true,
           "refId": "A"
         }
@@ -483,27 +483,27 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum by (le, http_route) (rate(http_server_request_duration_seconds_bucket{service_name=\"$service\",http_route=~\"$route\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.50, sum by (le, http_target) (rate(http_server_duration_milliseconds_bucket{service_name=\"$service\",http_target=~\"$route\"}[$__rate_interval]))) / 1000",
           "instant": false,
-          "legendFormat": "{{http_route}} p50",
+          "legendFormat": "{{http_target}} p50",
           "range": true,
           "refId": "A"
         },
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le, http_route) (rate(http_server_request_duration_seconds_bucket{service_name=\"$service\",http_route=~\"$route\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.95, sum by (le, http_target) (rate(http_server_duration_milliseconds_bucket{service_name=\"$service\",http_target=~\"$route\"}[$__rate_interval]))) / 1000",
           "hide": false,
           "instant": false,
-          "legendFormat": "{{http_route}} p95",
+          "legendFormat": "{{http_target}} p95",
           "range": true,
           "refId": "B"
         },
         {
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by (le, http_route) (rate(http_server_request_duration_seconds_bucket{service_name=\"$service\",http_route=~\"$route\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.99, sum by (le, http_target) (rate(http_server_duration_milliseconds_bucket{service_name=\"$service\",http_target=~\"$route\"}[$__rate_interval]))) / 1000",
           "hide": false,
           "instant": false,
-          "legendFormat": "{{http_route}} p99",
+          "legendFormat": "{{http_target}} p99",
           "range": true,
           "refId": "C"
         }
@@ -940,7 +940,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(http_server_request_duration_seconds_count{service_name=\"$service\"}, http_route)",
+        "definition": "label_values(http_server_duration_milliseconds_count{service_name=\"$service\"}, http_target)",
         "hide": 0,
         "includeAll": true,
         "label": "Route template",
@@ -948,7 +948,7 @@
         "name": "route",
         "options": [],
         "query": {
-          "query": "label_values(http_server_request_duration_seconds_count{service_name=\"$service\"}, http_route)",
+          "query": "label_values(http_server_duration_milliseconds_count{service_name=\"$service\"}, http_target)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,

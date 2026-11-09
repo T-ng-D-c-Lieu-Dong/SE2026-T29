@@ -25,8 +25,8 @@ names and request bodies out of every artifact.
 2. In Prometheus or Grafana, confirm traffic and the 5xx ratio:
 
    ```promql
-   sum by (http_route) (
-     rate(http_server_request_duration_seconds_count{service_name="booking-api"}[1m])
+   sum by (http_target) (
+     rate(http_server_duration_milliseconds_count{service_name="booking-api"}[1m])
    )
    ```
 

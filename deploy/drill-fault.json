@@ -1,0 +1,6 @@
+{
+  "mode": "error",
+  "rate": 0.2,
+  "duration_seconds": 900,
+  "latency_seconds": 3.0
+}

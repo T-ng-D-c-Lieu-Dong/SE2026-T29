@@ -1,0 +1,112 @@
+name: Deploy to Demo Host
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to deploy (for example v0.2.0)"
+        required: true
+  # A successful tag release deploys automatically (still gated by the job below).
+  workflow_run:
+    workflows: ["Release and Publish Manifest"]
+    types: [completed]
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  # Shared with rollback.yml so the demo host never runs deploy and rollback at once.
+  # Queue instead of cancelling: an interrupted deploy leaves the stack half-updated.
+  group: deploy-demo
+  cancel-in-progress: false
+
+env:
+  # Same project name in deploy and rollback so Compose manages the same containers.
+  COMPOSE_PROJECT_NAME: booking
+  BOOKING_STATE_DIR: ${{ vars.BOOKING_STATE_DIR || '/opt/booking/state' }}
+  # Smoke tests go through the web proxy, the only port the demo host publishes.
+  DEPLOY_BASE_URL: http://localhost
+
+defaults:
+  run:
+    # Explicit bash enables pipefail, so "| tee" keeps the deploy exit code.
+    shell: bash
+
+jobs:
+  deploy:
+    name: Deploy release to demo host
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: [self-hosted, demo]
+    # Required reviewers on this environment approve every deploy, manual or automatic.
+    environment: demo
+    env:
+      # For workflow_run, head_branch holds the tag that triggered the release.
+      RELEASE_TAG: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+    steps:
+      - name: Validate release tag
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Invalid release tag: $RELEASE_TAG"
+            exit 1
+          fi
+
+      - name: Checkout release tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Prepare Python environment
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet "psutil>=5.9"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Download release manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/manifest"
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "$RELEASE_TAG.json" \
+            --dir "$RUNNER_TEMP/manifest" \
+            --clobber
+          cat "$RUNNER_TEMP/manifest/$RELEASE_TAG.json"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Deploy release
+        run: |
+          mkdir -p "$RUNNER_TEMP/deploy-evidence"
+          python -m scripts.deploy \
+            --manifest "$RUNNER_TEMP/manifest/$RELEASE_TAG.json" \
+            --state-dir "$BOOKING_STATE_DIR" \
+            --base-url "$DEPLOY_BASE_URL" \
+            --timeout 120 \
+            2>&1 | tee "$RUNNER_TEMP/deploy-evidence/deploy.log"
+
+      - name: Collect deploy state
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/deploy-evidence"
+          for file in current-manifest.json previous-manifest.json history.json; do
+            if [[ -f "$BOOKING_STATE_DIR/$file" ]]; then
+              cp "$BOOKING_STATE_DIR/$file" "$RUNNER_TEMP/deploy-evidence/"
+            fi
+          done
+          docker compose -f deploy/compose.production.yaml ps -a \
+            > "$RUNNER_TEMP/deploy-evidence/compose-ps.txt" 2>&1 || true
+
+      - name: Upload deploy evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: deploy-${{ env.RELEASE_TAG }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/deploy-evidence
+          if-no-files-found: ignore

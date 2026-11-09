@@ -53,6 +53,8 @@ jobs:
 
       - name: Run test suite
         env:
+          # alembic reads BOOKING_DATABASE_URL; without it, it defaults to localhost:5432.
+          BOOKING_DATABASE_URL: postgresql+asyncpg://booking:booking@127.0.0.1:55432/booking_test
           TEST_DATABASE_URL: postgresql+asyncpg://booking:booking@127.0.0.1:55432/booking_test
         run: |
           cd backend
@@ -66,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
-      BACKEND_IMAGE_NAME: ${{ github.repository }}-backend
+      RELEASE_TAG: ${{ github.ref_name }}
       PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/backend
     steps:
       - name: Checkout repository
@@ -83,6 +85,13 @@ jobs:
           pip install -e "./backend[dev]"
           pip install psutil
 
+      # GHCR rejects uppercase repository names, and the repository owner is "CuongMotNang".
+      - name: Resolve image repositories
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "BACKEND_IMAGE=$REGISTRY/$owner/booking-backend" >> "$GITHUB_ENV"
+          echo "FRONTEND_IMAGE=$REGISTRY/$owner/booking-frontend" >> "$GITHUB_ENV"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -95,12 +104,25 @@ jobs:
 
       - name: Build and push backend image
         id: build_backend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:${{ github.ref_name }}
+          tags: ${{ env.BACKEND_IMAGE }}:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ github.ref_name }}
+
+      - name: Build and push frontend image
+        id: build_frontend
+        uses: docker/build-push-action@v7
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ env.FRONTEND_IMAGE }}:${{ github.ref_name }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -120,13 +142,20 @@ jobs:
       - name: Generate release manifest
         run: |
           mkdir -p docs/releases
+          fault_args=()
+          if [[ "$RELEASE_TAG" == *-drill || "$RELEASE_TAG" == *-drill.* ]]; then
+            fault_args=(--fault-config deploy/drill-fault.json)
+          fi
           python -m scripts.release_manifest create \
-            --release "${{ github.ref_name }}" \
+            --release "$RELEASE_TAG" \
             --commit-sha "${{ github.sha }}" \
             --migration-revision "${{ steps.metadata.outputs.migration_revision }}" \
-            --backend-repo "${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}" \
+            --backend-repo "$BACKEND_IMAGE" \
             --backend-digest "${{ steps.metadata.outputs.backend_digest }}" \
-            --output "docs/releases/${{ github.ref_name }}.json"
+            --frontend-repo "$FRONTEND_IMAGE" \
+            --frontend-digest "${{ steps.build_frontend.outputs.digest }}" \
+            "${fault_args[@]}" \
+            --output "docs/releases/$RELEASE_TAG.json"
 
       - name: Upload manifest artifact
         uses: actions/upload-artifact@v7
@@ -135,7 +164,7 @@ jobs:
           path: docs/releases/${{ github.ref_name }}.json
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: docs/releases/${{ github.ref_name }}.json
           name: Release ${{ github.ref_name }}
@@ -143,5 +172,6 @@ jobs:
             ## Production Readiness Release ${{ github.ref_name }}
             - **Commit SHA**: `${{ github.sha }}`
             - **Backend Digest**: `${{ steps.metadata.outputs.backend_digest }}`
+            - **Frontend Digest**: `${{ steps.build_frontend.outputs.digest }}`
             - **Migration Revision**: `${{ steps.metadata.outputs.migration_revision }}`
             - **Manifest**: Attached below.

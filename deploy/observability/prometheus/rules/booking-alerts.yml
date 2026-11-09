@@ -4,8 +4,8 @@ groups:
     rules:
       - record: booking:http_requests:rate1m
         expr: >-
-          sum by (http_route) (
-            rate(http_server_request_duration_seconds_count{
+          sum by (http_target) (
+            rate(http_server_duration_milliseconds_count{
               service_name="booking-api"
             }[1m])
           )
@@ -13,15 +13,15 @@ groups:
       - record: booking:http_5xx_ratio:rate1m
         expr: >-
           sum (
-            rate(http_server_request_duration_seconds_count{
+            rate(http_server_duration_milliseconds_count{
               service_name="booking-api",
-              http_response_status_code=~"5.."
+              http_status_code=~"5.."
             }[1m])
           )
           /
           clamp_min(
             sum (
-              rate(http_server_request_duration_seconds_count{
+              rate(http_server_duration_milliseconds_count{
                 service_name="booking-api"
               }[1m])
             ),
@@ -32,12 +32,12 @@ groups:
         expr: >-
           histogram_quantile(
             0.95,
-            sum by (le, http_route) (
-              rate(http_server_request_duration_seconds_bucket{
+            sum by (le, http_target) (
+              rate(http_server_duration_milliseconds_bucket{
                 service_name="booking-api"
               }[5m])
             )
-          )
+          ) / 1000
 
   - name: booking-api-alerts
     interval: 15s
@@ -47,7 +47,7 @@ groups:
           booking:http_5xx_ratio:rate1m > 0.05
           and
           sum (
-            increase(http_server_request_duration_seconds_count{
+            increase(http_server_duration_milliseconds_count{
               service_name="booking-api"
             }[1m])
           ) >= 100
@@ -80,7 +80,7 @@ groups:
           max(booking:http_request_duration_seconds:p95_5m) > 0.5
           and
           sum (
-            increase(http_server_request_duration_seconds_count{
+            increase(http_server_duration_milliseconds_count{
               service_name="booking-api"
             }[5m])
           ) >= 100

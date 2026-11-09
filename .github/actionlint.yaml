@@ -1,0 +1,4 @@
+self-hosted-runner:
+  # Label of the demo host runner, see docs/devops/demo-host.md.
+  labels:
+    - demo

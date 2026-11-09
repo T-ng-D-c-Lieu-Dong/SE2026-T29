@@ -46,4 +46,19 @@ Mọi thay đổi cấu trúc bảng `appointments` hoặc các bảng mới ph�
 
 Để đảm bảo mã nguồn phiên bản rollback hoạt động tốt trên database sau migration, repository tích hợp integration test [test_release_e08_e12_e14.py](../../backend/tests/integration/test_release_e08_e12_e14.py):
 - Kiểm tra toàn bộ luồng: Xem slot -> Đặt lịch (`201`) -> Xem danh sách (`200`) -> Hủy lịch (`204`).
-- Xác nhận không có ngoại lệ SQL hoặc lỗi schema nào phát sinh khi code phiên bản cũ tương tác với schema đã nâng cấp.
+- Xác nhận code hiện tại tạo/xem/hủy được trên schema test hiện tại. Fixture dùng model
+  `Base.metadata.create_all`; test không tự checkout/build image phiên bản cũ hoặc nâng cấp một
+  schema cũ bằng Alembic. Vì vậy test này là kiểm tra lifecycle, chưa tự chứng minh tương thích
+  giữa hai release khác nhau.
+
+Khi có migration mới, E14 cần thêm một lần kiểm chứng với **hai artifact cụ thể**: tạo dữ liệu
+bằng release trước, chạy Alembic upgrade bằng release mới, rồi chạy lại tạo/xem/hủy bằng image
+rollback trên chính DB đã nâng cấp. Lưu release/SHA/digest, Alembic revision và kết quả nghiệp vụ;
+không chạy downgrade hoặc xóa volume để làm test pass.
+
+## 5. Review schema hiện tại của backend
+
+Ngày 25/10/2026, Phạm Minh Cương (23001840) đối chiếu migration `20261007_0001` với model,
+repository và code đã bàn giao. Hiện chỉ có migration khởi tạo; fault injection, request logging
+và OpenTelemetry không thêm/đổi/xóa cột hoặc index. Không cần migration mới cho phần việc này.
+Chi tiết và giới hạn E14: [Architecture review](../evidence/2026-10-25-architecture-review.md).

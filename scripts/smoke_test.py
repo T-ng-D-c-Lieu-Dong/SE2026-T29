@@ -256,7 +256,7 @@ class SmokeTestRunner:
                 details={"error": str(exc)},
             )
 
-    def run_all(self) -> list[SmokeTestResult]:
+    def run_health_checks(self) -> list[SmokeTestResult]:
         results: list[SmokeTestResult] = []
 
         ready_res = self.wait_for_readiness()
@@ -269,6 +269,12 @@ class SmokeTestRunner:
         if not version_res.success:
             return results
 
+        return results
+
+    def run_all(self) -> list[SmokeTestResult]:
+        results = self.run_health_checks()
+        if not all(result.success for result in results):
+            return results
         flow_res = self.check_business_flow()
         results.append(flow_res)
         return results

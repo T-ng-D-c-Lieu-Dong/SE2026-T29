@@ -24,7 +24,7 @@ on the exporter so histogram exemplars can link dashboard samples to Tempo trace
 
 The dashboard consumes:
 
-- FastAPI histogram `http_server_request_duration_seconds` and label `http_route`;
+- FastAPI histogram `http_server_duration_milliseconds` and route-template label `http_target`;
 - business counter `booking_conflicts_total`;
 - deployment gauge `booking_deployment_timestamp_seconds`;
 - blackbox metric `probe_success{job="booking-api-readiness"}`;
@@ -32,5 +32,5 @@ The dashboard consumes:
 - cAdvisor container metrics and `container_label_com_docker_compose_service`.
 
 If the infrastructure owner changes the exporter translation strategy, update the metric names
-in this dashboard and the Prometheus rules together. Never replace `http_route` with a raw path,
+in this dashboard and the Prometheus rules together. Never replace `http_target` with a raw path,
 appointment UUID or trace ID.

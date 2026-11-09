@@ -1,23 +1,39 @@
 # Runtime view — Hệ thống khi chạy
 
+Đối chiếu ngày 25/10/2026: sơ đồ bên dưới mô tả luồng ứng dụng và đích triển khai single-VM.
+Local Compose đã có `web`, `backend`, `db` và job `migrate`; production Compose hiện có
+`backend` và `db`. Phần web/CI phát hành frontend lên máy demo chưa hoàn thiện; xem mục 4.
+
 ## 1. Luồng đặt lịch và xử lý cạnh tranh
 
 ```mermaid
 sequenceDiagram
     participant UI as React UI trong browser
+    participant Web as Nginx
     participant API as FastAPI
     participant DB as PostgreSQL
     participant OTel as OTel Collector
-    UI->>API: POST /api/appointments
+    UI->>Web: POST /api/appointments
+    Web->>API: Proxy /api/appointments
     API->>API: Validate, chuẩn hóa UTC, tạo trace
-    API->>DB: Transaction: INSERT booking
-    alt Slot chưa có booking hoạt động
-        DB-->>API: Commit thành công
-        API-->>UI: 201 Created
-    else Unique constraint của slot bị vi phạm
-        DB-->>API: Unique violation
-        API->>DB: Rollback transaction
-        API-->>UI: 409 Conflict
+    alt Fault error còn hạn và chọn request
+        API-->>Web: 500, chưa INSERT
+        Web-->>UI: 500
+    else Tiếp tục tạo booking
+        opt Fault latency còn hạn và chọn request
+            API->>API: Async sleep trước khi ghi DB
+        end
+        API->>DB: Transaction: INSERT booking
+        alt Slot chưa có booking hoạt động
+            DB-->>API: Commit thành công
+            API-->>Web: 201 Created
+            Web-->>UI: 201 Created
+        else Unique constraint của slot bị vi phạm
+            DB-->>API: Unique violation
+            API->>DB: Rollback transaction
+            API-->>Web: 409 Conflict
+            Web-->>UI: 409 Conflict
+        end
     end
     API-)OTel: Export telemetry qua OTLP theo batch
 ```
@@ -41,7 +57,12 @@ Hủy booking cập nhật `status='cancelled'` và `cancelled_at`; partial inde
 | Grafana | Container, truy cập quản trị | Query Prometheus/Tempo/Loki; dashboard và liên kết trace-log |
 | Alertmanager | Container, truy cập quản trị | Nhận alert từ Prometheus, hiển thị/truyền thông báo theo cấu hình |
 
-Chỉ web port được mở cho người dùng. DB/OTLP/metrics không mở ra Internet. Dashboard, alert và công cụ drill dùng đường quản trị giới hạn truy cập. Telemetry backends cần volume/retention riêng; không giả định dữ liệu sống mãi trong filesystem của container.
+Đích demo là chỉ mở web port cho người dùng, DB/OTLP/metrics nằm trong mạng quản trị.
+Cấu hình local hiện publish web `8080`, API `8000` và PostgreSQL `5432`; các cổng đổi được bằng
+biến môi trường. Production Compose hiện publish API `8000` và chưa có web container.
+Overlay observability bind Grafana/Prometheus/Alertmanager vào `127.0.0.1` mặc định; OTLP, Tempo
+và Loki chỉ expose trong Docker network. Người vận hành cần giới hạn cổng trên máy demo trước
+khi cho truy cập từ bên ngoài. Telemetry backends có volumes và retention riêng.
 
 ## 3. Pipeline observability
 
@@ -70,7 +91,19 @@ Metrics cần đầy đủ cho SLI, không suy ra tỷ lệ thành công từ t�
 
 ## 4. Release và deployment
 
-Workflow dự kiến:
+Phần đang có:
+
+- `ci.yml` kiểm tra backend, frontend lint/test/build, E2E qua Compose, smoke test, dữ liệu qua
+  recreate và cấu hình observability.
+- `release.yml` kiểm tra backend rồi build/push **backend** và sinh manifest. Công cụ manifest có
+  trường frontend tùy chọn, nhưng workflow này chưa build/push frontend.
+- `scripts/deploy.py` và `rollback.py` chọn backend theo digest, ghi release/SHA, dùng lock,
+  readiness và smoke test. `deploy.py` chạy Alembic từ môi trường Python trên host; local Compose
+  dùng job `migrate` để chạy migration trước API.
+- `rollback.yml` hiện dùng `ubuntu-latest`; chưa có `deploy.yml` và chưa chứng minh workflow
+  tác động tới máy demo có state/manifest được lưu bền vững.
+
+Luồng đích khi hoàn thiện triển khai demo:
 
 1. Pull request chạy lint, unit tests, integration tests PostgreSQL, frontend build và Docker build checks. Fail thì không merge/deploy qua pipeline chuẩn.
 2. Push tag phiên bản kích hoạt release workflow; workflow kiểm tra lại commit của tag, build images và push registry.
@@ -95,6 +128,12 @@ Alert demo đề xuất: tỷ lệ 5xx trong cửa sổ 1 phút >5%, có ít nh�
 ## 6. Rollback và dữ liệu
 
 Rollback khôi phục image refs và cấu hình ứng dụng từ manifest đã lưu, restart/recreate web/API, chờ readiness và kiểm tra luồng đặt/hủy. Không dùng `docker compose down -v` vì lệnh đó xóa named volumes.
+
+Scripts hiện khôi phục backend digest, release và commit SHA; chưa tự lưu/khôi phục toàn bộ
+cấu hình ngoài image. Khi drill dùng `BOOKING_FAULT_*`, người vận hành phải đặt
+`BOOKING_FAULT_MODE=off` và recreate backend, hoặc xác nhận fault đã hết hạn, trước smoke test
+phục hồi. Không giả định đổi image sẽ tự tắt fault. Luồng khôi phục cả web/config là đích triển
+khai nêu ở mục 4.
 
 Database giữ nguyên volume. Release mới chỉ thực hiện migration tương thích với code cũ khi còn cần rollback: ví dụ thêm cột nullable thay vì đổi/xóa cột ngay. Dùng phương pháp expand → chuyển code → contract ở release sau khi hết cửa sổ rollback. Nếu migration không tương thích, dừng trước deploy và lập kế hoạch dữ liệu riêng; không hứa rollback image sẽ sửa schema.
 

@@ -27,6 +27,7 @@ from app.request_logging import (
 )
 from app.services.booking import BOOKING_TIMEZONE, BookingService
 from app.telemetry import TelemetryConfig, configure_telemetry
+from app.telemetry.runtime import HTTP_SERVER_DURATION_BUCKETS_SECONDS
 
 NOW = datetime(2026, 10, 21, 3, 0, tzinfo=UTC)
 
@@ -111,6 +112,29 @@ def test_booking_span_validates_low_cardinality_operation_name() -> None:
 
     with pytest.raises(ValueError, match="create.*cancel"):
         runtime.booking_span("list")
+
+
+def test_http_duration_histogram_uses_explicit_buckets() -> None:
+    reader = InMemoryMetricReader()
+    runtime = configure_telemetry(
+        TelemetryConfig(enabled=True),
+        span_exporter=InMemorySpanExporter(),
+        metric_reader=reader,
+        log_exporter=InMemoryLogRecordExporter(),
+    )
+
+    try:
+        histogram = runtime.meter.create_histogram(
+            "http.server.request.duration",
+            unit="s",
+        )
+        histogram.record(0.25, {"http.route": "/api/appointments"})
+        metrics = reader.get_metrics_data().resource_metrics[0].scope_metrics[0].metrics
+        metric = next(item for item in metrics if item.name == "http.server.request.duration")
+        point = metric.data.data_points[0]
+        assert point.explicit_bounds == HTTP_SERVER_DURATION_BUCKETS_SECONDS
+    finally:
+        runtime.shutdown()
 
 
 def test_business_signals_share_release_resource_and_trace_context() -> None:
@@ -239,6 +263,45 @@ def test_real_request_correlates_log_and_trace_without_leaking_url_data() -> Non
         assert "private-appointment-id" not in exported_span_text
         assert "QuerySecret" not in exported_span_text
         assert "customer_name" not in exported_span_text
+    finally:
+        runtime.shutdown()
+
+
+def test_health_endpoints_are_excluded_from_fastapi_tracing() -> None:
+    span_exporter = InMemorySpanExporter()
+    application = FastAPI()
+    runtime = configure_telemetry(
+        TelemetryConfig(enabled=True, export_logs=False, schedule_delay_millis=1),
+        application=application,
+        span_exporter=span_exporter,
+        metric_reader=InMemoryMetricReader(),
+    )
+
+    @application.get("/health/live")
+    async def liveness() -> dict[str, str]:
+        return {"status": "ok"}
+
+    @application.get("/health/ready")
+    async def readiness() -> dict[str, str]:
+        return {"status": "ok"}
+
+    @application.get("/api/example")
+    async def business_request() -> dict[str, str]:
+        return {"status": "ok"}
+
+    try:
+        with TestClient(application) as client:
+            assert client.get("/health/live").status_code == 200
+            assert client.get("/health/ready").status_code == 200
+            assert client.get("/api/example").status_code == 200
+
+        assert runtime.tracer_provider is not None
+        assert runtime.tracer_provider.force_flush()
+        server_spans = [
+            span for span in span_exporter.get_finished_spans() if span.kind is SpanKind.SERVER
+        ]
+
+        assert [span.attributes["http.route"] for span in server_spans] == ["/api/example"]
     finally:
         runtime.shutdown()
 

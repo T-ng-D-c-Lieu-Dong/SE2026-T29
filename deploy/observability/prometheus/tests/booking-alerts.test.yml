@@ -1,0 +1,64 @@
+rule_files:
+  - ../rules/booking-alerts.yml
+
+evaluation_interval: 15s
+
+tests:
+  - name: high error rate fires only after volume and duration thresholds
+    interval: 15s
+    input_series:
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="200",http_target="/api/appointments"}'
+        values: '0+30x16'
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="500",http_target="/api/appointments"}'
+        values: '0+5x16'
+    alert_rule_test:
+      - eval_time: 2m30s
+        alertname: HighErrorRate
+        exp_alerts: []
+      - eval_time: 2m45s
+        alertname: HighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              service: booking-api
+            exp_annotations:
+              summary: Booking API has a high HTTP 5xx rate
+              description: More than 5% of at least 100 requests in one minute returned 5xx, and the condition has remained true for two minutes.
+              runbook_url: docs/runbooks/observability-alerts.md#higherrorrate
+
+  - name: high error rate stays inactive below the request threshold
+    interval: 15s
+    input_series:
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="200",http_target="/api/appointments"}'
+        values: '0+15x16'
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="500",http_target="/api/appointments"}'
+        values: '0+2x16'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: HighErrorRate
+        exp_alerts: []
+
+  - name: readiness probe fires after one minute and resolves on recovery
+    interval: 15s
+    input_series:
+      - series: 'probe_success{job="booking-api-readiness",instance="http://backend:8000/health/ready"}'
+        values: '1x1 0x8 1x3'
+    alert_rule_test:
+      - eval_time: 1m15s
+        alertname: ApiProbeDown
+        exp_alerts: []
+      - eval_time: 1m30s
+        alertname: ApiProbeDown
+        exp_alerts:
+          - exp_labels:
+              instance: http://backend:8000/health/ready
+              job: booking-api-readiness
+              severity: critical
+              service: booking-api
+            exp_annotations:
+              summary: Booking API readiness probe is failing
+              description: The independent blackbox readiness probe has failed continuously for one minute.
+              runbook_url: docs/runbooks/observability-alerts.md#apiprobedown
+      - eval_time: 2m45s
+        alertname: ApiProbeDown
+        exp_alerts: []

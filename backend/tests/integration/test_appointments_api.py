@@ -147,6 +147,23 @@ async def test_list_appointments_is_paginated(client) -> None:
     assert len(response.json()["items"]) == 1
 
 
+@pytest.mark.parametrize(
+    ("params", "invalid_field"),
+    [
+        ({"limit": 0}, "limit"),
+        ({"limit": 101}, "limit"),
+        ({"offset": -1}, "offset"),
+    ],
+)
+async def test_list_appointments_rejects_invalid_pagination(
+    client, params: dict[str, int], invalid_field: str
+) -> None:
+    response = await client.get("/api/appointments", params=params)
+
+    assert response.status_code == 422
+    assert any(error["loc"][-1] == invalid_field for error in response.json()["detail"])
+
+
 async def test_slots_exclude_active_booking(client) -> None:
     starts_at = future_slot()
     create_response = await client.post(

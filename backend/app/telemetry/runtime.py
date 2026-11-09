@@ -16,15 +16,16 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging.handler import LoggingHandler
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.metrics import Counter, Meter
+from opentelemetry.metrics import Counter, Histogram, Meter
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, LogExporter
-from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics import MeterProvider, TraceBasedExemplarFilter
 from opentelemetry.sdk.metrics.export import (
     MetricExporter,
     MetricReader,
     PeriodicExportingMetricReader,
 )
+from opentelemetry.sdk.metrics.view import ExplicitBucketHistogramAggregation, View
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanExporter
@@ -36,6 +37,19 @@ from app.telemetry.config import TelemetryConfig
 
 INSTRUMENTATION_SCOPE = "booking-api"
 REDACTED_URL = "[redacted]"
+FASTAPI_EXCLUDED_URLS = r"/health/(?:live|ready)$"
+HTTP_SERVER_DURATION_BUCKETS_SECONDS = (
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+)
 
 
 @dataclass(slots=True)
@@ -206,7 +220,28 @@ def _build_meter_provider(
             export_interval_millis=config.metric_export_interval_millis,
             export_timeout_millis=config.exporter_timeout_millis,
         )
-    return MeterProvider(resource=resource, metric_readers=[reader])
+    duration_views = [
+        View(
+            instrument_name="http.server.request.duration",
+            instrument_type=Histogram,
+            aggregation=ExplicitBucketHistogramAggregation(
+                boundaries=HTTP_SERVER_DURATION_BUCKETS_SECONDS
+            ),
+        ),
+        View(
+            instrument_name="http.server.duration",
+            instrument_type=Histogram,
+            aggregation=ExplicitBucketHistogramAggregation(
+                boundaries=tuple(value * 1_000 for value in HTTP_SERVER_DURATION_BUCKETS_SECONDS)
+            ),
+        ),
+    ]
+    return MeterProvider(
+        resource=resource,
+        metric_readers=[reader],
+        views=duration_views,
+        exemplar_filter=TraceBasedExemplarFilter(),
+    )
 
 
 def _build_logger_provider(
@@ -365,6 +400,7 @@ def _configure_enabled_telemetry(
                 application,
                 tracer_provider=tracer_provider,
                 meter_provider=meter_provider,
+                excluded_urls=FASTAPI_EXCLUDED_URLS,
                 server_request_hook=_sanitize_server_span,
             )
         if engine is not None and sqlalchemy_instrumentor is not None:

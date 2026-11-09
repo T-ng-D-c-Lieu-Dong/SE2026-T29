@@ -1,13 +1,16 @@
 # Architecture
 
-Thư mục này mô tả kiến trúc đề xuất của Production Readiness Lab. Các tài liệu phản ánh thiết kế hiện tại; những nội dung chưa được kiểm chứng thực nghiệm vẫn được ghi rõ là mục tiêu hoặc giả định.
+Thư mục này mô tả kiến trúc của Production Readiness Lab đã được đối chiếu với mã nguồn ngày
+25/10/2026. Phạm Minh Cương (23001840) phụ trách chốt thiết kế trong TASK-001. Những nội dung
+chưa được kiểm chứng trên máy demo vẫn được ghi rõ là mục tiêu hoặc công việc còn lại.
 
 ## Tài liệu
 
 1. [Architecture context](architecture-context.md) — phạm vi, người dùng, ràng buộc, API và mục tiêu chất lượng.
 2. [Module view](module-view.md) — cấu trúc mã nguồn, trách nhiệm và hướng phụ thuộc.
 3. [Runtime view](runtime-view.md) — các thành phần khi chạy, luồng request, telemetry, deploy và rollback.
-4. [ADR-001](adr/001-use-docker-compose.md) — quyết định đề xuất dùng Docker Compose trên một Linux VM.
+4. [ADR-001](adr/001-use-docker-compose.md) — quyết định Accepted dùng Docker Compose trên một Linux VM.
+5. [Kết quả review kiến trúc và migration](../evidence/2026-10-25-architecture-review.md) — phạm vi chốt, đối chiếu code, bằng chứng và việc bàn giao.
 
 ## Quy tắc cập nhật
 

@@ -36,6 +36,27 @@ services:
     networks:
       - app_net
 
+  # Nginx serves the built React app and proxies /api to the backend.
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    image: booking-frontend:local
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_net
+
   backend:
     build:
       context: ../backend

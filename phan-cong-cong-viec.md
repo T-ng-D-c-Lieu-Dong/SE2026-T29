@@ -82,13 +82,16 @@ flowchart TB
 
 | Người | Role | Task | Trạng thái | Trọng tâm hiện tại |
 | --- | --- | --- | --- | --- |
-| Phạm Minh Cương | Backend + kiến trúc | TASK-001, TASK-002 | API Done | Fault injection, hỗ trợ instrument, chốt kiến trúc |
-| Lê Văn Cường | Frontend + E2E | TASK-003 | Todo | React UI, test E2E |
-| Nguyễn Mai Hoàng Anh | DevOps — CI/CD và hạ tầng monitoring | TASK-004 (+ hạ tầng TASK-006) | Todo | CI, CD lên máy demo, dựng stack observability |
+| Phạm Minh Cương (23001840) | Backend + kiến trúc | TASK-001, TASK-002 | Done | API, fault injection, JSON log, OTel và review kiến trúc/migration đã bàn giao |
+| Lê Văn Cường | Frontend + E2E | TASK-003 | Done | React UI, test E2E |
+| Nguyễn Mai Hoàng Anh | DevOps — CI/CD và hạ tầng monitoring | TASK-004 (+ hạ tầng TASK-006) | In Progress | CI, CD lên máy demo, dựng stack observability |
 | Nguyễn Việt Anh | Release và độ tin cậy | TASK-005, TASK-007 | TASK-005 Done | Load test, incident drill, rollback, evidence |
 | Vũ Thành Công | Observability — telemetry, dashboard, alert | TASK-006 | In Progress | Instrument OpenTelemetry, dashboard, alert rules |
 
-TASK-001 và TASK-007 trước đây chưa có người phụ trách. Bảng trên đề xuất giao TASK-001 cho Cương và TASK-007 cho Việt Anh, vì phần việc chính của hai bạn đã xong. Trong TASK-006, Hoàng Anh dựng hạ tầng (các container, cấu hình lưu trữ), còn Công làm phần nội dung (instrument, dashboard, alert).
+TASK-001 đã giao và chốt bởi Phạm Minh Cương theo yêu cầu hoàn tất phần backend/kiến trúc.
+TASK-007 vẫn là đề xuất giao cho Việt Anh trong kế hoạch này; nhóm cần xác nhận owner trong
+`docs/tasks/` trước khi bắt đầu drill chung. Trong TASK-006, Hoàng Anh dựng hạ tầng (các
+container, cấu hình lưu trữ), còn Công làm phần nội dung (instrument, dashboard, alert).
 
 ### 3.2 Ai làm phần nào của MVP
 
@@ -132,7 +135,11 @@ TASK-001 và TASK-007 trước đây chưa có người phụ trách. Bảng tr�
 - **Log có cấu trúc:** chuyển log sang JSON ra stdout gồm method, route template, status, duration, `trace_id`. Không ghi request body hoặc tên khách.
 - **Tương thích rollback:** review mọi migration theo [migration-policy.md](docs/releases/migration-policy.md).
 
-**Bàn giao:** fault injection kèm test, log JSON, review kiến trúc.
+**Bàn giao ngày 25/10/2026:** TASK-001 và TASK-002 Done; fault injection kèm test, log JSON,
+span/metric/resource attributes đã merge qua PR #14. ADR-001 Accepted, module/runtime views và
+review migration được cập nhật trong [Architecture review](docs/evidence/2026-10-25-architecture-review.md).
+Khi có migration mới, Cương tiếp tục review tương thích trước khi deploy; đây là trách nhiệm
+duy trì, không phải hạng mục code còn thiếu của lần bàn giao này.
 
 #### Lê Văn Cường — Frontend và E2E
 
@@ -236,7 +243,7 @@ Các mốc M0–M6 lấy theo [Evidence](docs/evidence.md). Cột lộ trình b�
 
 ```mermaid
 flowchart LR
-    M0["M0 · Chốt kiến trúc<br/>Cương"] --> M1["M1 · Booking API<br/>Cương — Done"]
+    M0["M0 · Chốt kiến trúc<br/>Cương — Done"] --> M1["M1 · Booking API<br/>Cương — Done"]
     M1 --> M2["M2 · React UI<br/>Cường"]
     M1 --> M3["M3 · Container + CI<br/>Hoàng Anh"]
     M2 --> M3

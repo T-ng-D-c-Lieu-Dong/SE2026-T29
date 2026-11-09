@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import sys
 import time
 from contextlib import AbstractContextManager
@@ -139,9 +140,7 @@ class DeploymentLock(AbstractContextManager["DeploymentLock"]):
                     operation=self.operation,
                     acquired_at=datetime.now(UTC).isoformat(),
                     target_release=self.target_release,
-                    host=os.uname().nodename
-                    if hasattr(os, "uname")
-                    else os.environ.get("COMPUTERNAME", "unknown"),
+                    host=platform.node(),
                 )
                 self.metadata_file.write_text(meta.to_json(), encoding="utf-8")
                 self.is_acquired = True

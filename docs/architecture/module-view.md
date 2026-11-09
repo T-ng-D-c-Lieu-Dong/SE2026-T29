@@ -20,7 +20,7 @@ flowchart TD
 
 ## 2. Trách nhiệm và đường dẫn
 
-| Module | Đường dẫn dự kiến | Trách nhiệm | Giới hạn |
+| Module | Đường dẫn hiện tại | Trách nhiệm | Giới hạn |
 | --- | --- | --- | --- |
 | UI | `frontend/src/pages/`, `frontend/src/components/` | Form, danh sách, trạng thái loading/error, hiển thị thời gian địa phương | Không quyết định uniqueness hoặc truy cập DB |
 | HTTP client | `frontend/src/api/appointments.ts` | Gọi API, đọc response, xử lý mã lỗi | Không chứa business rules |
@@ -46,14 +46,16 @@ Service nhận repository/session abstraction qua dependency injection. Unit tes
 
 ## 4. Module cấu hình và vận hành
 
-| Nhóm | Đường dẫn dự kiến | Nội dung |
+| Nhóm | Đường dẫn hiện tại | Nội dung |
 | --- | --- | --- |
 | Container | `frontend/Dockerfile`, `backend/Dockerfile` | Build image cho từng ứng dụng |
-| Deployment | `deploy/compose.yaml`, `deploy/compose.production.yaml` | Dịch vụ, network, volume, health checks, image refs |
-| Release/rollback | `scripts/deploy.sh`, `scripts/rollback.sh` | Lưu bản hiện tại, thay image, smoke test, khôi phục |
+| Deployment | `deploy/compose.yaml`, `deploy/compose.production.yaml`, `deploy/compose.observability.yaml` | Local có web/API/DB và migration job; production hiện mới có API/DB; overlay thêm telemetry |
+| Release/rollback | `scripts/deploy.py`, `scripts/rollback.py`, `scripts/release_manifest.py`, `scripts/deploy_lock.py`, `scripts/deploy_history.py`, shell wrappers | Lưu manifest, chọn image digest, khóa deploy, smoke test, khôi phục và lưu lịch sử |
 | CI/CD | `.github/workflows/ci.yml`, `release.yml`, `rollback.yml` | Kiểm tra PR, build/push/deploy release, rollback thủ công |
-| Observability | `observability/collector/`, `prometheus/`, `grafana/`, `tempo/`, `loki/` | Cấu hình pipeline telemetry, dashboards và alert rules |
-| Kiểm chứng | `backend/tests/`, `frontend/tests/`, `tests/e2e/`, `tests/load/` | Unit, integration, UI, nghiệp vụ xuyên hệ thống và đo tải |
+| Observability | `deploy/observability/otel-collector/`, `prometheus/`, `grafana/`, `tempo/`, `loki/`, `alertmanager/`, `blackbox/` | Các thư mục viết ngắn cùng hàng đều nằm dưới `deploy/observability/`; cấu hình pipeline, dashboards và alert rules |
+| Kiểm chứng | `backend/tests/unit/`, `backend/tests/integration/`, `frontend/src/**/*.test.*`, `frontend/e2e/`, `loadtest/` | Unit, integration, UI, nghiệp vụ xuyên hệ thống và kịch bản đo tải |
 | Tài liệu | `docs/` | Context, views, ADR, evidence, runbook, incident |
 
-Các mục trên là kế hoạch tổ chức source/config. PostgreSQL, Collector, Prometheus, Tempo, Loki và Grafana là **dịch vụ runtime**, không phải các package Python của backend. Module view ánh xạ tới mã nguồn và cấu hình mà team quản lý.
+Các mục trên ánh xạ tới source/config đang có. PostgreSQL, Collector, Prometheus, Tempo, Loki và
+Grafana là **dịch vụ runtime**, không phải các package Python của backend. Việc có cấu hình
+không thay thế bằng chứng deploy, load test và drill trên môi trường demo.

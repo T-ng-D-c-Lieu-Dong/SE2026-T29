@@ -2,13 +2,21 @@
   "venvPath": "backend",
   "venv": ".venv",
   "extraPaths": [
-    "backend",
-    "."
+    ".",
+    "backend"
   ],
   "include": [
     "backend/app",
     "backend/tests",
     "scripts"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "backend",
+      "extraPaths": [
+        ".",
+        ".."
+      ]
+    }
   ]
 }
-

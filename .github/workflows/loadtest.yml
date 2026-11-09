@@ -1,0 +1,97 @@
+name: Load Test on Demo Host
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: "Test duration (10m is required for E15)"
+        type: choice
+        options: [10m, 30s]
+        default: 10m
+      target_rps:
+        description: "Target HTTP requests per second"
+        type: choice
+        options: ["10", "5"]
+        default: "10"
+      target_date:
+        description: "Dedicated booking date YYYY-MM-DD (empty = tomorrow)"
+        required: false
+      dataset:
+        description: "Initial dataset and test conditions"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: loadtest-demo
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  loadtest:
+    # Never run code from a PR/fork or an arbitrary selected branch on the demo host.
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, demo]
+    timeout-minutes: 20
+    env:
+      BOOKING_STATE_DIR: ${{ vars.BOOKING_STATE_DIR || '/opt/booking/state' }}
+      DURATION: ${{ inputs.duration }}
+      TARGET_RPS: ${{ inputs.target_rps }}
+      TARGET_DATE: ${{ inputs.target_date }}
+      DATASET: ${{ inputs.dataset }}
+    steps:
+      - name: Prepare evidence directory
+        run: |
+          evidence_dir="$RUNNER_TEMP/booking-k6-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          mkdir -p "$evidence_dir"
+          echo "EVIDENCE_DIR=$evidence_dir" >> "$GITHUB_ENV"
+
+      - name: Checkout trusted main revision
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Collect environment and deployed version
+        run: |
+          mkdir -p "$EVIDENCE_DIR"
+          curl --fail --silent --show-error --max-time 10 \
+            http://localhost/api/version > "$EVIDENCE_DIR/version.json"
+          {
+            uname -a
+            lscpu
+            free -h
+            df -h
+            docker version
+          } > "$EVIDENCE_DIR/environment.txt"
+          for file in current-manifest.json history.json; do
+            if [[ -f "$BOOKING_STATE_DIR/$file" ]]; then
+              cp "$BOOKING_STATE_DIR/$file" "$EVIDENCE_DIR/"
+            fi
+          done
+
+      - name: Run k6 through the web proxy
+        run: |
+          release=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["release"])' "$EVIDENCE_DIR/version.json")
+          commit=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit_sha"])' "$EVIDENCE_DIR/version.json")
+          docker run --rm --network host --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/loadtest:/scripts:ro" \
+            -v "$EVIDENCE_DIR:/results" -w /scripts \
+            grafana/k6:2.3.0 run \
+            -e BASE_URL=http://localhost -e "DURATION=$DURATION" \
+            -e "TARGET_RPS=$TARGET_RPS" -e "TARGET_DATE=$TARGET_DATE" \
+            -e "BOOKING_RELEASE=$release" -e "BOOKING_COMMIT_SHA=$commit" \
+            -e "DATASET=$DATASET" -e "TEST_ENVIRONMENT=$(cat "$EVIDENCE_DIR/environment.txt")" \
+            -e SUMMARY_PATH=/results/summary.json booking.js \
+            2>&1 | tee "$EVIDENCE_DIR/k6.log"
+
+      - name: Upload load test evidence even on threshold failure
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: loadtest-demo-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.EVIDENCE_DIR }}
+          if-no-files-found: warn

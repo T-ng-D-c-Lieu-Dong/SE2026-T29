@@ -13,6 +13,10 @@ backend/postgres-test.log
 # CI reports
 reports/
 
+# Temporary files
+~$*
+.mypy_cache/
+
 # Personal Academic Reports (kept outside repository)
 *.pdf
 *.tex

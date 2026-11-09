@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "release": "v0.2.0-drill",
+  "commit_sha": "d2dffaf000000000000000000000000000000000",
+  "migration_revision": "20261007_0001",
+  "created_at": "2026-10-31T17:00:00Z",
+  "compatibility": {
+    "min_compatible_schema": "20261007_0001",
+    "rollback_window_supported": true
+  },
+  "images": {
+    "backend": {
+      "repository": "ghcr.io/cuongmotnang/booking-backend",
+      "tag": "v0.2.0-drill",
+      "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "frontend": {
+      "repository": "ghcr.io/cuongmotnang/booking-frontend",
+      "tag": "v0.2.0-drill",
+      "digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  },
+  "fault": {
+    "mode": "error",
+    "rate": 0.2,
+    "duration_seconds": 900,
+    "latency_seconds": 3.0
+  }
+}

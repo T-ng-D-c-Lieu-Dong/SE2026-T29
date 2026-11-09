@@ -1,9 +1,10 @@
 # ADR-001 — Docker Compose trên một Linux VM
 
 - Ngày: 07/10/2026
-- Trạng thái: **Proposed** — đề xuất để team xác nhận khi bắt đầu triển khai.
+- Trạng thái: **Accepted** — chốt thiết kế ngày 25/10/2026.
 - Phạm vi: môi trường demo của Production Readiness Lab.
-- Người quyết định: team project, chưa chỉ định cá nhân.
+- Người chịu trách nhiệm quyết định: **Phạm Minh Cương (23001840)** — backend và kiến trúc.
+- Căn cứ chốt: yêu cầu hoàn tất TASK-001 của người phụ trách và [review code/kiến trúc](../../evidence/2026-10-25-architecture-review.md). Review của thành viên khác được ghi qua pull request.
 
 ## Context
 
@@ -40,7 +41,13 @@ CI/CD do GitHub Actions thực hiện. Quy trình deploy/rollback được team 
 4. Rollback trong mục tiêu 5 phút, xác nhận đúng version/digest và nghiệp vụ phục hồi.
 5. Ghi kết quả, điều kiện máy và giới hạn trong Evidence/Incident report.
 
-Chưa có kết quả thực nghiệm cho các bước này.
+Đã có kết quả cục bộ cho UI, telemetry và dữ liệu qua recreate; xem E06, E09–E11, E13 và E16
+trong [Evidence](../../evidence.md). Kết quả E12 hiện là kiểm chứng cục bộ/mô phỏng, chưa thay thế
+một lần deploy → fault → rollback đầy đủ trên máy demo. E15 và thông báo Discord thật còn thiếu.
+
+`Accepted` xác nhận lựa chọn kiến trúc, không xác nhận đã đạt toàn bộ mục tiêu vận hành.
+Production Compose hiện chỉ có API/DB; web container, phát hành frontend theo digest và
+deploy/rollback tới máy demo vẫn cần được nhóm hoàn thiện theo runtime view.
 
 ## Khi xem lại quyết định
 
@@ -48,4 +55,4 @@ Xem lại khi cần nhiều host, HA, cập nhật không gián đoạn, tài ng
 
 ## Tham chiếu
 
-[Docker — Use Compose in production](https://docs.docker.com/compose/how-tos/production/). Lựa chọn và đánh đổi trong ADR là quyết định đề xuất của project, không phải cam kết HA từ Docker.
+[Docker — Use Compose in production](https://docs.docker.com/compose/how-tos/production/). Lựa chọn và đánh đổi trong ADR là quyết định của project, không phải cam kết HA từ Docker.

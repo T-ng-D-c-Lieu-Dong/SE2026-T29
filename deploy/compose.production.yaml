@@ -20,6 +20,21 @@ services:
     networks:
       - internal
 
+  # One-shot Alembic job from the release image. The "migrate" profile keeps it out of
+  # "compose up", so rollback never runs an older image's migrations against a newer schema.
+  migrate:
+    image: ${BACKEND_IMAGE_REF:-ghcr.io/cuongmotnang/booking-backend:v0.1.0}
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    profiles: ["migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      BOOKING_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-booking}:${POSTGRES_PASSWORD:-booking}@db:5432/${POSTGRES_DB:-booking}
+    networks:
+      - internal
+
   backend:
     # Image must be set via BACKEND_IMAGE_REF from the release manifest (must include @sha256:...)
     image: ${BACKEND_IMAGE_REF:-ghcr.io/cuongmotnang/booking-backend:v0.1.0}
@@ -48,14 +63,33 @@ services:
       BOOKING_FAULT_RATE: ${BOOKING_FAULT_RATE:-1.0}
       BOOKING_FAULT_UNTIL: ${BOOKING_FAULT_UNTIL:-}
       BOOKING_FAULT_LATENCY_SECONDS: ${BOOKING_FAULT_LATENCY_SECONDS:-3}
-    ports:
-      - "${PORT:-8000}:8000"
+    # No published port: the API is reachable only through the web proxy below.
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ready || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 3
       start_period: 5s
+    networks:
+      - internal
+
+  # Nginx serves the React UI and proxies /api and /health to the backend.
+  # This is the only port the demo host exposes.
+  web:
+    # Image must be set via FRONTEND_IMAGE_REF from the release manifest (must include @sha256:...)
+    image: ${FRONTEND_IMAGE_REF:-ghcr.io/cuongmotnang/booking-frontend:v0.1.0}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     networks:
       - internal
 

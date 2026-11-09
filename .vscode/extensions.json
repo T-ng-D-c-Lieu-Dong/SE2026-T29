@@ -1,0 +1,23 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "charliermarsh.ruff",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "vitest.explorer",
+    "ms-playwright.playwright",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml",
+    "mikestead.dotenv",
+    "ckolkman.vscode-postgres",
+    "humao.rest-client",
+    "bierner.markdown-mermaid",
+    "GrapeCity.gc-excelviewer",
+    "github.vscode-github-actions",
+    "k6.k6"
+  ]
+}
+

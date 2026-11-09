@@ -30,3 +30,11 @@ Xây dựng FastAPI và PostgreSQL cho luồng xem slot, tạo, xem và hủy bo
 - Migration Alembic chạy thành công trên PostgreSQL 16.
 - Ruff lint/format đạt; 21 unit và integration tests pass.
 - Chi tiết: [Booking API test result](../evidence/2026-10-07-booking-api.md).
+
+## Bàn giao bổ sung ngày 25/10/2026
+
+- Fault injection có tỷ lệ, thời hạn và mode `error`/`latency`, chạy trước thao tác ghi DB.
+- Request log JSON, trace correlation, spans `booking.create`/`booking.cancel` và metric conflict.
+- Code bổ sung đã vào `main` qua [PR #14](https://github.com/CuongMotNang/SE2026-T29/pull/14).
+- Review kiến trúc và migration hiện tại: [Architecture review](../evidence/2026-10-25-architecture-review.md).
+- Tiếp tục phối hợp TASK-006/TASK-007 khi chạy demo; phần triển khai backend của Cương đã bàn giao.

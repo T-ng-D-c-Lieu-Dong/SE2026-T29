@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from scripts.deploy import build_compose_up_command
+from scripts.deploy_history import DeploymentHistory
 from scripts.deploy_lock import DeploymentLock, DeploymentLockError
 from scripts.release_manifest import ReleaseManifest
 from scripts.smoke_test import SmokeTestRunner
@@ -52,6 +53,8 @@ class Rollbacker:
         self.current_manifest_file = self.state_dir / "current-manifest.json"
         self.env_file = self.state_dir / ".env.production"
         self.lock_dir = self.state_dir / ".deploy.lock"
+        self.history = DeploymentHistory(state_dir=self.state_dir)
+        self.history_file = self.history.history_file
 
     def execute_command(self, cmd: list[str]) -> None:
         cmd_str = " ".join(cmd)
@@ -82,6 +85,13 @@ class Rollbacker:
             f"BACKEND_IMAGE_REF={pinned_backend}\n"
             f"BOOKING_RELEASE={manifest.release}\n"
             f"BOOKING_COMMIT_SHA={manifest.commit_sha}\n"
+        )
+        if manifest.frontend_image:
+            env_content += f"FRONTEND_IMAGE_REF={manifest.frontend_image.pinned_reference}\n"
+        # Legacy/healthy manifests explicitly write mode=off, clearing any drill.
+        # Restore the recorded expiry; never start a new fault lifetime on rollback.
+        env_content += "".join(
+            f"{key}={value}\n" for key, value in manifest.fault.to_environment().items()
         )
         if self.dry_run:
             print(f"[DRY-RUN] Would write .env.production:\n{env_content}")
@@ -165,16 +175,23 @@ class Rollbacker:
         print("Note: PostgreSQL volume is preserved; bookings will remain intact.")
         print("=" * 60)
 
-        if self.acquire_lock:
-            with DeploymentLock(
-                lock_dir=self.lock_dir,
-                operation="rollback",
-                target_release=manifest.release,
-                timeout_seconds=5.0,
-            ):
+        with self.history.track_operation(
+            operation="rollback",
+            release=manifest.release,
+            commit_sha=manifest.commit_sha,
+            slo_target_seconds=300.0,
+            dry_run=self.dry_run,
+        ):
+            if self.acquire_lock:
+                with DeploymentLock(
+                    lock_dir=self.lock_dir,
+                    operation="rollback",
+                    target_release=manifest.release,
+                    timeout_seconds=5.0,
+                ):
+                    self._execute_rollback(manifest, start_time)
+            else:
                 self._execute_rollback(manifest, start_time)
-        else:
-            self._execute_rollback(manifest, start_time)
 
 
 def main() -> None:
@@ -196,6 +213,11 @@ def main() -> None:
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-container-ops", action="store_true")
+    parser.add_argument(
+        "--verify-slo",
+        action="store_true",
+        help="Print SLO evaluation report after successful rollback",
+    )
     args = parser.parse_args()
 
     try:
@@ -210,6 +232,11 @@ def main() -> None:
             acquire_lock=True,
         )
         rollbacker.run()
+        if args.verify_slo and not args.dry_run:
+            from scripts.verify_rollback_slo import evaluate_rollback_slo
+
+            slo_res = evaluate_rollback_slo(state_dir=args.state_dir)
+            print(slo_res.summary_text())
     except DeploymentLockError as exc:
         print(f"[FATAL] Lock error: {exc}", file=sys.stderr)
         sys.exit(2)
