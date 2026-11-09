@@ -5,14 +5,20 @@ Measures latency of appointment creation, soft-delete, and restore against live 
 
 from __future__ import annotations
 
+import argparse
 import asyncio
+import io
 import json
 import math
 import os
+import subprocess
 import sys
 import time
+from contextlib import redirect_stdout
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import cast
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from httpx import ASGITransport, AsyncClient
@@ -46,6 +52,15 @@ def calculate_percentile(data: list[float], percentile: float) -> float:
     return d0 + d1
 
 
+def performance_goal_met(latencies: list[float], error_count: int, total_tasks: int) -> bool:
+    return (
+        len(latencies) == total_tasks
+        and total_tasks > 0
+        and error_count == 0
+        and calculate_percentile(latencies, 95) <= TARGET_P95_SECONDS
+    )
+
+
 async def run_load_test() -> dict[str, object]:
     database_url = os.getenv("TEST_DATABASE_URL")
     if not database_url:
@@ -75,6 +90,19 @@ async def run_load_test() -> dict[str, object]:
     transport = ASGITransport(app=app)
     sem = asyncio.Semaphore(CONCURRENCY)
     latencies: list[float] = []
+    samples: list[dict[str, object]] = []
+    active_tasks = peak_tasks = active_requests = peak_requests = request_count = 0
+
+    async def request(client: AsyncClient, method: str, url: str, **kwargs):
+        nonlocal active_requests, peak_requests, request_count
+        active_requests += 1
+        peak_requests = max(peak_requests, active_requests)
+        request_count += 1
+        try:
+            return await client.request(method, url, **kwargs)
+        finally:
+            active_requests -= 1
+
     success_count = 0
     error_count = 0
 
@@ -83,67 +111,80 @@ async def run_load_test() -> dict[str, object]:
     )
 
     async def task_worker(worker_id: int, client: AsyncClient) -> None:
-        nonlocal success_count, error_count
+        nonlocal success_count, error_count, active_tasks, peak_tasks
         async with sem:
+            active_tasks += 1
+            peak_tasks = max(peak_tasks, active_tasks)
             caller_id = f"load_user_{worker_id}"
             slot = (base_time + timedelta(minutes=30 * worker_id)).replace(second=0, microsecond=0)
 
             t0 = time.perf_counter()
             try:
                 # 1. Create booking
-                create_resp = await client.post(
+                create_resp = await request(
+                    client,
+                    "POST",
                     "/api/appointments",
                     json={"customer_name": f"User_{worker_id}", "starts_at": slot.isoformat()},
                     headers={"X-User-Id": caller_id},
                 )
                 if create_resp.status_code != 201:
-                    error_count += 1
-                    return
+                    raise RuntimeError(f"HTTP {create_resp.status_code}: create failed")
                 resp_json = cast(dict[str, object], create_resp.json())
                 apt_id = str(resp_json.get("id", ""))
 
                 # 2. Soft-delete booking
-                del_resp = await client.patch(
+                del_resp = await request(
+                    client,
+                    "PATCH",
                     f"/api/appointments/{apt_id}/soft-delete",
                     headers={"X-User-Id": caller_id},
                 )
                 if del_resp.status_code != 200:
-                    error_count += 1
-                    return
+                    raise RuntimeError(f"HTTP {del_resp.status_code}: soft-delete failed")
 
                 # 3. Restore booking
-                res_resp = await client.patch(
+                res_resp = await request(
+                    client,
+                    "PATCH",
                     f"/api/appointments/{apt_id}/restore",
                     headers={"X-User-Id": caller_id},
                 )
                 if res_resp.status_code != 200:
-                    error_count += 1
-                    return
+                    raise RuntimeError(f"HTTP {res_resp.status_code}: restore failed")
 
                 duration = time.perf_counter() - t0
                 latencies.append(duration)
                 success_count += 1
-            except Exception:
+                samples.append(
+                    {"worker_id": worker_id, "latency_seconds": duration, "success": True}
+                )
+            except Exception as exc:
                 error_count += 1
+                samples.append({"worker_id": worker_id, "success": False, "error": str(exc)})
+            finally:
+                active_tasks -= 1
 
     print(
         f"[*] Starting Load Test: {TOTAL_REQUESTS} tasks with {CONCURRENCY} concurrent workers..."
     )
-    test_start = time.perf_counter()
 
     async with AsyncClient(transport=transport, base_url="http://loadtest", timeout=30.0) as client:
         # Warmup with 5 requests
         for w in range(5):
             await task_worker(9000 + w, client)
+        warmup_errors = error_count
         latencies.clear()
+        samples.clear()
+        active_tasks = peak_tasks = active_requests = peak_requests = request_count = 0
         success_count = 0
         error_count = 0
 
-        # Official measurement run
+        # Official measurement run: warmup excluded from all counters and duration.
+        test_start = time.perf_counter()
         tasks = [task_worker(i, client) for i in range(TOTAL_REQUESTS)]
         _ = await asyncio.gather(*tasks)
-
-    total_duration = time.perf_counter() - test_start
+        total_duration = time.perf_counter() - test_start
 
     p50 = calculate_percentile(latencies, 50.0)
     p95 = calculate_percentile(latencies, 95.0)
@@ -151,7 +192,7 @@ async def run_load_test() -> dict[str, object]:
     avg_latency = sum(latencies) / len(latencies) if latencies else 0.0
     throughput = len(latencies) / total_duration if total_duration > 0 else 0.0
 
-    goal_met = p95 <= TARGET_P95_SECONDS
+    goal_met = performance_goal_met(latencies, error_count, TOTAL_REQUESTS) and warmup_errors == 0
     status_str = "PASSED (MEETS P95 <= 1.5s)" if goal_met else "FAILED"
     success_rate = round((success_count / TOTAL_REQUESTS) * 100, 2)
 
@@ -165,10 +206,23 @@ async def run_load_test() -> dict[str, object]:
     }
 
     result: dict[str, object] = {
+        "run_id": datetime.now(ZoneInfo("UTC")).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8],
+        "tested_commit": (
+            await asyncio.to_thread(
+                subprocess.check_output, ["git", "rev-parse", "HEAD"], text=True
+            )
+        ).strip(),
+        "transport": "httpx ASGITransport in-process; real PostgreSQL; no network HTTP server",
         "variant": "VT-116",
         "timestamp": datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(),
         "database": "PostgreSQL 18-alpine (Docker)",
-        "concurrency_inflight": CONCURRENCY,
+        "concurrency_cap": CONCURRENCY,
+        "peak_lifecycle_inflight": peak_tasks,
+        "peak_http_inflight": peak_requests,
+        "measured_request_count": request_count,
+        "warmup_lifecycles": 5,
+        "warmup_errors": warmup_errors,
+        "error_rate_percent": round(error_count / TOTAL_REQUESTS * 100, 4),
         "total_lifecycle_tasks": TOTAL_REQUESTS,
         "completed_tasks": len(latencies),
         "success_rate_percent": success_rate,
@@ -178,12 +232,18 @@ async def run_load_test() -> dict[str, object]:
         "latency_stats_seconds": latency_stats,
         "target_p95_seconds": TARGET_P95_SECONDS,
         "passed_performance_goal": goal_met,
+        "samples": samples,
     }
 
     print("\n" + "=" * 60)
     print("           VT-116 LOAD TEST EXPERIMENT RESULTS")
     print("=" * 60)
-    print(f"Concurrency (In-flight tasks) : {CONCURRENCY}")
+    print(f"Run ID                        : {result['run_id']}")
+    print(f"Tested commit                 : {result['tested_commit']}")
+    print(f"Concurrency cap               : {CONCURRENCY}")
+    print(f"Peak lifecycle / HTTP in-flight: {peak_tasks} / {peak_requests}")
+    print(f"Measured HTTP requests        : {request_count}")
+    print("Transport                     : in-process ASGI; real PostgreSQL")
     print(f"Total Completed Tasks         : {len(latencies)} / {TOTAL_REQUESTS}")
     print(f"Success Rate                  : {success_rate}%")
     print(f"Total Execution Time          : {result['total_duration_seconds']} s")
@@ -192,6 +252,11 @@ async def run_load_test() -> dict[str, object]:
     print(f"p50 Latency                   : {p50 * 1000:.2f} ms")
     print(f"p95 Latency                   : {p95 * 1000:.2f} ms")
     print(f"p99 Latency                   : {p99 * 1000:.2f} ms")
+    print(
+        f"Min / Max latency             : {min(latencies, default=0) * 1000:.2f} / {max(latencies, default=0) * 1000:.2f} ms"
+    )
+    print(f"Errors / error rate            : {error_count} / {result['error_rate_percent']}%")
+    print(f"Warmup errors                 : {warmup_errors}")
     print(f"Target p95                    : <= {TARGET_P95_SECONDS * 1000:.1f} ms")
     print(f"Performance Goal Status       : {status_str}")
     print("=" * 60)
@@ -202,9 +267,20 @@ async def run_load_test() -> dict[str, object]:
 
 
 if __name__ == "__main__":
-    res = asyncio.run(run_load_test())
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "docs", "bt3-vt116", "evidence")
-    output_path = os.path.join(output_dir, "04-performance.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(res, f, indent=2, ensure_ascii=False)
-    print(f"\n[+] Results saved to {output_path}")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path(__file__).resolve().parents[1] / "docs/bt3-vt116/evidence/final",
+    )
+    args = parser.parse_args()
+    captured = io.StringIO()
+    with redirect_stdout(captured):
+        res = asyncio.run(run_load_test())
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    stem = args.output_dir / ("performance-" + str(res["run_id"]))
+    stem.with_suffix(".json").write_text(json.dumps(res, indent=2, ensure_ascii=False) + "\n")
+    stem.with_suffix(".log").write_text(captured.getvalue())
+    print(captured.getvalue())
+    print(f"Paired evidence: {stem}.json / .log")
+    sys.exit(0 if res["passed_performance_goal"] else 1)
