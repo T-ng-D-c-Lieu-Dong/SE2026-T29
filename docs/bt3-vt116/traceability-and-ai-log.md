@@ -57,3 +57,4 @@
 - *Phát hiện & Sửa đổi*: Sinh viên tại Checkpoint 2 đã bác bỏ kết luận này. AI đã hiệu chỉnh: Dữ liệu cũ trong migration được gán `legacy_` unguessable ID; đồng thời thừa nhận rõ ràng trong báo cáo rằng việc chống spoofing bắt buộc phải dựa vào API Gateway / JWT verification ở mạng biên, đây là Residual Risk của phạm vi backend đơn lẻ.
 
 ---
+
