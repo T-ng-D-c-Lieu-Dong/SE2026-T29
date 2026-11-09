@@ -67,7 +67,8 @@ class TelemetryRuntime:
         """Create a low-cardinality span such as ``booking.create`` or ``booking.cancel``."""
 
         if operation not in {"create", "cancel", "soft_delete", "restore"}:
-            raise ValueError("booking operation must be 'create', 'cancel', 'soft_delete', or 'restore'")
+            msg = "booking operation must be 'create', 'cancel', 'soft_delete', or 'restore'"
+            raise ValueError(msg)
         return self.tracer.start_as_current_span(
             f"booking.{operation}",
             attributes=attributes,

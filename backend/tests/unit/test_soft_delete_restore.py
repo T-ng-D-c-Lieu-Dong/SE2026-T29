@@ -6,7 +6,6 @@ import pytest
 
 from app.domain import (
     AccessDeniedError,
-    AppointmentNotFound,
     SlotAlreadyBooked,
 )
 from app.models import Appointment, AppointmentStatus

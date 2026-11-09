@@ -26,21 +26,21 @@ SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_concu
 SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_concurrent_booking_and_restore_same_slot PASSED [100%]
 
 =============================== warnings summary ===============================
-SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:55
-  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:55: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:54
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:54: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
     @pytest.mark.unit
 
-SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:74
-  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:74: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:73
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:73: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
     @pytest.mark.unit
 
-SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:92
-  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:92: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:91
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:91: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
     @pytest.mark.unit
 
-SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:112
-  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:112: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:111
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:111: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
     @pytest.mark.unit
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 17 passed, 4 warnings in 0.61s ========================
+======================== 17 passed, 4 warnings in 0.62s ========================

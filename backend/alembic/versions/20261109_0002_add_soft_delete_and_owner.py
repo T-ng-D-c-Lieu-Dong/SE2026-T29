@@ -8,6 +8,7 @@ Create Date: 2026-11-09
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision: str = "20261109_0002"
@@ -17,7 +18,8 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    # 1. Add owner_id as nullable first, populate from customer_name to prevent shared anonymous ownership, then make NOT NULL
+    # 1. Add owner_id as nullable first.
+    # To prevent accidental ownership takeover, legacy records receive a unique unguessable ID.
     op.add_column(
         "appointments",
         sa.Column(
@@ -26,7 +28,10 @@ def upgrade() -> None:
             nullable=True,
         ),
     )
-    op.execute("UPDATE appointments SET owner_id = customer_name WHERE owner_id IS NULL")
+    op.execute(
+        "UPDATE appointments SET owner_id = 'legacy_' || replace(id::text, '-', '') "
+        "WHERE owner_id IS NULL"
+    )
     op.alter_column(
         "appointments",
         "owner_id",
@@ -72,4 +77,3 @@ def downgrade() -> None:
     op.drop_column("appointments", "deleted_at")
     op.drop_column("appointments", "is_deleted")
     op.drop_column("appointments", "owner_id")
-

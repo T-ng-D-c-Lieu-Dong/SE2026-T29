@@ -52,7 +52,9 @@ class AppointmentRepository:
         owner_id: str | None = None,
     ) -> tuple[list[Appointment], int]:
         query = select(Appointment).where(Appointment.is_deleted.is_(False))
-        count_query = select(func.count()).select_from(Appointment).where(Appointment.is_deleted.is_(False))
+        count_query = (
+            select(func.count()).select_from(Appointment).where(Appointment.is_deleted.is_(False))
+        )
 
         if owner_id is not None:
             query = query.where(Appointment.owner_id == owner_id)
@@ -89,10 +91,14 @@ class AppointmentRepository:
         return list(rows), int(total or 0)
 
     async def is_slot_booked(self, starts_at: datetime, exclude_id: UUID | None = None) -> bool:
-        query = select(func.count()).select_from(Appointment).where(
-            Appointment.starts_at == starts_at,
-            Appointment.status == AppointmentStatus.BOOKED.value,
-            Appointment.is_deleted.is_(False),
+        query = (
+            select(func.count())
+            .select_from(Appointment)
+            .where(
+                Appointment.starts_at == starts_at,
+                Appointment.status == AppointmentStatus.BOOKED.value,
+                Appointment.is_deleted.is_(False),
+            )
         )
         if exclude_id is not None:
             query = query.where(Appointment.id != exclude_id)

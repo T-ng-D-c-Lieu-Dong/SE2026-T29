@@ -52,7 +52,10 @@ async def create_appointment(
     telemetry: TelemetryDependency,
     caller_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
 ) -> AppointmentRead:
-    effective_owner = caller_id.strip() if caller_id and caller_id.strip() else (payload.owner_id or payload.customer_name)
+    if caller_id and caller_id.strip():
+        effective_owner = caller_id.strip()
+    else:
+        effective_owner = payload.owner_id or payload.customer_name
     try:
         appointment = await booking_service(session, telemetry).create(
             customer_name=payload.customer_name,
@@ -186,4 +189,3 @@ async def cancel_appointment(
     except AccessDeniedError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-

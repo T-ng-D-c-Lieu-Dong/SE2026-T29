@@ -203,21 +203,33 @@ async def test_tc04_tc05_idempotency_soft_delete_and_restore(client) -> None:
     apt_id = create_resp.json()["id"]
 
     # Soft delete lần 1
-    resp1 = await client.patch(f"/api/appointments/{apt_id}/soft-delete", headers={"X-User-Id": "UserA"})
+    resp1 = await client.patch(
+        f"/api/appointments/{apt_id}/soft-delete",
+        headers={"X-User-Id": "UserA"},
+    )
     assert resp1.status_code == 200
     deleted_at_1 = resp1.json()["deleted_at"]
 
     # Soft delete lần 2
-    resp2 = await client.patch(f"/api/appointments/{apt_id}/soft-delete", headers={"X-User-Id": "UserA"})
+    resp2 = await client.patch(
+        f"/api/appointments/{apt_id}/soft-delete",
+        headers={"X-User-Id": "UserA"},
+    )
     assert resp2.status_code == 200
     assert resp2.json()["deleted_at"] == deleted_at_1
 
     # Restore lần 1
-    r_resp1 = await client.patch(f"/api/appointments/{apt_id}/restore", headers={"X-User-Id": "UserA"})
+    r_resp1 = await client.patch(
+        f"/api/appointments/{apt_id}/restore",
+        headers={"X-User-Id": "UserA"},
+    )
     assert r_resp1.status_code == 200
 
     # Restore lần 2
-    r_resp2 = await client.patch(f"/api/appointments/{apt_id}/restore", headers={"X-User-Id": "UserA"})
+    r_resp2 = await client.patch(
+        f"/api/appointments/{apt_id}/restore",
+        headers={"X-User-Id": "UserA"},
+    )
     assert r_resp2.status_code == 200
 
 
@@ -255,9 +267,9 @@ async def test_auth_missing_header_returns_401(client) -> None:
 
 
 async def test_auth_header_spoofing_limitation_demonstration(client) -> None:
-    """Rủi ro 1 & Giới hạn: Khi client tự giả mạo header của User A mà không có API Gateway / JWT signature,
+    """Rủi ro 1 & Giới hạn: Khi client tự giả mạo header của User A mà không có API Gateway,
     hệ thống backend thuần túy chỉ có thể tin vào header được inject.
-    Test này chứng minh rằng việc bảo vệ chống Header Spoofing bắt buộc phải do Gateway ở mạng biên đảm nhiệm."""
+    Test này chứng minh rằng việc bảo vệ chống Header Spoofing bắt buộc phải do Gateway."""
     slot = future_slot(days=7, hour=10)
     create_resp = await client.post(
         "/api/appointments",
@@ -273,12 +285,11 @@ async def test_auth_header_spoofing_limitation_demonstration(client) -> None:
     )
     # Vì backend tin cậy header từ upstream, thao tác sẽ được chấp nhận nếu header là UserA
     assert spoofed_resp.status_code == 200
-    # Điều này khẳng định: Cần có API Gateway / Cryptographic verification ở mạng biên để ngăn client giả mạo header!
 
 
 async def test_concurrent_restore_same_slot_race_condition(client, test_session_factory) -> None:
     """Rủi ro 3: Hai request đồng thời cùng restore vào 1 slot bị trùng.
-    Database Partial Unique Index phải bảo đảm đúng 1 request thành công và request kia nhận 409 Conflict."""
+    Partial Unique Index bảo đảm đúng 1 request thành công và request kia nhận 409 Conflict."""
     slot = future_slot(days=8, hour=10)
 
     # Tạo 2 booking trên 2 thời điểm khác nhau ban đầu, rồi soft-delete cả 2
