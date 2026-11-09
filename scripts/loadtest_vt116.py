@@ -12,7 +12,7 @@ import os
 import sys
 import time
 from datetime import datetime, timedelta
-from typing import Any
+from typing import cast
 from zoneinfo import ZoneInfo
 
 from httpx import ASGITransport, AsyncClient
@@ -46,7 +46,7 @@ def calculate_percentile(data: list[float], percentile: float) -> float:
     return d0 + d1
 
 
-async def run_load_test() -> dict[str, Any]:
+async def run_load_test() -> dict[str, object]:
     database_url = os.getenv("TEST_DATABASE_URL")
     if not database_url:
         print("ERROR: TEST_DATABASE_URL is required.")
@@ -61,7 +61,7 @@ async def run_load_test() -> dict[str, Any]:
     engine = create_async_engine(database_url, pool_size=50, max_overflow=20)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        await conn.execute(text("TRUNCATE TABLE appointments"))
+        _ = await conn.execute(text("TRUNCATE TABLE appointments"))
     factory = async_sessionmaker(engine, expire_on_commit=False)
 
     app = create_app()
@@ -99,7 +99,8 @@ async def run_load_test() -> dict[str, Any]:
                 if create_resp.status_code != 201:
                     error_count += 1
                     return
-                apt_id = create_resp.json()["id"]
+                resp_json = cast(dict[str, object], create_resp.json())
+                apt_id = str(resp_json.get("id", ""))
 
                 # 2. Soft-delete booking
                 del_resp = await client.patch(
@@ -140,7 +141,7 @@ async def run_load_test() -> dict[str, Any]:
 
         # Official measurement run
         tasks = [task_worker(i, client) for i in range(TOTAL_REQUESTS)]
-        await asyncio.gather(*tasks)
+        _ = await asyncio.gather(*tasks)
 
     total_duration = time.perf_counter() - test_start
 
@@ -152,26 +153,29 @@ async def run_load_test() -> dict[str, Any]:
 
     goal_met = p95 <= TARGET_P95_SECONDS
     status_str = "PASSED (MEETS P95 <= 1.5s)" if goal_met else "FAILED"
+    success_rate = round((success_count / TOTAL_REQUESTS) * 100, 2)
 
-    result = {
+    latency_stats: dict[str, float] = {
+        "avg": round(avg_latency, 4),
+        "p50": round(p50, 4),
+        "p95": round(p95, 4),
+        "p99": round(p99, 4),
+        "min": round(min(latencies), 4) if latencies else 0.0,
+        "max": round(max(latencies), 4) if latencies else 0.0,
+    }
+
+    result: dict[str, object] = {
         "variant": "VT-116",
         "timestamp": datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat(),
         "database": "PostgreSQL 18-alpine (Docker)",
         "concurrency_inflight": CONCURRENCY,
         "total_lifecycle_tasks": TOTAL_REQUESTS,
         "completed_tasks": len(latencies),
-        "success_rate_percent": round((success_count / TOTAL_REQUESTS) * 100, 2),
+        "success_rate_percent": success_rate,
         "error_count": error_count,
         "total_duration_seconds": round(total_duration, 4),
         "throughput_tasks_per_sec": round(throughput, 2),
-        "latency_stats_seconds": {
-            "avg": round(avg_latency, 4),
-            "p50": round(p50, 4),
-            "p95": round(p95, 4),
-            "p99": round(p99, 4),
-            "min": round(min(latencies), 4) if latencies else 0.0,
-            "max": round(max(latencies), 4) if latencies else 0.0,
-        },
+        "latency_stats_seconds": latency_stats,
         "target_p95_seconds": TARGET_P95_SECONDS,
         "passed_performance_goal": goal_met,
     }
@@ -181,13 +185,13 @@ async def run_load_test() -> dict[str, Any]:
     print("=" * 60)
     print(f"Concurrency (In-flight tasks) : {CONCURRENCY}")
     print(f"Total Completed Tasks         : {len(latencies)} / {TOTAL_REQUESTS}")
-    print(f"Success Rate                  : {result['success_rate_percent']}%")
+    print(f"Success Rate                  : {success_rate}%")
     print(f"Total Execution Time          : {result['total_duration_seconds']} s")
     print(f"Throughput                    : {result['throughput_tasks_per_sec']} tasks/sec")
-    print(f"Average Latency               : {result['latency_stats_seconds']['avg'] * 1000:.2f} ms")
-    print(f"p50 Latency                   : {result['latency_stats_seconds']['p50'] * 1000:.2f} ms")
-    print(f"p95 Latency                   : {result['latency_stats_seconds']['p95'] * 1000:.2f} ms")
-    print(f"p99 Latency                   : {result['latency_stats_seconds']['p99'] * 1000:.2f} ms")
+    print(f"Average Latency               : {avg_latency * 1000:.2f} ms")
+    print(f"p50 Latency                   : {p50 * 1000:.2f} ms")
+    print(f"p95 Latency                   : {p95 * 1000:.2f} ms")
+    print(f"p99 Latency                   : {p99 * 1000:.2f} ms")
     print(f"Target p95                    : <= {TARGET_P95_SECONDS * 1000:.1f} ms")
     print(f"Performance Goal Status       : {status_str}")
     print("=" * 60)

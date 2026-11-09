@@ -1,21 +1,21 @@
 {
   "variant": "VT-116",
-  "timestamp": "2026-11-09T12:39:50.865053+07:00",
+  "timestamp": "2026-11-09T13:14:53.272206+07:00",
   "database": "PostgreSQL 18-alpine (Docker)",
   "concurrency_inflight": 40,
   "total_lifecycle_tasks": 200,
   "completed_tasks": 200,
   "success_rate_percent": 100.0,
   "error_count": 0,
-  "total_duration_seconds": 2.0378,
-  "throughput_tasks_per_sec": 98.14,
+  "total_duration_seconds": 2.6103,
+  "throughput_tasks_per_sec": 76.62,
   "latency_stats_seconds": {
-    "avg": 0.3769,
-    "p50": 0.3575,
-    "p95": 0.4827,
-    "p99": 0.4953,
-    "min": 0.2575,
-    "max": 0.5064
+    "avg": 0.4814,
+    "p50": 0.4565,
+    "p95": 0.6022,
+    "p99": 0.6196,
+    "min": 0.3391,
+    "max": 0.6483
   },
   "target_p95_seconds": 1.5,
   "passed_performance_goal": true
