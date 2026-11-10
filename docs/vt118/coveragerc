@@ -1,0 +1,7 @@
+# Coverage settings for the VT-118 evidence run.
+# SQLAlchemy asyncio runs DB calls through greenlet; without greenlet support coverage.py loses
+# track of lines executed after a DB await (409 path, list endpoint) and under-reports them.
+[run]
+branch = True
+concurrency = greenlet,thread
+source = backend/app

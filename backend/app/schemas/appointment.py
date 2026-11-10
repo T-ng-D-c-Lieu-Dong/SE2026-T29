@@ -36,6 +36,13 @@ class AppointmentRead(BaseModel):
     cancelled_at: datetime | None
 
 
+NotificationStatus = Literal["sent", "failed", "timeout"]
+
+
+class AppointmentCreated(AppointmentRead):
+    notification_status: NotificationStatus
+
+
 class AppointmentList(BaseModel):
     items: list[AppointmentRead]
     total: int

@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     release: str = "dev"
     commit_sha: str = "unknown"
     db_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
+    notification_timeout_seconds: float = Field(default=0.5, gt=0, le=5)
     fault_mode: Literal["off", "error", "latency"] = "off"
     fault_rate: float = Field(default=1.0, ge=0.0, le=1.0)
     fault_until: AwareDatetime | None = None

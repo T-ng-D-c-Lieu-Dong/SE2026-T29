@@ -1,0 +1,28 @@
+# Mutation M1 on a temporary branch — 2026-11-07T16:09:21+00:00
+# submission branch HEAD: d93b5df; temporary branch: tmp/vt118-mutation-m1-23001840 @ adaf135 (local only, never merged/pushed)
+$ git show --format="%h %s" HEAD
+adaf135 TEMP mutation M1 (do not merge): map NotificationOutcome.FAILED to "sent"
+diff --git a/backend/app/api/appointments.py b/backend/app/api/appointments.py
+index cd73d16..b59df57 100644
+--- a/backend/app/api/appointments.py
++++ b/backend/app/api/appointments.py
+@@ -24,7 +24,7 @@ SessionDependency = Annotated[AsyncSession, Depends(get_session)]
+ 
+ NOTIFICATION_STATUS: dict[NotificationOutcome, NotificationStatus] = {
+     NotificationOutcome.DELIVERED: "sent",
+-    NotificationOutcome.FAILED: "failed",
++    NotificationOutcome.FAILED: "sent",
+     NotificationOutcome.TIMED_OUT: "timeout",
+ }
+ 
+$ pytest -q -p no:cacheprovider --tb=line --show-capture=no -rf backend/tests
+.................................................E1107 16:09:26.936669    4050 http_connect_client_handshaker.cc:114] HTTP proxy handshake with [unknown] failed: UNAVAILABLE: Endpoint closing
+E   AssertionError: assert 'sent' == 'failed'
+      - failed
+backend/tests/integration/test_appointment_notifications.py:130: AssertionError: assert 'sent' == 'failed'
+E   AssertionError: assert {'sent'} == {'failed'}
+      'failed'
+backend/tests/integration/test_appointment_notifications.py:256: AssertionError: assert {'sent'} == {'failed'}
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel
+2 failed, 193 passed, 2 xfailed, 1 warning in 4.91s

@@ -3,6 +3,7 @@ from __future__ import annotations
 import builtins
 from collections.abc import Callable
 from contextlib import nullcontext
+from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 from uuid import UUID
@@ -12,6 +13,13 @@ from app.domain import AppointmentNotFound, InvalidSlot
 from app.models import Appointment, AppointmentStatus
 from app.repositories import AppointmentRepository
 from app.services.fault_injection import BookingFaultInjector
+from app.services.notifications import (
+    DEFAULT_NOTIFICATION_TIMEOUT_SECONDS,
+    BookingNotifier,
+    LoggingBookingNotifier,
+    NotificationOutcome,
+    notify_appointment_created,
+)
 from app.telemetry import TelemetryRuntime
 
 BOOKING_TIMEZONE = ZoneInfo("Asia/Ho_Chi_Minh")
@@ -36,6 +44,12 @@ def normalize_start_time(starts_at: datetime, now: datetime) -> datetime:
     return normalized
 
 
+@dataclass(frozen=True, slots=True)
+class CreatedBooking:
+    appointment: Appointment
+    notification: NotificationOutcome
+
+
 class BookingService:
     def __init__(
         self,
@@ -43,11 +57,15 @@ class BookingService:
         now_provider: Callable[[], datetime] = utc_now,
         fault_injector: BookingFaultInjector | None = None,
         telemetry: TelemetryRuntime | None = None,
+        notifier: BookingNotifier | None = None,
+        notification_timeout_seconds: float = DEFAULT_NOTIFICATION_TIMEOUT_SECONDS,
     ) -> None:
         self.repository = repository
         self.now_provider = now_provider
         self.fault_injector = fault_injector or BookingFaultInjector()
         self.telemetry = telemetry
+        self.notifier = notifier or LoggingBookingNotifier()
+        self.notification_timeout_seconds = notification_timeout_seconds
 
     def _booking_span(self, operation: str) -> Any:
         if self.telemetry is None:
@@ -59,9 +77,21 @@ class BookingService:
             normalized_start = normalize_start_time(starts_at, self.now_provider())
             await self.fault_injector.before_create()
             appointment = await self.repository.create(customer_name, normalized_start)
-            await self.repository.commit()
+            # Refresh inside the transaction so that commit is the last DB call and releases the
+            # pooled connection before any slow side effect runs (NFR2).
             await self.repository.refresh(appointment)
+            await self.repository.commit()
             return appointment
+
+    async def create_and_notify(self, customer_name: str, starts_at: datetime) -> CreatedBooking:
+        """Book, then notify once; the notification outcome never changes the booking outcome."""
+        appointment = await self.create(customer_name, starts_at)
+        notification = await notify_appointment_created(
+            self.notifier,
+            appointment,
+            timeout_seconds=self.notification_timeout_seconds,
+        )
+        return CreatedBooking(appointment=appointment, notification=notification)
 
     async def list(self, limit: int, offset: int) -> tuple[list[Appointment], int]:
         return await self.repository.list(limit, offset)

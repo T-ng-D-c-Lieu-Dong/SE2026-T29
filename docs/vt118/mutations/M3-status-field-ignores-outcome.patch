@@ -1,0 +1,11 @@
+--- a/backend/app/api/appointments.py
++++ b/backend/app/api/appointments.py
+@@ -83,7 +83,7 @@
+     appointment = AppointmentRead.model_validate(created.appointment)
+     return AppointmentCreated(
+         **appointment.model_dump(),
+-        notification_status=NOTIFICATION_STATUS[created.notification],
++        notification_status="sent",
+     )
+ 
+ 
