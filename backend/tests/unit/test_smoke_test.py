@@ -53,6 +53,24 @@ def test_smoke_runner_version_check_mismatch():
         assert "Version mismatch" in res.message
 
 
+def test_smoke_runner_version_check_rejects_wrong_commit():
+    runner = SmokeTestRunner(
+        base_url="http://mock-service",
+        expected_release="v0.1.0",
+        expected_commit_sha="expected-sha",
+    )
+    with patch.object(
+        runner,
+        "_http_request",
+        return_value=(200, {"release": "v0.1.0", "commit_sha": "wrong-sha"}),
+    ) as request:
+        result = runner.check_version()
+
+    request.assert_called_once_with("GET", "/api/version")
+    assert not result.success
+    assert "Commit mismatch" in result.message
+
+
 def test_smoke_runner_business_flow_success():
     runner = SmokeTestRunner(base_url="http://mock-service")
 
