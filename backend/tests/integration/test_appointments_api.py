@@ -12,6 +12,12 @@ from app.services.booking import BOOKING_TIMEZONE
 pytestmark = pytest.mark.integration
 
 
+@pytest.fixture(autouse=True)
+def explicit_regression_identity(client):
+    """Existing business tests now use the required private API identity contract."""
+    client.headers["X-User-Id"] = "regression-user"
+
+
 def future_slot(days: int = 2, hour: int = 10) -> datetime:
     day = datetime.now(BOOKING_TIMEZONE).date() + timedelta(days=days)
     return datetime.combine(day, datetime.min.time(), tzinfo=BOOKING_TIMEZONE).replace(hour=hour)

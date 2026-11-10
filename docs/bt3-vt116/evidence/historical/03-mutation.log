@@ -1,0 +1,358 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.2.0, pluggy-1.7.0 -- /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend
+configfile: pyproject.toml
+plugins: anyio-4.16.0, asyncio-1.4.1.post1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 17 items
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_success FAILED [  5%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_unauthorized FAILED [ 11%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_success PASSED [ 17%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_conflict_when_slot_rebooked PASSED [ 23%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc01_soft_delete_happy_path FAILED [ 29%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc02_restore_happy_path PASSED [ 35%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc06_cross_user_soft_delete_forbidden FAILED [ 41%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc07_cross_user_restore_forbidden PASSED [ 47%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc08_cross_user_get_detail_isolation PASSED [ 52%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc09_trash_api_isolation FAILED [ 58%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc10_restore_slot_conflict_returns_409 FAILED [ 64%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc04_tc05_idempotency_soft_delete_and_restore FAILED [ 70%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc12_soft_delete_not_found PASSED [ 76%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_auth_missing_header_returns_401 PASSED [ 82%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_auth_header_spoofing_limitation_demonstration FAILED [ 88%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_concurrent_restore_same_slot_race_condition FAILED [ 94%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_concurrent_booking_and_restore_same_slot PASSED [100%]
+
+=================================== FAILURES ===================================
+________________________ test_unit_soft_delete_success _________________________
+
+    @pytest.mark.unit
+    async def test_unit_soft_delete_success():
+        now_dt = datetime(2026, 11, 10, 8, 0, tzinfo=UTC)
+        apt_id = uuid4()
+        apt = Appointment(
+            id=apt_id,
+            customer_name="UserA",
+            starts_at=now_dt + timedelta(days=1),
+            status=AppointmentStatus.BOOKED.value,
+            owner_id="UserA",
+            is_deleted=False,
+        )
+        service = make_service({apt_id: apt}, now_dt)
+    
+>       updated = await service.soft_delete(apt_id, caller_id="UserA")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.services.booking.BookingService object at 0x74cd8d268d70>
+appointment_id = UUID('64598e82-2eaa-4437-a00b-2e5b0576dac0')
+caller_id = 'UserA'
+
+    async def soft_delete(self, appointment_id: UUID, caller_id: str) -> Appointment:
+        with self._booking_span("soft_delete"):
+            appointment = await self._get_appointment(appointment_id, include_deleted=True)
+            if appointment is None:
+                raise AppointmentNotFound("Appointment was not found")
+    
+            owner = getattr(appointment, "owner_id", "anonymous")
+            # DELIBERATE MUTATION FOR EXPERIMENT: Inverted ownership condition
+            if owner == caller_id:
+>               raise AccessDeniedError("You do not have permission to delete this appointment")
+E               app.domain.errors.AccessDeniedError: You do not have permission to delete this appointment
+
+SE2026-T29/backend/app/services/booking.py:130: AccessDeniedError
+______________________ test_unit_soft_delete_unauthorized ______________________
+
+    @pytest.mark.unit
+    async def test_unit_soft_delete_unauthorized():
+        now_dt = datetime(2026, 11, 10, 8, 0, tzinfo=UTC)
+        apt_id = uuid4()
+        apt = Appointment(
+            id=apt_id,
+            customer_name="UserA",
+            starts_at=now_dt + timedelta(days=1),
+            status=AppointmentStatus.BOOKED.value,
+            owner_id="UserA",
+            is_deleted=False,
+        )
+        service = make_service({apt_id: apt}, now_dt)
+    
+>       with pytest.raises(AccessDeniedError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE AccessDeniedError
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:87: Failed
+_______________________ test_tc01_soft_delete_happy_path _______________________
+
+client = <httpx.AsyncClient object at 0x74cd8d26b380>
+
+    async def test_tc01_soft_delete_happy_path(client) -> None:
+        slot = future_slot(days=3, hour=10)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        assert create_resp.status_code == 201
+        apt_id = create_resp.json()["id"]
+    
+        delete_resp = await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserA"},
+        )
+>       assert delete_resp.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = <Response [403 Forbidden]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:33: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.393002+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":18.448,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.398258+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":3.7,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8d269be0:request_logging.py:141 http_request
+INFO     booking.http.74cd8d269be0:request_logging.py:141 http_request
+__________________ test_tc06_cross_user_soft_delete_forbidden __________________
+
+client = <httpx.AsyncClient object at 0x74cd8d2efed0>
+
+    async def test_tc06_cross_user_soft_delete_forbidden(client) -> None:
+        slot = future_slot(days=4, hour=10)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # User B cố xóa của User A
+        attack_resp = await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserB"},
+        )
+>       assert attack_resp.status_code == 403
+E       assert 200 == 403
+E        +  where 200 = <Response [200 OK]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:95: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.466673+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":13.871,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.478066+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":200,"duration_ms":10.036,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8d2e57f0:request_logging.py:141 http_request
+INFO     booking.http.74cd8d2e57f0:request_logging.py:141 http_request
+________________________ test_tc09_trash_api_isolation _________________________
+
+client = <httpx.AsyncClient object at 0x74cd8d2f3e30>
+
+    async def test_tc09_trash_api_isolation(client) -> None:
+        slot_a = future_slot(days=5, hour=10)
+        slot_b = future_slot(days=5, hour=11)
+    
+        resp_a = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot_a.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        resp_b = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserB", "starts_at": slot_b.isoformat()},
+            headers={"X-User-Id": "UserB"},
+        )
+        apt_a = resp_a.json()["id"]
+        apt_b = resp_b.json()["id"]
+    
+        # Cả hai đều xóa mềm booking của mình
+        await client.patch(f"/api/appointments/{apt_a}/soft-delete", headers={"X-User-Id": "UserA"})
+        await client.patch(f"/api/appointments/{apt_b}/soft-delete", headers={"X-User-Id": "UserB"})
+    
+        # User A xem trash
+        trash_a = await client.get("/api/appointments/trash", headers={"X-User-Id": "UserA"})
+        assert trash_a.status_code == 200
+        items_a = trash_a.json()["items"]
+        ids_a = [item["id"] for item in items_a]
+>       assert apt_a in ids_a
+E       AssertionError: assert '99f8ac5b-e59a-4dfe-81c7-6c0468ae14cb' in []
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:161: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.577012+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":15.287,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.582408+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":4.303,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.587402+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":4.081,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.593140+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":4.531,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.600455+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/trash","status":200,"duration_ms":6.576,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8c810830:request_logging.py:141 http_request
+INFO     booking.http.74cd8c810830:request_logging.py:141 http_request
+INFO     booking.http.74cd8c810830:request_logging.py:141 http_request
+INFO     booking.http.74cd8c810830:request_logging.py:141 http_request
+INFO     booking.http.74cd8c810830:request_logging.py:141 http_request
+_________________ test_tc10_restore_slot_conflict_returns_409 __________________
+
+client = <httpx.AsyncClient object at 0x74cd8c86c490>
+
+    async def test_tc10_restore_slot_conflict_returns_409(client) -> None:
+        slot = future_slot(days=6, hour=10)
+    
+        # User A đặt slot 10:00
+        resp_a = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_a = resp_a.json()["id"]
+    
+        # User A xóa mềm (giải phóng slot)
+        await client.patch(f"/api/appointments/{apt_a}/soft-delete", headers={"X-User-Id": "UserA"})
+    
+        # User C tranh thủ đặt vào slot 10:00 đó
+        resp_c = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserC", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserC"},
+        )
+>       assert resp_c.status_code == 201
+E       assert 409 == 201
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:185: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.630360+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":14.209,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.634826+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":3.414,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.640116+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":409,"duration_ms":4.529,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8c8123c0:request_logging.py:141 http_request
+INFO     booking.http.74cd8c8123c0:request_logging.py:141 http_request
+INFO     booking.http.74cd8c8123c0:request_logging.py:141 http_request
+______________ test_tc04_tc05_idempotency_soft_delete_and_restore ______________
+
+client = <httpx.AsyncClient object at 0x74cd8c884490>
+
+    async def test_tc04_tc05_idempotency_soft_delete_and_restore(client) -> None:
+        slot = future_slot(days=6, hour=14)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # Soft delete lần 1
+        resp1 = await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserA"},
+        )
+>       assert resp1.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = <Response [403 Forbidden]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:210: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.669082+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":14.363,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.674807+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":4.451,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8c813e00:request_logging.py:141 http_request
+INFO     booking.http.74cd8c813e00:request_logging.py:141 http_request
+______________ test_auth_header_spoofing_limitation_demonstration ______________
+
+client = <httpx.AsyncClient object at 0x74cd8c88e300>
+
+    async def test_auth_header_spoofing_limitation_demonstration(client) -> None:
+        """Rủi ro 1 & Giới hạn: Khi client tự giả mạo header của User A mà không có API Gateway,
+        hệ thống backend thuần túy chỉ có thể tin vào header được inject.
+        Test này chứng minh rằng việc bảo vệ chống Header Spoofing bắt buộc phải do Gateway."""
+        slot = future_slot(days=7, hour=10)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # User B cố tình gửi header X-User-Id: UserA (giả mạo ở tầng client HTTP thuần túy)
+        spoofed_resp = await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserA"},  # Giả mạo
+        )
+        # Vì backend tin cậy header từ upstream, thao tác sẽ được chấp nhận nếu header là UserA
+>       assert spoofed_resp.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = <Response [403 Forbidden]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:287: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.746776+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":15.008,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.750739+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":2.998,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8c7482f0:request_logging.py:141 http_request
+INFO     booking.http.74cd8c7482f0:request_logging.py:141 http_request
+_______________ test_concurrent_restore_same_slot_race_condition _______________
+
+client = <httpx.AsyncClient object at 0x74cd8c88e7b0>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x74cd8f571fd0>, autoflush=True, expire_on_commit=False)
+
+    async def test_concurrent_restore_same_slot_race_condition(client, test_session_factory) -> None:
+        """Rủi ro 3: Hai request đồng thời cùng restore vào 1 slot bị trùng.
+        Partial Unique Index bảo đảm đúng 1 request thành công và request kia nhận 409 Conflict."""
+        slot = future_slot(days=8, hour=10)
+    
+        # Tạo 2 booking trên 2 thời điểm khác nhau ban đầu, rồi soft-delete cả 2
+        resp1 = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt1_id = resp1.json()["id"]
+        await client.patch(f"/api/appointments/{apt1_id}/soft-delete", headers={"X-User-Id": "UserA"})
+    
+        # Vì slot đã giải phóng, User B có thể tạo booking thứ 2 tại cùng slot đó
+        resp2 = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserB", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserB"},
+        )
+>       apt2_id = resp2.json()["id"]
+                  ^^^^^^^^^^^^^^^^^^
+E       KeyError: 'id'
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:310: KeyError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T05:37:27.780114+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":14.739,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.784043+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"/api/appointments/{appointment_id}/soft-delete","status":403,"duration_ms":2.927,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T05:37:27.788809+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":409,"duration_ms":3.921,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.74cd8c7497f0:request_logging.py:141 http_request
+INFO     booking.http.74cd8c7497f0:request_logging.py:141 http_request
+INFO     booking.http.74cd8c7497f0:request_logging.py:141 http_request
+=============================== warnings summary ===============================
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:54
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:54: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:73
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:73: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:91
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:91: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:111
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:111: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_success
+FAILED SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_unauthorized
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc01_soft_delete_happy_path
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc06_cross_user_soft_delete_forbidden
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc09_trash_api_isolation
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc10_restore_slot_conflict_returns_409
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc04_tc05_idempotency_soft_delete_and_restore
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_auth_header_spoofing_limitation_demonstration
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_concurrent_restore_same_slot_race_condition
+=================== 9 failed, 8 passed, 4 warnings in 0.61s ====================

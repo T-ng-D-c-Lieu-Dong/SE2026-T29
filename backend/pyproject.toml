@@ -24,6 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "coverage>=7.17,<8",
     "httpx>=0.28,<1",
     "psutil>=6,<8",
     "pytest>=8.3,<10",
@@ -42,6 +43,7 @@ asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
 markers = [
     "integration: requires a dedicated PostgreSQL test database",
+    "unit: isolated unit tests",
 ]
 
 [tool.ruff]

@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import CheckConstraint, DateTime, Index, String, func, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Index, String, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,7 +27,7 @@ class Appointment(Base):
             "uq_appointments_active_starts_at",
             "starts_at",
             unique=True,
-            postgresql_where=text("status = 'booked'"),
+            postgresql_where=text("status = 'booked' AND is_deleted = false"),
         ),
         Index("ix_appointments_starts_at", "starts_at"),
     )
@@ -38,6 +38,15 @@ class Appointment(Base):
         default=uuid.uuid4,
     )
     customer_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    owner_id: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+    # True for new upstream-asserted bookings; NOT proof of authentication.
+    # Migration leaves all pre-existing rows disabled pending verified reassignment.
+    owner_access_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("false")
+    )
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[str] = mapped_column(
         String(16),
@@ -45,9 +54,16 @@ class Appointment(Base):
         default=AppointmentStatus.BOOKED.value,
         server_default=text("'booked'"),
     )
+    is_deleted: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=text("false"),
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
     )
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

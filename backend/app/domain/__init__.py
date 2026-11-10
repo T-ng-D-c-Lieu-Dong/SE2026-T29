@@ -1,3 +1,8 @@
-from app.domain.errors import AppointmentNotFound, InvalidSlot, SlotAlreadyBooked
+from app.domain.errors import (
+    AccessDeniedError,
+    AppointmentNotFound,
+    InvalidSlot,
+    SlotAlreadyBooked,
+)
 
-__all__ = ["AppointmentNotFound", "InvalidSlot", "SlotAlreadyBooked"]
+__all__ = ["AccessDeniedError", "AppointmentNotFound", "InvalidSlot", "SlotAlreadyBooked"]

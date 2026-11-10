@@ -7,6 +7,7 @@ Usage:
 
 `seed` books the first free slot two days ahead and stores its id; `verify` reads the
 appointment list back and requires the same booking to still be active.
+Set the same BOOKING_PROBE_USER_ID (or --user-id) for both commands.
 """
 
 from __future__ import annotations
@@ -32,8 +33,8 @@ class PersistenceResult:
 
 
 class PersistenceCheck:
-    def __init__(self, base_url: str = "http://localhost:8000") -> None:
-        self._client = SmokeTestRunner(base_url=base_url)
+    def __init__(self, base_url: str = "http://localhost:8000", user_id: str | None = None) -> None:
+        self._client = SmokeTestRunner(base_url=base_url, user_id=user_id)
 
     def _http_request(
         self, method: str, path: str, body: dict[str, Any] | None = None
@@ -105,9 +106,12 @@ def main() -> None:
     parser.add_argument("action", choices=["seed", "verify"])
     parser.add_argument("--base-url", default="http://localhost:8000", help="Service base URL")
     parser.add_argument("--state-file", required=True, help="File storing the seeded booking")
+    parser.add_argument(
+        "--user-id", default=None, help="Probe identity (defaults to BOOKING_PROBE_USER_ID)"
+    )
     args = parser.parse_args()
 
-    check = PersistenceCheck(base_url=args.base_url)
+    check = PersistenceCheck(base_url=args.base_url, user_id=args.user_id)
     state_file = Path(args.state_file)
 
     if args.action == "seed":

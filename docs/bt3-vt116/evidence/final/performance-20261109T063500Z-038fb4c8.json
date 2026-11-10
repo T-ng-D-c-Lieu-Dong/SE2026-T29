@@ -1,0 +1,1033 @@
+{
+  "run_id": "20261109T063500Z-038fb4c8",
+  "tested_commit": "c3421e27c5885857dea0b14f6358954b5a80ddb1",
+  "transport": "httpx ASGITransport in-process; real PostgreSQL; no network HTTP server",
+  "variant": "VT-116",
+  "timestamp": "2026-11-09T13:35:00.455474+07:00",
+  "database": "PostgreSQL 18-alpine (Docker)",
+  "concurrency_cap": 40,
+  "peak_lifecycle_inflight": 40,
+  "peak_http_inflight": 40,
+  "measured_request_count": 600,
+  "warmup_lifecycles": 5,
+  "warmup_errors": 0,
+  "error_rate_percent": 0.0,
+  "total_lifecycle_tasks": 200,
+  "completed_tasks": 200,
+  "success_rate_percent": 100.0,
+  "error_count": 0,
+  "total_duration_seconds": 1.8398,
+  "throughput_tasks_per_sec": 108.71,
+  "latency_stats_seconds": {
+    "avg": 0.3613391232602589,
+    "p50": 0.3532156980072614,
+    "p95": 0.4201057483558543,
+    "p99": 0.4235821474721887,
+    "min": 0.27447531299549155,
+    "max": 0.43353571702027693
+  },
+  "target_p95_seconds": 1.5,
+  "passed_performance_goal": true,
+  "samples": [
+    {
+      "worker_id": 0,
+      "latency_seconds": 0.36455994998686947,
+      "success": true
+    },
+    {
+      "worker_id": 28,
+      "latency_seconds": 0.3901049309934024,
+      "success": true
+    },
+    {
+      "worker_id": 5,
+      "latency_seconds": 0.41277714402531274,
+      "success": true
+    },
+    {
+      "worker_id": 1,
+      "latency_seconds": 0.41436838801018894,
+      "success": true
+    },
+    {
+      "worker_id": 14,
+      "latency_seconds": 0.4129186290083453,
+      "success": true
+    },
+    {
+      "worker_id": 24,
+      "latency_seconds": 0.40956161299254745,
+      "success": true
+    },
+    {
+      "worker_id": 3,
+      "latency_seconds": 0.41705411599832587,
+      "success": true
+    },
+    {
+      "worker_id": 9,
+      "latency_seconds": 0.415090271999361,
+      "success": true
+    },
+    {
+      "worker_id": 29,
+      "latency_seconds": 0.4113419319910463,
+      "success": true
+    },
+    {
+      "worker_id": 35,
+      "latency_seconds": 0.40923424900393,
+      "success": true
+    },
+    {
+      "worker_id": 39,
+      "latency_seconds": 0.4093401579884812,
+      "success": true
+    },
+    {
+      "worker_id": 34,
+      "latency_seconds": 0.41129270900273696,
+      "success": true
+    },
+    {
+      "worker_id": 16,
+      "latency_seconds": 0.41771559600601904,
+      "success": true
+    },
+    {
+      "worker_id": 25,
+      "latency_seconds": 0.4147048690065276,
+      "success": true
+    },
+    {
+      "worker_id": 6,
+      "latency_seconds": 0.4214277279970702,
+      "success": true
+    },
+    {
+      "worker_id": 30,
+      "latency_seconds": 0.41314034498645924,
+      "success": true
+    },
+    {
+      "worker_id": 38,
+      "latency_seconds": 0.41027237600064836,
+      "success": true
+    },
+    {
+      "worker_id": 22,
+      "latency_seconds": 0.4160930929938331,
+      "success": true
+    },
+    {
+      "worker_id": 26,
+      "latency_seconds": 0.41480608901474625,
+      "success": true
+    },
+    {
+      "worker_id": 2,
+      "latency_seconds": 0.42330203400342725,
+      "success": true
+    },
+    {
+      "worker_id": 20,
+      "latency_seconds": 0.4170808560156729,
+      "success": true
+    },
+    {
+      "worker_id": 4,
+      "latency_seconds": 0.42278744900249876,
+      "success": true
+    },
+    {
+      "worker_id": 27,
+      "latency_seconds": 0.4148615029989742,
+      "success": true
+    },
+    {
+      "worker_id": 19,
+      "latency_seconds": 0.41770202000043355,
+      "success": true
+    },
+    {
+      "worker_id": 10,
+      "latency_seconds": 0.42094502301188186,
+      "success": true
+    },
+    {
+      "worker_id": 23,
+      "latency_seconds": 0.4164888250234071,
+      "success": true
+    },
+    {
+      "worker_id": 13,
+      "latency_seconds": 0.42006157600553706,
+      "success": true
+    },
+    {
+      "worker_id": 7,
+      "latency_seconds": 0.4222867189964745,
+      "success": true
+    },
+    {
+      "worker_id": 36,
+      "latency_seconds": 0.41213312599575147,
+      "success": true
+    },
+    {
+      "worker_id": 8,
+      "latency_seconds": 0.42211598900030367,
+      "success": true
+    },
+    {
+      "worker_id": 18,
+      "latency_seconds": 0.41867843200452626,
+      "success": true
+    },
+    {
+      "worker_id": 17,
+      "latency_seconds": 0.41911534100654535,
+      "success": true
+    },
+    {
+      "worker_id": 32,
+      "latency_seconds": 0.4139383120054845,
+      "success": true
+    },
+    {
+      "worker_id": 31,
+      "latency_seconds": 0.4144270080141723,
+      "success": true
+    },
+    {
+      "worker_id": 33,
+      "latency_seconds": 0.41375458700349554,
+      "success": true
+    },
+    {
+      "worker_id": 21,
+      "latency_seconds": 0.41807813601917587,
+      "success": true
+    },
+    {
+      "worker_id": 11,
+      "latency_seconds": 0.421681012987392,
+      "success": true
+    },
+    {
+      "worker_id": 37,
+      "latency_seconds": 0.42349249101243913,
+      "success": true
+    },
+    {
+      "worker_id": 12,
+      "latency_seconds": 0.43245813698740676,
+      "success": true
+    },
+    {
+      "worker_id": 15,
+      "latency_seconds": 0.43353571702027693,
+      "success": true
+    },
+    {
+      "worker_id": 40,
+      "latency_seconds": 0.3759472979872953,
+      "success": true
+    },
+    {
+      "worker_id": 41,
+      "latency_seconds": 0.3577910249878187,
+      "success": true
+    },
+    {
+      "worker_id": 42,
+      "latency_seconds": 0.35082360697560944,
+      "success": true
+    },
+    {
+      "worker_id": 43,
+      "latency_seconds": 0.35015833997749723,
+      "success": true
+    },
+    {
+      "worker_id": 54,
+      "latency_seconds": 0.3400750480068382,
+      "success": true
+    },
+    {
+      "worker_id": 50,
+      "latency_seconds": 0.3420070610009134,
+      "success": true
+    },
+    {
+      "worker_id": 52,
+      "latency_seconds": 0.3411510160076432,
+      "success": true
+    },
+    {
+      "worker_id": 65,
+      "latency_seconds": 0.33634773700032383,
+      "success": true
+    },
+    {
+      "worker_id": 64,
+      "latency_seconds": 0.33683215599739924,
+      "success": true
+    },
+    {
+      "worker_id": 44,
+      "latency_seconds": 0.34841665299609303,
+      "success": true
+    },
+    {
+      "worker_id": 48,
+      "latency_seconds": 0.34615167501033284,
+      "success": true
+    },
+    {
+      "worker_id": 46,
+      "latency_seconds": 0.3478121589869261,
+      "success": true
+    },
+    {
+      "worker_id": 70,
+      "latency_seconds": 0.33497067299322225,
+      "success": true
+    },
+    {
+      "worker_id": 49,
+      "latency_seconds": 0.34597705700434744,
+      "success": true
+    },
+    {
+      "worker_id": 47,
+      "latency_seconds": 0.3477679759962484,
+      "success": true
+    },
+    {
+      "worker_id": 58,
+      "latency_seconds": 0.3399270600057207,
+      "success": true
+    },
+    {
+      "worker_id": 59,
+      "latency_seconds": 0.3464317900070455,
+      "success": true
+    },
+    {
+      "worker_id": 66,
+      "latency_seconds": 0.34390108298975974,
+      "success": true
+    },
+    {
+      "worker_id": 63,
+      "latency_seconds": 0.34513281399267726,
+      "success": true
+    },
+    {
+      "worker_id": 56,
+      "latency_seconds": 0.3478694459772669,
+      "success": true
+    },
+    {
+      "worker_id": 68,
+      "latency_seconds": 0.34346973401261494,
+      "success": true
+    },
+    {
+      "worker_id": 60,
+      "latency_seconds": 0.34662498300895095,
+      "success": true
+    },
+    {
+      "worker_id": 78,
+      "latency_seconds": 0.33812315700924955,
+      "success": true
+    },
+    {
+      "worker_id": 75,
+      "latency_seconds": 0.3410075459978543,
+      "success": true
+    },
+    {
+      "worker_id": 71,
+      "latency_seconds": 0.34270832600304857,
+      "success": true
+    },
+    {
+      "worker_id": 51,
+      "latency_seconds": 0.35044052900047973,
+      "success": true
+    },
+    {
+      "worker_id": 62,
+      "latency_seconds": 0.34636302100261673,
+      "success": true
+    },
+    {
+      "worker_id": 73,
+      "latency_seconds": 0.34229118400253356,
+      "success": true
+    },
+    {
+      "worker_id": 72,
+      "latency_seconds": 0.3427885170094669,
+      "success": true
+    },
+    {
+      "worker_id": 77,
+      "latency_seconds": 0.3394654440053273,
+      "success": true
+    },
+    {
+      "worker_id": 74,
+      "latency_seconds": 0.35180673099239357,
+      "success": true
+    },
+    {
+      "worker_id": 55,
+      "latency_seconds": 0.3592763410124462,
+      "success": true
+    },
+    {
+      "worker_id": 69,
+      "latency_seconds": 0.3541414700157475,
+      "success": true
+    },
+    {
+      "worker_id": 76,
+      "latency_seconds": 0.3514681560045574,
+      "success": true
+    },
+    {
+      "worker_id": 61,
+      "latency_seconds": 0.3574181860021781,
+      "success": true
+    },
+    {
+      "worker_id": 67,
+      "latency_seconds": 0.3552275770052802,
+      "success": true
+    },
+    {
+      "worker_id": 79,
+      "latency_seconds": 0.3459580509806983,
+      "success": true
+    },
+    {
+      "worker_id": 45,
+      "latency_seconds": 0.36759314901428297,
+      "success": true
+    },
+    {
+      "worker_id": 53,
+      "latency_seconds": 0.36478170700138435,
+      "success": true
+    },
+    {
+      "worker_id": 57,
+      "latency_seconds": 0.36837928398745134,
+      "success": true
+    },
+    {
+      "worker_id": 80,
+      "latency_seconds": 0.36656232600216754,
+      "success": true
+    },
+    {
+      "worker_id": 81,
+      "latency_seconds": 0.3538465570018161,
+      "success": true
+    },
+    {
+      "worker_id": 95,
+      "latency_seconds": 0.3427126140159089,
+      "success": true
+    },
+    {
+      "worker_id": 99,
+      "latency_seconds": 0.34239501898991875,
+      "success": true
+    },
+    {
+      "worker_id": 87,
+      "latency_seconds": 0.3492004419967998,
+      "success": true
+    },
+    {
+      "worker_id": 94,
+      "latency_seconds": 0.3466563510010019,
+      "success": true
+    },
+    {
+      "worker_id": 106,
+      "latency_seconds": 0.3381917049991898,
+      "success": true
+    },
+    {
+      "worker_id": 89,
+      "latency_seconds": 0.3487726500025019,
+      "success": true
+    },
+    {
+      "worker_id": 90,
+      "latency_seconds": 0.34849660302279517,
+      "success": true
+    },
+    {
+      "worker_id": 92,
+      "latency_seconds": 0.34785743401153013,
+      "success": true
+    },
+    {
+      "worker_id": 83,
+      "latency_seconds": 0.3516378139902372,
+      "success": true
+    },
+    {
+      "worker_id": 98,
+      "latency_seconds": 0.34364952202304266,
+      "success": true
+    },
+    {
+      "worker_id": 82,
+      "latency_seconds": 0.3526872720103711,
+      "success": true
+    },
+    {
+      "worker_id": 101,
+      "latency_seconds": 0.34261438000248745,
+      "success": true
+    },
+    {
+      "worker_id": 85,
+      "latency_seconds": 0.35595601302338764,
+      "success": true
+    },
+    {
+      "worker_id": 91,
+      "latency_seconds": 0.35374412400415167,
+      "success": true
+    },
+    {
+      "worker_id": 100,
+      "latency_seconds": 0.3482029919978231,
+      "success": true
+    },
+    {
+      "worker_id": 104,
+      "latency_seconds": 0.34675179998157546,
+      "success": true
+    },
+    {
+      "worker_id": 86,
+      "latency_seconds": 0.3559854690101929,
+      "success": true
+    },
+    {
+      "worker_id": 108,
+      "latency_seconds": 0.34365582300233655,
+      "success": true
+    },
+    {
+      "worker_id": 84,
+      "latency_seconds": 0.35714935199939646,
+      "success": true
+    },
+    {
+      "worker_id": 102,
+      "latency_seconds": 0.34799344901693985,
+      "success": true
+    },
+    {
+      "worker_id": 96,
+      "latency_seconds": 0.3506575250066817,
+      "success": true
+    },
+    {
+      "worker_id": 88,
+      "latency_seconds": 0.35574659999110736,
+      "success": true
+    },
+    {
+      "worker_id": 107,
+      "latency_seconds": 0.3445761999755632,
+      "success": true
+    },
+    {
+      "worker_id": 103,
+      "latency_seconds": 0.3480018549889792,
+      "success": true
+    },
+    {
+      "worker_id": 109,
+      "latency_seconds": 0.3439985060249455,
+      "success": true
+    },
+    {
+      "worker_id": 97,
+      "latency_seconds": 0.3506675850076135,
+      "success": true
+    },
+    {
+      "worker_id": 105,
+      "latency_seconds": 0.34751421998953447,
+      "success": true
+    },
+    {
+      "worker_id": 114,
+      "latency_seconds": 0.3477832039934583,
+      "success": true
+    },
+    {
+      "worker_id": 93,
+      "latency_seconds": 0.3636751610029023,
+      "success": true
+    },
+    {
+      "worker_id": 116,
+      "latency_seconds": 0.34727682499215007,
+      "success": true
+    },
+    {
+      "worker_id": 110,
+      "latency_seconds": 0.35257524202461354,
+      "success": true
+    },
+    {
+      "worker_id": 117,
+      "latency_seconds": 0.34952822799095884,
+      "success": true
+    },
+    {
+      "worker_id": 113,
+      "latency_seconds": 0.3511609800043516,
+      "success": true
+    },
+    {
+      "worker_id": 115,
+      "latency_seconds": 0.35049903800245374,
+      "success": true
+    },
+    {
+      "worker_id": 118,
+      "latency_seconds": 0.3555692970112432,
+      "success": true
+    },
+    {
+      "worker_id": 112,
+      "latency_seconds": 0.35848118900321424,
+      "success": true
+    },
+    {
+      "worker_id": 111,
+      "latency_seconds": 0.3590322819945868,
+      "success": true
+    },
+    {
+      "worker_id": 119,
+      "latency_seconds": 0.3758486230217386,
+      "success": true
+    },
+    {
+      "worker_id": 120,
+      "latency_seconds": 0.3632362079806626,
+      "success": true
+    },
+    {
+      "worker_id": 122,
+      "latency_seconds": 0.36421913097728975,
+      "success": true
+    },
+    {
+      "worker_id": 128,
+      "latency_seconds": 0.360249566991115,
+      "success": true
+    },
+    {
+      "worker_id": 121,
+      "latency_seconds": 0.36504625299130566,
+      "success": true
+    },
+    {
+      "worker_id": 124,
+      "latency_seconds": 0.3620813419984188,
+      "success": true
+    },
+    {
+      "worker_id": 129,
+      "latency_seconds": 0.36019695800496265,
+      "success": true
+    },
+    {
+      "worker_id": 144,
+      "latency_seconds": 0.3498177000146825,
+      "success": true
+    },
+    {
+      "worker_id": 132,
+      "latency_seconds": 0.35930238000582904,
+      "success": true
+    },
+    {
+      "worker_id": 133,
+      "latency_seconds": 0.3590809849847574,
+      "success": true
+    },
+    {
+      "worker_id": 136,
+      "latency_seconds": 0.35552655800711364,
+      "success": true
+    },
+    {
+      "worker_id": 130,
+      "latency_seconds": 0.3604974210029468,
+      "success": true
+    },
+    {
+      "worker_id": 139,
+      "latency_seconds": 0.36006697398261167,
+      "success": true
+    },
+    {
+      "worker_id": 137,
+      "latency_seconds": 0.36108667598455213,
+      "success": true
+    },
+    {
+      "worker_id": 131,
+      "latency_seconds": 0.36609130300348625,
+      "success": true
+    },
+    {
+      "worker_id": 143,
+      "latency_seconds": 0.3585489859979134,
+      "success": true
+    },
+    {
+      "worker_id": 138,
+      "latency_seconds": 0.3642496980028227,
+      "success": true
+    },
+    {
+      "worker_id": 141,
+      "latency_seconds": 0.36294742600875907,
+      "success": true
+    },
+    {
+      "worker_id": 134,
+      "latency_seconds": 0.36644718001480214,
+      "success": true
+    },
+    {
+      "worker_id": 148,
+      "latency_seconds": 0.358462222997332,
+      "success": true
+    },
+    {
+      "worker_id": 125,
+      "latency_seconds": 0.37235791599960066,
+      "success": true
+    },
+    {
+      "worker_id": 146,
+      "latency_seconds": 0.35951424701488577,
+      "success": true
+    },
+    {
+      "worker_id": 127,
+      "latency_seconds": 0.3717592129833065,
+      "success": true
+    },
+    {
+      "worker_id": 140,
+      "latency_seconds": 0.3640144869859796,
+      "success": true
+    },
+    {
+      "worker_id": 126,
+      "latency_seconds": 0.3723670830077026,
+      "success": true
+    },
+    {
+      "worker_id": 145,
+      "latency_seconds": 0.3603062420152128,
+      "success": true
+    },
+    {
+      "worker_id": 147,
+      "latency_seconds": 0.35963346998323686,
+      "success": true
+    },
+    {
+      "worker_id": 123,
+      "latency_seconds": 0.37394769699312747,
+      "success": true
+    },
+    {
+      "worker_id": 142,
+      "latency_seconds": 0.3635861630027648,
+      "success": true
+    },
+    {
+      "worker_id": 135,
+      "latency_seconds": 0.36692394397687167,
+      "success": true
+    },
+    {
+      "worker_id": 150,
+      "latency_seconds": 0.3573362820025068,
+      "success": true
+    },
+    {
+      "worker_id": 151,
+      "latency_seconds": 0.3570232149795629,
+      "success": true
+    },
+    {
+      "worker_id": 154,
+      "latency_seconds": 0.35402877899468876,
+      "success": true
+    },
+    {
+      "worker_id": 153,
+      "latency_seconds": 0.3633894149970729,
+      "success": true
+    },
+    {
+      "worker_id": 149,
+      "latency_seconds": 0.3669675150013063,
+      "success": true
+    },
+    {
+      "worker_id": 155,
+      "latency_seconds": 0.36724635897553526,
+      "success": true
+    },
+    {
+      "worker_id": 152,
+      "latency_seconds": 0.3689706730074249,
+      "success": true
+    },
+    {
+      "worker_id": 158,
+      "latency_seconds": 0.3632415879983455,
+      "success": true
+    },
+    {
+      "worker_id": 157,
+      "latency_seconds": 0.3639590739912819,
+      "success": true
+    },
+    {
+      "worker_id": 156,
+      "latency_seconds": 0.3652590620040428,
+      "success": true
+    },
+    {
+      "worker_id": 159,
+      "latency_seconds": 0.3842051459942013,
+      "success": true
+    },
+    {
+      "worker_id": 174,
+      "latency_seconds": 0.33128150398260914,
+      "success": true
+    },
+    {
+      "worker_id": 167,
+      "latency_seconds": 0.3362142270198092,
+      "success": true
+    },
+    {
+      "worker_id": 173,
+      "latency_seconds": 0.33194179300335236,
+      "success": true
+    },
+    {
+      "worker_id": 160,
+      "latency_seconds": 0.34479427902260795,
+      "success": true
+    },
+    {
+      "worker_id": 175,
+      "latency_seconds": 0.32841588999144733,
+      "success": true
+    },
+    {
+      "worker_id": 161,
+      "latency_seconds": 0.3392406429920811,
+      "success": true
+    },
+    {
+      "worker_id": 171,
+      "latency_seconds": 0.3340684720024001,
+      "success": true
+    },
+    {
+      "worker_id": 182,
+      "latency_seconds": 0.3263331040216144,
+      "success": true
+    },
+    {
+      "worker_id": 162,
+      "latency_seconds": 0.339815040002577,
+      "success": true
+    },
+    {
+      "worker_id": 166,
+      "latency_seconds": 0.33833178799250163,
+      "success": true
+    },
+    {
+      "worker_id": 169,
+      "latency_seconds": 0.3373121859913226,
+      "success": true
+    },
+    {
+      "worker_id": 164,
+      "latency_seconds": 0.33931144600501284,
+      "success": true
+    },
+    {
+      "worker_id": 172,
+      "latency_seconds": 0.33433242700994015,
+      "success": true
+    },
+    {
+      "worker_id": 170,
+      "latency_seconds": 0.33721742799389176,
+      "success": true
+    },
+    {
+      "worker_id": 165,
+      "latency_seconds": 0.3392224579874892,
+      "success": true
+    },
+    {
+      "worker_id": 163,
+      "latency_seconds": 0.3401231780007947,
+      "success": true
+    },
+    {
+      "worker_id": 189,
+      "latency_seconds": 0.32462101301644,
+      "success": true
+    },
+    {
+      "worker_id": 180,
+      "latency_seconds": 0.3282011480187066,
+      "success": true
+    },
+    {
+      "worker_id": 168,
+      "latency_seconds": 0.3384842539962847,
+      "success": true
+    },
+    {
+      "worker_id": 178,
+      "latency_seconds": 0.3291885099897627,
+      "success": true
+    },
+    {
+      "worker_id": 188,
+      "latency_seconds": 0.32700177797232755,
+      "success": true
+    },
+    {
+      "worker_id": 184,
+      "latency_seconds": 0.3287161939952057,
+      "success": true
+    },
+    {
+      "worker_id": 186,
+      "latency_seconds": 0.3280515770020429,
+      "success": true
+    },
+    {
+      "worker_id": 183,
+      "latency_seconds": 0.3293512749951333,
+      "success": true
+    },
+    {
+      "worker_id": 177,
+      "latency_seconds": 0.33180967601947486,
+      "success": true
+    },
+    {
+      "worker_id": 190,
+      "latency_seconds": 0.32684882200555876,
+      "success": true
+    },
+    {
+      "worker_id": 185,
+      "latency_seconds": 0.3288493840082083,
+      "success": true
+    },
+    {
+      "worker_id": 179,
+      "latency_seconds": 0.33127781900111586,
+      "success": true
+    },
+    {
+      "worker_id": 187,
+      "latency_seconds": 0.3282554400211666,
+      "success": true
+    },
+    {
+      "worker_id": 181,
+      "latency_seconds": 0.33113322700955905,
+      "success": true
+    },
+    {
+      "worker_id": 191,
+      "latency_seconds": 0.32745604097726755,
+      "success": true
+    },
+    {
+      "worker_id": 176,
+      "latency_seconds": 0.3342341329844203,
+      "success": true
+    },
+    {
+      "worker_id": 194,
+      "latency_seconds": 0.32209685898851603,
+      "success": true
+    },
+    {
+      "worker_id": 193,
+      "latency_seconds": 0.3236756199912634,
+      "success": true
+    },
+    {
+      "worker_id": 195,
+      "latency_seconds": 0.3220971899863798,
+      "success": true
+    },
+    {
+      "worker_id": 192,
+      "latency_seconds": 0.3246796519961208,
+      "success": true
+    },
+    {
+      "worker_id": 198,
+      "latency_seconds": 0.31240365898702294,
+      "success": true
+    },
+    {
+      "worker_id": 197,
+      "latency_seconds": 0.31297124398406595,
+      "success": true
+    },
+    {
+      "worker_id": 196,
+      "latency_seconds": 0.3139309030084405,
+      "success": true
+    },
+    {
+      "worker_id": 199,
+      "latency_seconds": 0.27447531299549155,
+      "success": true
+    }
+  ]
+}

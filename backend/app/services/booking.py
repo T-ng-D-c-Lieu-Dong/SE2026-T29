@@ -8,8 +8,9 @@ from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from app.domain import AppointmentNotFound, InvalidSlot
+from app.domain import AccessDeniedError, AppointmentNotFound, InvalidSlot, SlotAlreadyBooked
 from app.models import Appointment, AppointmentStatus
+from app.ownership import is_quarantined_owner
 from app.repositories import AppointmentRepository
 from app.services.fault_injection import BookingFaultInjector
 from app.telemetry import TelemetryRuntime
@@ -54,23 +55,157 @@ class BookingService:
             return nullcontext()
         return self.telemetry.booking_span(operation)
 
-    async def create(self, customer_name: str, starts_at: datetime) -> Appointment:
+    async def _get_appointment(
+        self,
+        appointment_id: UUID,
+        include_deleted: bool = False,
+    ) -> Appointment | None:
+        try:
+            return await self.repository.get(appointment_id, include_deleted=include_deleted)
+        except TypeError:
+            return await self.repository.get(appointment_id)
+
+    async def create(
+        self,
+        customer_name: str,
+        starts_at: datetime,
+        owner_id: str = "anonymous",
+    ) -> Appointment:
         with self._booking_span("create"):
             normalized_start = normalize_start_time(starts_at, self.now_provider())
             await self.fault_injector.before_create()
-            appointment = await self.repository.create(customer_name, normalized_start)
+            try:
+                appointment = await self.repository.create(
+                    customer_name=customer_name,
+                    starts_at=normalized_start,
+                    owner_id=owner_id,
+                )
+            except TypeError:
+                appointment = await self.repository.create(
+                    customer_name=customer_name,
+                    starts_at=normalized_start,
+                )
             await self.repository.commit()
-            await self.repository.refresh(appointment)
+            if hasattr(self.repository, "refresh"):
+                await self.repository.refresh(appointment)
             return appointment
 
-    async def list(self, limit: int, offset: int) -> tuple[list[Appointment], int]:
-        return await self.repository.list(limit, offset)
+    async def get(self, appointment_id: UUID, caller_id: str | None = None) -> Appointment:
+        appointment = await self._get_appointment(appointment_id, include_deleted=False)
+        if appointment is None or getattr(appointment, "is_deleted", False):
+            raise AppointmentNotFound("Appointment was not found")
 
-    async def cancel(self, appointment_id: UUID) -> None:
-        with self._booking_span("cancel"):
-            appointment = await self.repository.get(appointment_id)
+        owner = getattr(appointment, "owner_id", None)
+        if getattr(appointment, "owner_access_enabled", True) is False or (
+            owner is not None and is_quarantined_owner(owner)
+        ):
+            raise AppointmentNotFound("Appointment was not found")
+        if caller_id is not None and owner is not None and owner != caller_id:
+            raise AppointmentNotFound("Appointment was not found")
+
+        return appointment
+
+    async def list(
+        self,
+        limit: int,
+        offset: int,
+        owner_id: str | None = None,
+    ) -> tuple[list[Appointment], int]:
+        try:
+            return await self.repository.list(limit, offset, owner_id=owner_id)
+        except TypeError:
+            return await self.repository.list(limit, offset)
+
+    async def list_trash(
+        self,
+        caller_id: str,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[list[Appointment], int]:
+        return await self.repository.list_trash(owner_id=caller_id, limit=limit, offset=offset)
+
+    async def soft_delete(self, appointment_id: UUID, caller_id: str) -> Appointment:
+        with self._booking_span("soft_delete"):
+            appointment = await self._get_appointment(appointment_id, include_deleted=True)
             if appointment is None:
                 raise AppointmentNotFound("Appointment was not found")
+
+            owner = getattr(appointment, "owner_id", "anonymous")
+            if getattr(appointment, "owner_access_enabled", True) is False or is_quarantined_owner(
+                owner
+            ):
+                raise AccessDeniedError("Historical ownership has not been verified")
+            if owner != caller_id:
+                raise AccessDeniedError("You do not have permission to delete this appointment")
+
+            if getattr(appointment, "is_deleted", False):
+                return appointment
+
+            appointment.is_deleted = True
+            appointment.deleted_at = self.now_provider().astimezone(UTC)
+            await self.repository.commit()
+            if hasattr(self.repository, "refresh"):
+                await self.repository.refresh(appointment)
+            return appointment
+
+    async def restore(self, appointment_id: UUID, caller_id: str) -> Appointment:
+        with self._booking_span("restore"):
+            appointment = await self._get_appointment(appointment_id, include_deleted=True)
+            if appointment is None:
+                raise AppointmentNotFound("Appointment was not found")
+
+            owner = getattr(appointment, "owner_id", "anonymous")
+            if getattr(appointment, "owner_access_enabled", True) is False or is_quarantined_owner(
+                owner
+            ):
+                raise AccessDeniedError("Historical ownership has not been verified")
+            if owner != caller_id:
+                raise AccessDeniedError("You do not have permission to restore this appointment")
+
+            if not getattr(appointment, "is_deleted", False):
+                return appointment
+
+            now = self.now_provider().astimezone(UTC)
+            if appointment.starts_at.astimezone(UTC) <= now:
+                raise InvalidSlot("Cannot restore an appointment with a slot in the past")
+
+            if appointment.status == AppointmentStatus.BOOKED.value:
+                is_conflict = False
+                if hasattr(self.repository, "is_slot_booked"):
+                    is_conflict = await self.repository.is_slot_booked(
+                        appointment.starts_at,
+                        exclude_id=appointment.id,
+                    )
+                else:
+                    booked = await self.repository.booked_starts_between(
+                        appointment.starts_at,
+                        appointment.starts_at + timedelta(minutes=1),
+                    )
+                    is_conflict = appointment.starts_at in booked
+
+                if is_conflict:
+                    raise SlotAlreadyBooked("This slot already has an active booking")
+
+            appointment.is_deleted = False
+            appointment.deleted_at = None
+            await self.repository.commit()
+            if hasattr(self.repository, "refresh"):
+                await self.repository.refresh(appointment)
+            return appointment
+
+    async def cancel(self, appointment_id: UUID, caller_id: str | None = None) -> None:
+        with self._booking_span("cancel"):
+            appointment = await self._get_appointment(appointment_id, include_deleted=True)
+            if appointment is None or getattr(appointment, "is_deleted", False):
+                raise AppointmentNotFound("Appointment was not found")
+
+            owner = getattr(appointment, "owner_id", None)
+            if getattr(appointment, "owner_access_enabled", True) is False or (
+                owner is not None and is_quarantined_owner(owner)
+            ):
+                raise AccessDeniedError("Historical ownership has not been verified")
+            if caller_id is not None and owner is not None and owner != caller_id:
+                raise AccessDeniedError("You do not have permission to cancel this appointment")
 
             if appointment.status == AppointmentStatus.CANCELLED.value:
                 return
