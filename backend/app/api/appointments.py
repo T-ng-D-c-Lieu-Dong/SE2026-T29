@@ -58,14 +58,17 @@ async def create_appointment(
 @router.get("", response_model=AppointmentList)
 async def list_appointments(
     session: SessionDependency,
-    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    limit: Annotated[int | None, Query(ge=1, le=100)] = None,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> AppointmentList:
-    appointments, total = await BookingService(AppointmentRepository(session)).list(limit, offset)
+    effective_limit = limit if limit is not None else get_settings().default_page_size
+    appointments, total = await BookingService(AppointmentRepository(session)).list(
+        effective_limit, offset
+    )
     return AppointmentList(
         items=[AppointmentRead.model_validate(item) for item in appointments],
         total=total,
-        limit=limit,
+        limit=effective_limit,
         offset=offset,
     )
 

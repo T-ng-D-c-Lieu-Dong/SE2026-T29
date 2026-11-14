@@ -29,6 +29,10 @@ uvicorn app.main:app --reload
 
 API mặc định chạy tại `http://localhost:8000`; OpenAPI tại `/docs`.
 
+`BOOKING_DEFAULT_PAGE_SIZE` đặt số appointment mặc định mỗi trang (1–100, mặc định 20).
+Tham số `limit` tường minh vẫn được ưu tiên. Cấu hình được đọc khi khởi động
+process và cần restart để thay đổi.
+
 ## Chạy tests
 
 Khởi động PostgreSQL test riêng:
