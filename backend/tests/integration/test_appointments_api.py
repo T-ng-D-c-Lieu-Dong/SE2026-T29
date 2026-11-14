@@ -180,6 +180,7 @@ async def test_configured_default_paginates_real_rows(client, monkeypatch) -> No
     monkeypatch.setenv("BOOKING_DEFAULT_PAGE_SIZE", "1")
     get_settings.cache_clear()
     try:
+        ids = []
         for day_offset in (2, 3):
             response = await client.post(
                 "/api/appointments",
@@ -189,12 +190,19 @@ async def test_configured_default_paginates_real_rows(client, monkeypatch) -> No
                 },
             )
             assert response.status_code == 201
+            ids.append(response.json()["id"])
         response = await client.get("/api/appointments")
         assert response.status_code == 200
         body = response.json()
         assert body["limit"] == 1
         assert body["total"] == 2
         assert len(body["items"]) == 1
-        assert body["items"][0]["customer_name"] in {"Customer 2", "Customer 3"}
+        assert body["items"][0]["id"] == ids[0]
+        assert body["items"][0]["customer_name"] == "Customer 2"
+        response = await client.get("/api/appointments", params={"limit": 2})
+        assert response.status_code == 200
+        body = response.json()
+        assert (body["limit"], body["offset"], body["total"]) == (2, 0, 2)
+        assert [item["id"] for item in body["items"]] == ids
     finally:
         get_settings.cache_clear()

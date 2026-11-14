@@ -145,3 +145,37 @@ async def test_api_failure_does_not_return_empty_success(monkeypatch):
         response = await client.get("/api/appointments")
     assert response.status_code == 500
     assert response.text != '{"items":[],"total":0,"limit":20,"offset":0}'
+
+
+def test_empty_environment_uses_default(monkeypatch):
+    monkeypatch.setenv("BOOKING_DEFAULT_PAGE_SIZE", "")
+    assert Settings(_env_file=None).default_page_size == 20
+
+
+@pytest.mark.asyncio
+async def test_repository_query_failure_returns_http_500(monkeypatch):
+    from fastapi import FastAPI
+    from httpx import ASGITransport, AsyncClient
+
+    from app.api.appointments import router
+    from app.config import get_settings
+    from app.db import get_session
+
+    class BrokenSession:
+        async def scalars(self, statement):
+            raise RuntimeError("database unavailable")
+
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_session] = lambda: BrokenSession()
+    monkeypatch.setenv("BOOKING_DEFAULT_PAGE_SIZE", "7")
+    get_settings.cache_clear()
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app, raise_app_exceptions=False), base_url="http://test"
+        ) as client:
+            response = await client.get("/api/appointments")
+    finally:
+        get_settings.cache_clear()
+    assert response.status_code == 500
+    assert response.text == "Internal Server Error"
