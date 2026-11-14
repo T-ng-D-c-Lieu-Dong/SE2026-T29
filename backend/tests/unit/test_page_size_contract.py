@@ -118,3 +118,30 @@ async def test_explicit_limit_and_invalid_query(monkeypatch):
             assert (await client.get("/api/appointments?limit=0")).status_code == 422
     finally:
         get_settings.cache_clear()
+
+
+@pytest.mark.asyncio
+async def test_api_failure_does_not_return_empty_success(monkeypatch):
+    from fastapi import FastAPI
+    from httpx import ASGITransport, AsyncClient
+
+    from app.api import appointments
+    from app.db import get_session
+
+    class BrokenService:
+        def __init__(self, repository):
+            pass
+
+        async def list(self, limit, offset):
+            raise RuntimeError("database unavailable")
+
+    monkeypatch.setattr(appointments, "BookingService", BrokenService)
+    app = FastAPI()
+    app.include_router(appointments.router)
+    app.dependency_overrides[get_session] = lambda: None
+    async with AsyncClient(
+        transport=ASGITransport(app=app, raise_app_exceptions=False), base_url="http://test"
+    ) as client:
+        response = await client.get("/api/appointments")
+    assert response.status_code == 500
+    assert response.text != '{"items":[],"total":0,"limit":20,"offset":0}'

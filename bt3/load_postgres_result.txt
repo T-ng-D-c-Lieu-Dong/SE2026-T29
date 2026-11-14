@@ -1,0 +1,2 @@
+concurrent=120; correct=120/120; errors=0; p95_nearest_rank=0.266092s; elapsed=0.297382s; target=3.5s
+localhost HTTP; uvicorn 1 worker; PostgreSQL 18 test container; 2 seeded rows; no warmup; single burst
