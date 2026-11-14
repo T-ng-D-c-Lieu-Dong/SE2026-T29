@@ -174,3 +174,27 @@ async def test_slots_exclude_active_booking(client) -> None:
     assert response.status_code == 200
     returned = {datetime.fromisoformat(item["starts_at"]) for item in response.json()}
     assert starts_at not in returned
+
+
+async def test_configured_default_paginates_real_rows(client, monkeypatch) -> None:
+    monkeypatch.setenv("BOOKING_DEFAULT_PAGE_SIZE", "1")
+    get_settings.cache_clear()
+    try:
+        for day_offset in (2, 3):
+            response = await client.post(
+                "/api/appointments",
+                json={
+                    "customer_name": f"Customer {day_offset}",
+                    "starts_at": future_slot(days=day_offset).isoformat(),
+                },
+            )
+            assert response.status_code == 201
+        response = await client.get("/api/appointments")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["limit"] == 1
+        assert body["total"] == 2
+        assert len(body["items"]) == 1
+        assert body["items"][0]["customer_name"] in {"Customer 2", "Customer 3"}
+    finally:
+        get_settings.cache_clear()
