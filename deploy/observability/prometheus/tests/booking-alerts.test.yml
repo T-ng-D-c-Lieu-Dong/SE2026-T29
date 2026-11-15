@@ -41,7 +41,7 @@ tests:
   - name: readiness probe fires after one minute and resolves on recovery
     interval: 15s
     input_series:
-      - series: 'probe_success{job="booking-api-readiness",instance="http://backend:8000/health/ready"}'
+      - series: 'probe_success{job="booking-api-readiness",instance="http://web/health/ready"}'
         values: '1x1 0x8 1x3'
     alert_rule_test:
       - eval_time: 1m15s
@@ -51,7 +51,7 @@ tests:
         alertname: ApiProbeDown
         exp_alerts:
           - exp_labels:
-              instance: http://backend:8000/health/ready
+              instance: http://web/health/ready
               job: booking-api-readiness
               severity: critical
               service: booking-api
