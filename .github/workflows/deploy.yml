@@ -84,9 +84,28 @@ jobs:
       - name: Deploy release
         run: |
           mkdir -p "$RUNNER_TEMP/deploy-evidence"
+          # The observability overlay is opt-in per host: it runs only when the state dir holds
+          # observability.env (Grafana password, Discord webhook path). Secrets stay on the host.
+          overlay_args=()
+          obs_env="$BOOKING_STATE_DIR/observability.env"
+          if [[ -f "$obs_env" ]]; then
+            if python -m scripts.deploy --help | grep -q -- --compose-overlay; then
+              # Host-local file outside the repository.
+              set -a
+              # shellcheck source=/dev/null
+              source "$obs_env"
+              set +a
+              overlay_args=(--compose-overlay deploy/compose.observability.yaml)
+              echo "Observability overlay enabled from $obs_env"
+            else
+              echo "::warning::scripts.deploy in this checkout has no --compose-overlay;" \
+                "deploying without it removes the observability containers."
+            fi
+          fi
           python -m scripts.deploy \
             --manifest "$RUNNER_TEMP/manifest/$RELEASE_TAG.json" \
             --state-dir "$BOOKING_STATE_DIR" \
+            "${overlay_args[@]}" \
             --base-url "$DEPLOY_BASE_URL" \
             --timeout 120 \
             2>&1 | tee "$RUNNER_TEMP/deploy-evidence/deploy.log"
@@ -100,7 +119,8 @@ jobs:
               cp "$BOOKING_STATE_DIR/$file" "$RUNNER_TEMP/deploy-evidence/"
             fi
           done
-          docker compose -f deploy/compose.production.yaml ps -a \
+          # List every container of the project, including the observability overlay.
+          docker ps -a --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME" \
             > "$RUNNER_TEMP/deploy-evidence/compose-ps.txt" 2>&1 || true
 
       - name: Upload deploy evidence
