@@ -37,6 +37,8 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=7d
+      # Size cap as well as time: the demo VM disk is 24 GB, shared with images and logs.
+      - --storage.tsdb.retention.size=${PROMETHEUS_RETENTION_SIZE:-2GB}
       - --web.enable-lifecycle
       - --web.enable-remote-write-receiver
     restart: unless-stopped
