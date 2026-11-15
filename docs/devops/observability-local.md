@@ -191,6 +191,6 @@ PostgreSQL, Prometheus, Tempo, Loki, Grafana và Alertmanager data.
 | Dashboard không có HTTP metrics | Backend có `BOOKING_TELEMETRY_ENABLED=true`; target `otel-collector` đang `UP` |
 | Có metric nhưng không có trace | Log Collector và Tempo; kiểm tra pipeline `traces` |
 | Có trace nhưng link log rỗng | Loki có structured metadata `trace_id`; datasource UIDs là `tempo` và `loki` |
-| `ApiProbeDown` luôn firing | Target blackbox dùng `http://backend:8000/health/ready`; backend và DB healthy |
+| `ApiProbeDown` luôn firing | Target blackbox dùng `http://web/health/ready` qua Nginx; web, backend và DB healthy |
 | Discord không nhận alert | File webhook chứa đúng một URL, Alertmanager đã reload và receiver tên `discord` |
 | cAdvisor không chạy | Máy demo phải là Linux và cho phép các bind mount `/sys`, `/var/lib/docker`, `/dev/disk` |

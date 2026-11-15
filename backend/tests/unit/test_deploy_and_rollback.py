@@ -506,3 +506,49 @@ def test_deploy_pulls_every_pinned_image(tmp_path: Path, full_stack_manifest: Pa
         f"ghcr.io/cuongmotnang/booking-backend@{DIGEST_V2}",
         f"ghcr.io/cuongmotnang/booking-frontend@{DIGEST_WEB}",
     ]
+
+
+def test_build_compose_up_command_appends_overlays_after_base_file():
+    cmd = build_compose_up_command(
+        "env.txt", "compose.production.yaml", overlays=["compose.observability.yaml"]
+    )
+    assert cmd == [
+        "docker",
+        "compose",
+        "--env-file",
+        "env.txt",
+        "-f",
+        "compose.production.yaml",
+        "-f",
+        "compose.observability.yaml",
+        "up",
+        "-d",
+        "--remove-orphans",
+    ]
+
+
+def test_overlays_reach_migration_and_auto_rollback(
+    tmp_path: Path, v1_manifest: Path, v2_manifest: Path
+):
+    # Without the overlay in every compose call, "up --remove-orphans" would delete the
+    # observability containers that share the Compose project.
+    deploy_state = tmp_path / "deploy"
+    overlay = tmp_path / "compose.observability.yaml"
+    Deployer(manifest_path=v1_manifest, state_dir=deploy_state, skip_container_ops=True).run()
+    deployer = Deployer(
+        manifest_path=v2_manifest, state_dir=deploy_state, compose_overlays=[overlay]
+    )
+
+    with patch.object(deployer, "execute_command") as execute:
+        deployer.apply_migrations(ReleaseManifest.load(v2_manifest))
+    migrate_cmd = execute.call_args.args[0]
+    assert migrate_cmd[migrate_cmd.index(str(deployer.compose_file)) + 1 :][:2] == [
+        "-f",
+        str(overlay.resolve()),
+    ]
+
+    # Deploying v2 backs up v1 as the previous manifest before any rollback can run.
+    (deploy_state / "current-manifest.json").replace(deploy_state / "previous-manifest.json")
+    with patch("scripts.rollback.Rollbacker") as rollbacker_cls:
+        deployer.trigger_auto_rollback()
+    assert rollbacker_cls.call_args.kwargs["compose_overlays"] == [overlay.resolve()]

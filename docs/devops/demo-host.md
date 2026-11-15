@@ -125,3 +125,43 @@ Workflow **Load Test on Demo Host** chỉ nhận `workflow_dispatch` trên `main
 Fault config được đưa vào release manifest cho tag `*-drill`, rồi deploy/rollback ghi
 vào env tại state dir. Chi tiết deadline, smoke và evidence:
 [Release drill](../releases/drill-release.md).
+
+## 8. Observability stack trên máy demo
+
+`deploy.yml` và `rollback.yml` dựng thêm `deploy/compose.observability.yaml` khi state dir có
+`observability.env`; không có file này thì chỉ chạy app. Overlay nằm chung Compose project
+`booking` với app, nên mọi lệnh deploy/rollback phải truyền `--compose-overlay`. Nếu thiếu,
+`up --remove-orphans` xoá toàn bộ container giám sát (đã tái hiện trên máy demo).
+
+Tạo secret một lần trên VM, không commit và không đưa vào GitHub:
+
+```bash
+S=/opt/booking/state
+cd ~/SE2026-T29
+install -m 644 deploy/observability/alertmanager/discord-webhook-url.example "$S/discord-webhook-url"
+(
+  umask 077
+  printf '%s\n' \
+    "OBS_BIND_ADDRESS=127.0.0.1" \
+    "GRAFANA_ADMIN_USER=admin" \
+    "GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 18 | tr -d '/+=')" \
+    "ALERTMANAGER_DISCORD_WEBHOOK_FILE=$S/discord-webhook-url" \
+    > "$S/observability.env"
+)
+```
+
+Ghi URL webhook Discord thật vào `discord-webhook-url` khi nhóm có kênh. File để quyền `644` vì
+Alertmanager chạy bằng user `nobody`; thư mục state quyền `750` vẫn chặn user khác trên máy.
+
+Grafana, Prometheus và Alertmanager chỉ bind `127.0.0.1` trong VM. Từ laptop, thêm SSH key của bạn
+vào VM một lần, rồi mở tunnel:
+
+```bash
+multipass exec booking-demo -- bash -c 'cat >> ~/.ssh/authorized_keys' < ~/.ssh/id_ed25519.pub
+ssh -N -L 3000:127.0.0.1:3000 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 ubuntu@10.97.0.43
+```
+
+Sau đó mở `http://localhost:3000`. Mật khẩu admin nằm trong `observability.env` trên VM.
+
+Đo trên VM 2 vCPU / 4 GB ngày 15/11/2026: cả 12 container dùng khoảng 1,4 GB RAM ở 10 req/s, còn
+trống khoảng 2,5 GB. Xem [kết quả đo](../evidence/observability/2026-11-15-demo-host-observability.md).
