@@ -109,6 +109,24 @@ class ReleaseManifest:
         data["images"] = {name: asdict(spec) for name, spec in self.images.items()}
         return data
 
+    def compute_checksum(self) -> str:
+        """Computes deterministic SHA256 checksum across canonical payload values."""
+        import hashlib
+
+        canon = [
+            f"release={self.release}",
+            f"commit_sha={self.commit_sha}",
+            f"migration_revision={self.migration_revision}",
+        ]
+        for name, spec in sorted(self.images.items()):
+            canon.append(f"image:{name}={spec.repository}@{spec.digest}")
+        payload_str = "|".join(canon).encode("utf-8")
+        return hashlib.sha256(payload_str).hexdigest()
+
+    def verify_checksum(self, expected_checksum: str) -> bool:
+        """Verifies if the manifest canonical hash matches expected hash."""
+        return self.compute_checksum() == expected_checksum.strip().lower()
+
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent, sort_keys=True)
 
