@@ -159,3 +159,31 @@ Hệ thống giám sát Prometheus và Alertmanager đã phát hiện sự bất
   - Sau khi container lành hoạt động, tỷ lệ lỗi HTTP 500 lập tức giảm xuống 0%.
   - Prometheus rule ghi nhận tỷ lệ lỗi dưới ngưỡng trong 1 phút đánh giá.
   - Alertmanager tự động phát thông báo `[RESOLVED]` vào Discord lúc 08:33:55Z.
+
+
+---
+
+## 8. Hành động tiếp theo (Action Items)
+
+Dựa trên kết quả diễn tập, nhóm thống nhất các hạng mục cải tiến kỹ thuật và vận hành như sau:
+
+| STT | Hành động cải tiến | Mục tiêu kỹ thuật | Người phụ trách | Hạn hoàn thành | Trạng thái |
+| :---: | :--- | :--- | :--- | :---: | :---: |
+| **ACT-01** | Tích hợp tự động hóa trigger rollback từ alert webhook | Khi alert firing > 2 phút mà không có phản hồi từ IC, tự động gọi GitHub Actions repository dispatch | **Nguyễn Việt Anh** | 2026-11-25 | **Done** (đã hoàn thiện tại `trigger_rollback_dispatch.py`) |
+| **ACT-02** | Bổ sung cảnh báo sụt giảm lưu lượng truy cập (Traffic Drop Alert) | Phát hiện khi request rate giảm bất thường dù không có HTTP 500 (như khi Nginx proxy lỗi) | **Vũ Thành Công** | 2026-11-26 | **Done** |
+| **ACT-03** | Tối ưu hóa thời gian warmup và healthcheck container | Giảm thời gian kiểm tra readiness sau khi recreate container từ 15s xuống dưới 5s | **Nguyễn Mai Hoàng Anh** | 2026-11-26 | **Done** |
+| **ACT-04** | Chuẩn hóa quy trình cấp mã trace ID trên Web UI | Đưa Trace ID vào thông báo lỗi trên frontend để người dùng có thể gửi kèm khi báo lỗi hỗ trợ | **Lê Văn Cường** | 2026-11-27 | **Done** |
+| **ACT-05** | Hoàn thiện tài liệu tổng kết độ tin cậy cho báo cáo cuối kỳ | Hệ thống hóa toàn bộ số liệu MTTR, SLO và bằng chứng E01–E16 vào báo cáo kết thúc môn | **Phạm Minh Cương** & **Nguyễn Việt Anh** | 2026-11-27 | **Done** |
+
+---
+
+## 9. Bài học kinh nghiệm & Đánh giá văn hóa không đổ lỗi (Blameless Retrospective)
+
+1. **Giá trị của Release Manifest và Bất biến hình ảnh (Immutability):**
+   - Việc cố định hình ảnh Docker qua SHA256 digest và gắn `commit_sha` trên toàn bộ pipeline giúp việc rollback trở nên tất định (deterministic), loại trừ hoàn toàn các rủi ro "hoạt động trên máy tôi nhưng lỗi trên máy khác".
+2. **Vai trò then chốt của Bảng phân vai (Drill Roles):**
+   - Nhờ có sự phân định rõ ràng giữa Incident Commander, Scribe, DevOps Operator và Investigators theo tài liệu `drill-roles-and-checklist.md`, buổi diễn tập diễn ra nhịp nhàng, không bị chồng chéo nhiệm vụ và thời gian quyết định được rút ngắn đáng kể.
+3. **Quan sát đa tầng (Traces - Metrics - Logs) là cứu cánh trong sự cố:**
+   - Việc liên kết được từ Prometheus Alert → Grafana Tempo Trace ID → Loki Log entry cho phép đội ngũ ứng cứu kết luận nguyên nhân trong chưa đầy 60 giây, thay vì phải đào bới log thủ công.
+4. **Văn hóa không đổ lỗi (Blameless Culture):**
+   - Nhóm ghi nhận đợt diễn tập là bài học thành công trong việc phối hợp tác chiến, rà soát công cụ và xác nhận hệ thống sẵn sàng cho mốc hoàn thành đồ án v1.0.0.
