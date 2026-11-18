@@ -22,6 +22,7 @@ from scripts.deploy import build_compose_up_command
 from scripts.deploy_history import DeploymentHistory
 from scripts.deploy_lock import DeploymentLock, DeploymentLockError
 from scripts.release_manifest import ReleaseManifest
+from scripts.rollback_guard import RollbackGuard
 from scripts.smoke_test import SmokeTestRunner
 
 
@@ -36,6 +37,7 @@ class Rollbacker:
         skip_container_ops: bool = False,
         dry_run: bool = False,
         acquire_lock: bool = True,
+        enforce_guard: bool = True,
         compose_overlays: Sequence[Path | str] = (),
     ) -> None:
         resolved_state_dir = state_dir or os.getenv("BOOKING_STATE_DIR", "deploy")
@@ -52,6 +54,7 @@ class Rollbacker:
         self.skip_container_ops = skip_container_ops
         self.dry_run = dry_run
         self.acquire_lock = acquire_lock
+        self.enforce_guard = enforce_guard
 
         self.current_manifest_file = self.state_dir / "current-manifest.json"
         self.env_file = self.state_dir / ".env.production"
@@ -174,6 +177,18 @@ class Rollbacker:
         if errors:
             raise ValueError(f"Invalid rollback manifest: {'; '.join(errors)}")
 
+        if self.enforce_guard:
+            guard = RollbackGuard(state_dir=self.state_dir)
+            report = guard.validate(
+                target_manifest_path=self.target_manifest_path,
+                current_manifest_path=self.current_manifest_file,
+            )
+            for check in report.checks:
+                status = "PASS" if check.passed else "FAIL"
+                print(f"[GUARD {status}] {check.name}: {check.detail}")
+            if not report.passed:
+                raise RuntimeError(f"Rollback guard validation failed: {report.failure_reason}")
+
         print("=" * 60)
         print(f"Initiating ROLLBACK to release: {manifest.release}")
         print(f"Target commit SHA: {manifest.commit_sha}")
@@ -225,6 +240,13 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--skip-container-ops", action="store_true")
     parser.add_argument(
+        "--no-guard",
+        dest="enforce_guard",
+        action="store_false",
+        default=True,
+        help="Skip pre-condition validation checks (disk space, schema compatibility)",
+    )
+    parser.add_argument(
         "--verify-slo",
         action="store_true",
         help="Print SLO evaluation report after successful rollback",
@@ -242,6 +264,7 @@ def main() -> None:
             skip_container_ops=args.skip_container_ops,
             dry_run=args.dry_run,
             acquire_lock=True,
+            enforce_guard=args.enforce_guard,
         )
         rollbacker.run()
         if args.verify_slo and not args.dry_run:

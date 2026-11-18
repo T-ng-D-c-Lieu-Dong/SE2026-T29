@@ -1,4 +1,4 @@
-.PHONY: help loadtest loadtest-e15 loadtest-conflict smoke-test deploy rollback drill-start drill-alert drill-rollback drill-complete drill-report snapshot-bookings verify-integrity test
+.PHONY: help loadtest loadtest-e15 loadtest-conflict smoke-test deploy rollback drill-start drill-alert drill-rollback drill-complete drill-report snapshot-bookings snapshot-db verify-integrity test
 
 BASE_URL ?= http://localhost:8000
 DURATION ?= 30s
@@ -38,6 +38,9 @@ loadtest-conflict:
 
 snapshot-bookings:
 	python3 -m scripts.booking_integrity snapshot --output $(SNAPSHOT_FILE) --base-url $(BASE_URL)
+
+snapshot-db:
+	python3 -m scripts.db_snapshot dump --prefix pre-rollback
 
 verify-integrity:
 	python3 -m scripts.booking_integrity verify --baseline $(SNAPSHOT_FILE) --base-url $(BASE_URL)

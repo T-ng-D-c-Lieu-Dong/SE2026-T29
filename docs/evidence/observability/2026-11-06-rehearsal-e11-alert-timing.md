@@ -9,7 +9,7 @@
 
 ## 1. Mục tiêu và Điều kiện kiểm chứng E11
 
-Theo bảng cam kết độ tin cậy trong [docs/evidence.md](../evidence.md) và tài liệu quan sát [docs/evidence/observability/README.md](README.md):
+Theo bảng cam kết độ tin cậy trong [docs/evidence.md](../../evidence.md) và tài liệu quan sát [docs/evidence/observability/README.md](README.md):
 1. **Hoạt động dưới tải thật:** Lưu lượng truy vấn đạt ít nhất 100 requests/phút trong cửa sổ đánh giá.
 2. **Kích hoạt đúng ngưỡng (Firing Time):** Khi tỷ lệ lỗi HTTP 5xx vượt 5%, cảnh báo `HighErrorRate` phải chuyển sang trạng thái `Firing` trong vòng **dưới 3 phút** tính từ thời điểm điều kiện kích hoạt xảy ra.
 3. **Phát tán thông báo (Notification Delivery):** Alertmanager đẩy thông báo cảnh báo thành công qua webhook tích hợp (Discord channel `#incident-drill`).

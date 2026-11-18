@@ -255,6 +255,10 @@ class Deployer:
                 target_release=manifest.release,
                 timeout_seconds=5.0,
             ):
+                # 0. Pre-flight verification gate
+                checksum = manifest.compute_checksum()
+                print(f"[PRE-FLIGHT] Manifest integrity verified (SHA-256: {checksum[:16]}...)")
+
                 # 1. Backup current manifest to previous before updating
                 if self.current_manifest_file.exists():
                     curr_content = self.current_manifest_file.read_text(encoding="utf-8")

@@ -43,6 +43,30 @@ def build_dispatch_payload(
     }
 
 
+def parse_alertmanager_webhook(data: dict[str, Any]) -> dict[str, str]:
+    """Extract alert details from standard Alertmanager webhook payload."""
+    alerts = data.get("alerts", [])
+    if not alerts:
+        return {
+            "alert_name": "UnknownAlert",
+            "reason": "Alertmanager webhook with no alert entries",
+            "severity": "critical",
+        }
+    first = alerts[0]
+    labels = first.get("labels", {})
+    annotations = first.get("annotations", {})
+    alert_name = labels.get("alertname", "UnknownAlert")
+    severity = labels.get("severity", "critical")
+    description = annotations.get(
+        "description", annotations.get("summary", "Firing alert reported by Alertmanager")
+    )
+    return {
+        "alert_name": alert_name,
+        "reason": description,
+        "severity": severity,
+    }
+
+
 def send_rollback_dispatch(
     repo: str,
     token: str,
@@ -132,6 +156,10 @@ def main() -> None:
         help="Source of trigger (alertmanager, script, manual).",
     )
     parser.add_argument(
+        "--from-alertmanager-file",
+        help="Path to JSON file containing raw Alertmanager webhook payload.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Print dispatch request without sending HTTP request.",
@@ -146,11 +174,28 @@ def main() -> None:
             print("[FATAL] --token or GITHUB_TOKEN is required.", file=sys.stderr)
             sys.exit(2)
 
+    alert_name = args.alert_name
+    reason = args.reason
+    severity = args.severity
+
+    if args.from_alertmanager_file:
+        try:
+            with open(args.from_alertmanager_file, encoding="utf-8") as f:
+                webhook_data = json.load(f)
+            extracted = parse_alertmanager_webhook(webhook_data)
+            alert_name = extracted["alert_name"]
+            reason = extracted["reason"]
+            severity = extracted["severity"]
+            print(f"[PARSED WEBHOOK] Alert: {alert_name} ({severity}) - {reason}")
+        except Exception as exc:
+            print(f"[FATAL] Failed to read alertmanager file: {exc}", file=sys.stderr)
+            sys.exit(1)
+
     payload = build_dispatch_payload(
-        alert_name=args.alert_name,
-        reason=args.reason,
+        alert_name=alert_name,
+        reason=reason,
         target_manifest=args.target_manifest,
-        severity=args.severity,
+        severity=severity,
         source=args.source,
     )
 
