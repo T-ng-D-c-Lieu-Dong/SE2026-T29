@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "release": "v0.2.1",
+  "commit_sha": "8e9af639565c41af1fe22abc5970e2ffddf1c9a7",
+  "migration_revision": "20261007_0001",
+  "created_at": "2026-10-28T13:15:52Z",
+  "compatibility": {
+    "min_compatible_schema": "20261007_0001",
+    "rollback_window_supported": true
+  },
+  "images": {
+    "backend": {
+      "repository": "ghcr.io/t-ng-d-c-lieu-dong/booking-backend",
+      "tag": "v0.2.1",
+      "digest": "sha256:5ee51e7e310780dd586775cacf883b30637f367d2067db8883c71b91ca0158ff"
+    },
+    "frontend": {
+      "repository": "ghcr.io/t-ng-d-c-lieu-dong/booking-frontend",
+      "tag": "v0.2.1",
+      "digest": "sha256:8b1ae0895b894760ab0f8339d98b088050422d98b83400814c49693279ca470f"
+    }
+  }
+}

@@ -58,8 +58,8 @@ Ghi kết quả review hoặc thêm kiểm tra dependency khi cần. Việc có 
 | Bằng chứng | Vị trí dự kiến | Nội dung tối thiểu |
 | --- | --- | --- |
 | Test results | CI artifacts và link trong file này | Commit SHA, command, số pass/fail, DB thực dùng |
-| Pipeline history | Link GitHub Actions runs | Run thành công và fail, commit, release, thời gian |
-| Release manifest | `docs/releases/<release>.json` hoặc release artifact | Git tag, SHA, frontend/backend digests, config revision, migration revision |
+| Pipeline history | [Link GitHub Actions runs](evidence/2026-11-25-manifests-and-workflows.md#2-liên-kết-github-actions-workflow-runs) | Run thành công và fail, commit, release, thời gian |
+| Release manifest | [`docs/releases/`](releases/) và [bảng tổng hợp manifest](evidence/2026-11-25-manifests-and-workflows.md#1-danh-mục-release-manifests) | Git tag, SHA, frontend/backend digests, config revision, migration revision |
 | SLO/load report | `docs/evidence/slo-demo.md` | Cửa sổ đo, denominator/filter, request count, latency, môi trường |
 | Telemetry screenshots/queries | `docs/evidence/observability/` | Time range, release, query, trace/log correlation |
 | Incident report | `docs/incidents/<date>-booking-drill.md` | Timeline, impact, detection, cause, mitigation, follow-up |
