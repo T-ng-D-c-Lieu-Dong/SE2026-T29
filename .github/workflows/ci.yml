@@ -146,6 +146,7 @@ jobs:
       BOOKING_RELEASE: e2e
       BOOKING_COMMIT_SHA: ${{ github.sha }}
       E2E_BASE_URL: http://localhost:8080
+      E2E_USER_ID: ci-e2e-${{ github.run_id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -202,6 +203,7 @@ jobs:
       COMPOSE_PROJECT_NAME: booking-ci
       BOOKING_RELEASE: ci
       BOOKING_COMMIT_SHA: ${{ github.sha }}
+      BOOKING_PROBE_USER_ID: ci-probe-${{ github.run_id }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

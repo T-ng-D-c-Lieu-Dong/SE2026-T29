@@ -68,7 +68,9 @@ async def api(test_session_factory, notifier) -> AsyncIterator[AsyncClient]:
     application.dependency_overrides[get_session] = override_get_session
     application.dependency_overrides[get_booking_notifier] = lambda: notifier
     transport = ASGITransport(app=application)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
+    async with AsyncClient(
+        transport=transport, base_url="http://test", headers={"X-User-Id": "UserA"}
+    ) as client:
         yield client
     application.dependency_overrides.clear()
 
@@ -141,6 +143,7 @@ async def test_tc08_tc10_booking_is_kept_and_notification_status_reported(
         saved = await session.get(Appointment, UUID(body["id"]))
     assert saved is not None
     assert saved.status == AppointmentStatus.BOOKED.value
+    assert saved.owner_id == "UserA"
 
 
 async def test_tc22_every_field_of_the_created_response_maps_to_the_saved_row(
@@ -161,10 +164,13 @@ async def test_tc22_every_field_of_the_created_response_maps_to_the_saved_row(
     assert set(body) == {
         "id",
         "customer_name",
+        "owner_id",
         "starts_at",
         "status",
+        "is_deleted",
         "created_at",
         "cancelled_at",
+        "deleted_at",
         "notification_status",
     }
     assert body["customer_name"] == saved.customer_name

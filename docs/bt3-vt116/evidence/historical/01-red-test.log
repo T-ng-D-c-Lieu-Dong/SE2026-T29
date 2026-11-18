@@ -1,0 +1,527 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.2.0, pluggy-1.7.0 -- /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend
+configfile: pyproject.toml
+plugins: anyio-4.16.0, asyncio-1.4.1.post1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 13 items
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_success FAILED [  7%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_unauthorized FAILED [ 15%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_success FAILED [ 23%]
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_conflict_when_slot_rebooked FAILED [ 30%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc01_soft_delete_happy_path FAILED [ 38%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc02_restore_happy_path FAILED [ 46%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc06_cross_user_soft_delete_forbidden FAILED [ 53%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc07_cross_user_restore_forbidden FAILED [ 61%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc08_cross_user_get_detail_isolation FAILED [ 69%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc09_trash_api_isolation FAILED [ 76%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc10_restore_slot_conflict_returns_409 FAILED [ 84%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc04_tc05_idempotency_soft_delete_and_restore FAILED [ 92%]
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc12_soft_delete_not_found PASSED [100%]
+
+=================================== FAILURES ===================================
+________________________ test_unit_soft_delete_success _________________________
+
+    @pytest.mark.unit
+    async def test_unit_soft_delete_success():
+        now_dt = datetime(2026, 11, 10, 8, 0, tzinfo=UTC)
+        apt_id = uuid4()
+>       apt = Appointment(
+            id=apt_id,
+            customer_name="UserA",
+            starts_at=now_dt + timedelta(days=1),
+            status=AppointmentStatus.BOOKED.value,
+            owner_id="UserA",
+            is_deleted=False,
+        )
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<sqlalchemy generated __init__ for class app.models.appointment.Appointment>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.appointment.Appointment object at 0x7ee11a6c0830>
+kwargs = {'id': UUID('e8e6fe41-ecf0-4b19-b1f5-a70cdd96965d'), 'customer_name': 'UserA', 'starts_at': datetime.datetime(2026, 11, 11, 8, 0, tzinfo=datetime.timezone.utc), 'status': 'booked', ...}
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'owner_id' is an invalid keyword argument for Appointment
+
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2361: TypeError
+______________________ test_unit_soft_delete_unauthorized ______________________
+
+    @pytest.mark.unit
+    async def test_unit_soft_delete_unauthorized():
+        now_dt = datetime(2026, 11, 10, 8, 0, tzinfo=UTC)
+        apt_id = uuid4()
+>       apt = Appointment(
+            id=apt_id,
+            customer_name="UserA",
+            starts_at=now_dt + timedelta(days=1),
+            status=AppointmentStatus.BOOKED.value,
+            owner_id="UserA",
+            is_deleted=False,
+        )
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<sqlalchemy generated __init__ for class app.models.appointment.Appointment>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.appointment.Appointment object at 0x7ee11a5042d0>
+kwargs = {'id': UUID('c1888ed1-b692-4daa-a29e-c6e09758c233'), 'customer_name': 'UserA', 'starts_at': datetime.datetime(2026, 11, 11, 8, 0, tzinfo=datetime.timezone.utc), 'status': 'booked', ...}
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'owner_id' is an invalid keyword argument for Appointment
+
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2361: TypeError
+__________________________ test_unit_restore_success ___________________________
+
+    @pytest.mark.unit
+    async def test_unit_restore_success():
+        now_dt = datetime(2026, 11, 10, 8, 0, tzinfo=UTC)
+        apt_id = uuid4()
+>       apt = Appointment(
+            id=apt_id,
+            customer_name="UserA",
+            starts_at=now_dt + timedelta(days=1),
+            status=AppointmentStatus.BOOKED.value,
+            owner_id="UserA",
+            is_deleted=True,
+            deleted_at=now_dt - timedelta(hours=1),
+        )
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<sqlalchemy generated __init__ for class app.models.appointment.Appointment>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.appointment.Appointment object at 0x7ee11a504190>
+kwargs = {'id': UUID('94543569-b881-4806-a76c-fa4dfa214117'), 'customer_name': 'UserA', 'starts_at': datetime.datetime(2026, 11, 11, 8, 0, tzinfo=datetime.timezone.utc), 'status': 'booked', ...}
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'owner_id' is an invalid keyword argument for Appointment
+
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2361: TypeError
+________________ test_unit_restore_conflict_when_slot_rebooked _________________
+
+    @pytest.mark.unit
+    async def test_unit_restore_conflict_when_slot_rebooked():
+        now_dt = datetime(2026, 11, 10, 8, 0, tzinfo=UTC)
+        slot_time = now_dt + timedelta(days=1)
+        apt_a_id = uuid4()
+>       apt_a = Appointment(
+            id=apt_a_id,
+            customer_name="UserA",
+            starts_at=slot_time,
+            status=AppointmentStatus.BOOKED.value,
+            owner_id="UserA",
+            is_deleted=True,
+        )
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<sqlalchemy generated __init__ for class app.models.appointment.Appointment>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.appointment.Appointment object at 0x7ee11a6adf30>
+kwargs = {'id': UUID('a0e56b9d-a205-4034-b379-31bfaabe16d3'), 'customer_name': 'UserA', 'starts_at': datetime.datetime(2026, 11, 11, 8, 0, tzinfo=datetime.timezone.utc), 'status': 'booked', ...}
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'owner_id' is an invalid keyword argument for Appointment
+
+SE2026-T29/backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2361: TypeError
+_______________________ test_tc01_soft_delete_happy_path _______________________
+
+client = <httpx.AsyncClient object at 0x7ee11a6c2ba0>
+
+    async def test_tc01_soft_delete_happy_path(client) -> None:
+        slot = future_slot(days=3, hour=10)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        assert create_resp.status_code == 201
+        apt_id = create_resp.json()["id"]
+    
+        delete_resp = await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserA"},
+        )
+>       assert delete_resp.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:30: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.484908+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":16.867,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.486478+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.163,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a6c1400:request_logging.py:141 http_request
+INFO     booking.http.7ee11a6c1400:request_logging.py:141 http_request
+_________________________ test_tc02_restore_happy_path _________________________
+
+client = <httpx.AsyncClient object at 0x7ee11a791bd0>
+
+    async def test_tc02_restore_happy_path(client) -> None:
+        slot = future_slot(days=3, hour=11)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # Soft delete
+        await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserA"},
+        )
+    
+        # Restore khi slot vẫn còn trống
+        restore_resp = await client.patch(
+            f"/api/appointments/{apt_id}/restore",
+            headers={"X-User-Id": "UserA"},
+        )
+>       assert restore_resp.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:68: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.514403+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":13.447,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.515707+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.143,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.516307+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.131,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a700c20:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700c20:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700c20:request_logging.py:141 http_request
+__________________ test_tc06_cross_user_soft_delete_forbidden __________________
+
+client = <httpx.AsyncClient object at 0x7ee11a638e10>
+
+    async def test_tc06_cross_user_soft_delete_forbidden(client) -> None:
+        slot = future_slot(days=4, hour=10)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # User B cố xóa của User A
+        attack_resp = await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserB"},
+        )
+>       assert attack_resp.status_code == 403
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:92: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.545545+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":12.699,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.547236+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.165,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a701160:request_logging.py:141 http_request
+INFO     booking.http.7ee11a701160:request_logging.py:141 http_request
+____________________ test_tc07_cross_user_restore_forbidden ____________________
+
+client = <httpx.AsyncClient object at 0x7ee11a75ed70>
+
+    async def test_tc07_cross_user_restore_forbidden(client) -> None:
+        slot = future_slot(days=4, hour=11)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # User A soft delete
+        await client.patch(
+            f"/api/appointments/{apt_id}/soft-delete",
+            headers={"X-User-Id": "UserA"},
+        )
+    
+        # User B cố restore của User A
+        attack_resp = await client.patch(
+            f"/api/appointments/{apt_id}/restore",
+            headers={"X-User-Id": "UserB"},
+        )
+>       assert attack_resp.status_code == 403
+E       assert 404 == 403
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:115: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.571719+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":10.258,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.573312+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.21,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.573905+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.102,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a700d70:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700d70:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700d70:request_logging.py:141 http_request
+__________________ test_tc08_cross_user_get_detail_isolation ___________________
+
+client = <httpx.AsyncClient object at 0x7ee11a75fa80>
+
+    async def test_tc08_cross_user_get_detail_isolation(client) -> None:
+        slot = future_slot(days=4, hour=14)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # User B cố đọc chi tiết appointment của User A
+        resp = await client.get(f"/api/appointments/{apt_id}", headers={"X-User-Id": "UserB"})
+>       assert resp.status_code == 404
+E       assert 405 == 404
+E        +  where 405 = <Response [405 Method Not Allowed]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:129: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.598000+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":12.465,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.599223+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/{appointment_id}","status":405,"duration_ms":0.127,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a701400:request_logging.py:141 http_request
+INFO     booking.http.7ee11a701400:request_logging.py:141 http_request
+________________________ test_tc09_trash_api_isolation _________________________
+
+client = <httpx.AsyncClient object at 0x7ee11a635490>
+
+    async def test_tc09_trash_api_isolation(client) -> None:
+        slot_a = future_slot(days=5, hour=10)
+        slot_b = future_slot(days=5, hour=11)
+    
+        resp_a = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot_a.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        resp_b = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserB", "starts_at": slot_b.isoformat()},
+            headers={"X-User-Id": "UserB"},
+        )
+        apt_a = resp_a.json()["id"]
+        apt_b = resp_b.json()["id"]
+    
+        # Cả hai đều xóa mềm booking của mình
+        await client.patch(f"/api/appointments/{apt_a}/soft-delete", headers={"X-User-Id": "UserA"})
+        await client.patch(f"/api/appointments/{apt_b}/soft-delete", headers={"X-User-Id": "UserB"})
+    
+        # User A xem trash
+        trash_a = await client.get("/api/appointments/trash", headers={"X-User-Id": "UserA"})
+>       assert trash_a.status_code == 200
+E       assert 405 == 200
+E        +  where 405 = <Response [405 Method Not Allowed]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:155: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.624526+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":10.997,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.632744+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":6.235,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.633881+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.126,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.634342+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.08,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.634750+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/{appointment_id}","status":405,"duration_ms":0.082,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a700980:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700980:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700980:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700980:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700980:request_logging.py:141 http_request
+_________________ test_tc10_restore_slot_conflict_returns_409 __________________
+
+client = <httpx.AsyncClient object at 0x7ee11a63d9d0>
+
+    async def test_tc10_restore_slot_conflict_returns_409(client) -> None:
+        slot = future_slot(days=6, hour=10)
+    
+        # User A đặt slot 10:00
+        resp_a = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_a = resp_a.json()["id"]
+    
+        # User A xóa mềm (giải phóng slot)
+        await client.patch(f"/api/appointments/{apt_a}/soft-delete", headers={"X-User-Id": "UserA"})
+    
+        # User C tranh thủ đặt vào slot 10:00 đó
+        resp_c = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserC", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserC"},
+        )
+>       assert resp_c.status_code == 201
+E       assert 409 == 201
+E        +  where 409 = <Response [409 Conflict]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:182: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.657438+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":9.64,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.659466+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.196,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.664018+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":409,"duration_ms":3.884,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a700830:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700830:request_logging.py:141 http_request
+INFO     booking.http.7ee11a700830:request_logging.py:141 http_request
+______________ test_tc04_tc05_idempotency_soft_delete_and_restore ______________
+
+client = <httpx.AsyncClient object at 0x7ee11a5b47c0>
+
+    async def test_tc04_tc05_idempotency_soft_delete_and_restore(client) -> None:
+        slot = future_slot(days=6, hour=14)
+        create_resp = await client.post(
+            "/api/appointments",
+            json={"customer_name": "UserA", "starts_at": slot.isoformat()},
+            headers={"X-User-Id": "UserA"},
+        )
+        apt_id = create_resp.json()["id"]
+    
+        # Soft delete lần 1
+        resp1 = await client.patch(f"/api/appointments/{apt_id}/soft-delete", headers={"X-User-Id": "UserA"})
+>       assert resp1.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py:204: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T04:53:33.690062+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":10.112,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T04:53:33.692037+00:00","level":"INFO","event":"http_request","method":"PATCH","route":"<unmatched>","status":404,"duration_ms":0.271,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.7ee11a7016a0:request_logging.py:141 http_request
+INFO     booking.http.7ee11a7016a0:request_logging.py:141 http_request
+=============================== warnings summary ===============================
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:52
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:52: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:71
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:71: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:89
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:89: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:109
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/tests/unit/test_soft_delete_restore.py:109: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_success
+FAILED SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_unauthorized
+FAILED SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_success
+FAILED SE2026-T29/backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_conflict_when_slot_rebooked
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc01_soft_delete_happy_path
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc02_restore_happy_path
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc06_cross_user_soft_delete_forbidden
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc07_cross_user_restore_forbidden
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc08_cross_user_get_detail_isolation
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc09_trash_api_isolation
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc10_restore_slot_conflict_returns_409
+FAILED SE2026-T29/backend/tests/integration/test_soft_delete_restore_api.py::test_tc04_tc05_idempotency_soft_delete_and_restore
+=================== 12 failed, 1 passed, 4 warnings in 0.64s ===================

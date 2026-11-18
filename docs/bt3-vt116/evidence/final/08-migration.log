@@ -1,0 +1,23 @@
+UTC: 2026-11-09T06:34:02.962034+00:00
+Tested commit: c3421e27c5885857dea0b14f6358954b5a80ddb1
+Working tree before run:
+(clean)
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/python scripts/verify_vt116_migration.py
+Database: isolated vt116_final_test on 127.0.0.1:55433
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 20261007_0001, Create appointments table.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 20261007_0001 -> 20261109_0002, Add owner_id, is_deleted, deleted_at and update unique partial index.
+INFO  [alembic.runtime.migration] Running upgrade 20261109_0002 -> 20261109_0003, Quarantine all historical ownership, including old name-based owners.
+PASS: upgrade baseline -> 0002 -> 0003 preserves and quarantines legacy data
+
+Exit code: 0

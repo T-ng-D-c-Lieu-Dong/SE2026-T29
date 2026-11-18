@@ -1,0 +1,45 @@
+UTC: 2026-11-09T06:34:54.819299+00:00
+Tested commit: c3421e27c5885857dea0b14f6358954b5a80ddb1
+Working tree before run:
+?? docs/bt3-vt116/evidence/final/coverage.json
+
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/python -m coverage report -m
+Database: isolated vt116_final_test on 127.0.0.1:55433
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------
+backend/app/__init__.py                        0      0      0      0   100%
+backend/app/api/__init__.py                    0      0      0      0   100%
+backend/app/api/appointments.py               87      1      6      0    99%   170
+backend/app/api/health.py                     21      0      0      0   100%
+backend/app/api/slots.py                      15      0      0      0   100%
+backend/app/api/version.py                     7      0      0      0   100%
+backend/app/config.py                         35      1      4      1    95%   45
+backend/app/db.py                             12      2      0      0    83%   31-32
+backend/app/domain/__init__.py                 2      0      0      0   100%
+backend/app/domain/errors.py                   5      0      0      0   100%
+backend/app/main.py                           26      3      0      0    88%   19-22
+backend/app/models/__init__.py                 2      0      0      0   100%
+backend/app/models/appointment.py             24      0      0      0   100%
+backend/app/ownership.py                       2      0      0      0   100%
+backend/app/repositories/__init__.py           2      0      0      0   100%
+backend/app/repositories/appointments.py      64      2     10      4    92%   39, 66->70, 118->120, 145
+backend/app/request_logging.py               116      5     38      1    96%   205-206, 222-223, 226
+backend/app/schemas/__init__.py                2      0      0      0   100%
+backend/app/schemas/appointment.py            26      2      4      2    87%   17, 23
+backend/app/services/__init__.py               3      0      0      0   100%
+backend/app/services/booking.py              148      3     56      4    97%   88->90, 115-116, 146->148, 154, 191->193
+backend/app/services/fault_injection.py       48      5     24      7    83%   33, 35, 37, 41, 67->exit, 74->81, 77
+backend/app/telemetry/__init__.py              3      0      0      0   100%
+backend/app/telemetry/config.py               27      0      6      0   100%
+backend/app/telemetry/runtime.py             182     27     52      7    82%   104, 119, 139, 145-147, 169, 203, 283-285, 301-303, 324-337, 371-372, 391-393
+--------------------------------------------------------------------------------------
+TOTAL                                        859     51    200     26    92%
+
+Exit code: 0

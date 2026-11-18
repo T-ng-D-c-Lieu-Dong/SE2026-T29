@@ -1,0 +1,340 @@
+UTC: 2026-11-09T06:29:07.414816+00:00
+Tested commit: 58ad4e40ca8e6c993cdff2e7cb2f3e40e4ad72b1
+Working tree before run:
+?? backend/tests/integration/test_vt116_security_transitions.py
+?? docs/bt3-vt116/final-correction-plan.md
+?? scripts/capture_vt116_evidence.py
+
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/pytest backend/tests/integration/test_vt116_security_transitions.py -q -p no:cacheprovider
+Database: isolated vt116_final_test on 127.0.0.1:55433
+FFFFFF.FFFF....                                                          [100%]
+=================================== FAILURES ===================================
+____________ test_private_routes_missing_identity_fail_closed[list] ____________
+
+client = <httpx.AsyncClient object at 0x703c803d4830>, route = 'list'
+
+    @pytest.mark.parametrize("route", ["list", "detail", "create", "cancel"])
+    async def test_private_routes_missing_identity_fail_closed(client, route):
+        appointment_id = await create(client)
+        if route == "list":
+            response = await client.get("/api/appointments")
+        elif route == "detail":
+            response = await client.get(f"/api/appointments/{appointment_id}")
+        elif route == "cancel":
+            response = await client.delete(f"/api/appointments/{appointment_id}")
+        else:
+            response = await client.post(
+                "/api/appointments",
+                json={"customer_name": "Same Name", "starts_at": slot(13).isoformat()},
+            )
+>       assert response.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:47: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.192702+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":18.391,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.200543+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":6.343,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c803d5e80:request_logging.py:141 http_request
+INFO     booking.http.703c803d5e80:request_logging.py:141 http_request
+___________ test_private_routes_missing_identity_fail_closed[detail] ___________
+
+client = <httpx.AsyncClient object at 0x703c80446990>, route = 'detail'
+
+    @pytest.mark.parametrize("route", ["list", "detail", "create", "cancel"])
+    async def test_private_routes_missing_identity_fail_closed(client, route):
+        appointment_id = await create(client)
+        if route == "list":
+            response = await client.get("/api/appointments")
+        elif route == "detail":
+            response = await client.get(f"/api/appointments/{appointment_id}")
+        elif route == "cancel":
+            response = await client.delete(f"/api/appointments/{appointment_id}")
+        else:
+            response = await client.post(
+                "/api/appointments",
+                json={"customer_name": "Same Name", "starts_at": slot(13).isoformat()},
+            )
+>       assert response.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:47: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.262140+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":12.435,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.267620+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/{appointment_id}","status":200,"duration_ms":4.36,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c803d7e00:request_logging.py:141 http_request
+INFO     booking.http.703c803d7e00:request_logging.py:141 http_request
+___________ test_private_routes_missing_identity_fail_closed[create] ___________
+
+client = <httpx.AsyncClient object at 0x703c802cccd0>, route = 'create'
+
+    @pytest.mark.parametrize("route", ["list", "detail", "create", "cancel"])
+    async def test_private_routes_missing_identity_fail_closed(client, route):
+        appointment_id = await create(client)
+        if route == "list":
+            response = await client.get("/api/appointments")
+        elif route == "detail":
+            response = await client.get(f"/api/appointments/{appointment_id}")
+        elif route == "cancel":
+            response = await client.delete(f"/api/appointments/{appointment_id}")
+        else:
+            response = await client.post(
+                "/api/appointments",
+                json={"customer_name": "Same Name", "starts_at": slot(13).isoformat()},
+            )
+>       assert response.status_code == 401
+E       assert 201 == 401
+E        +  where 201 = <Response [201 Created]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:47: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.292666+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":13.197,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.299112+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":5.3,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c80451a90:request_logging.py:141 http_request
+INFO     booking.http.703c80451a90:request_logging.py:141 http_request
+___________ test_private_routes_missing_identity_fail_closed[cancel] ___________
+
+client = <httpx.AsyncClient object at 0x703c80308e90>, route = 'cancel'
+
+    @pytest.mark.parametrize("route", ["list", "detail", "create", "cancel"])
+    async def test_private_routes_missing_identity_fail_closed(client, route):
+        appointment_id = await create(client)
+        if route == "list":
+            response = await client.get("/api/appointments")
+        elif route == "detail":
+            response = await client.get(f"/api/appointments/{appointment_id}")
+        elif route == "cancel":
+            response = await client.delete(f"/api/appointments/{appointment_id}")
+        else:
+            response = await client.post(
+                "/api/appointments",
+                json={"customer_name": "Same Name", "starts_at": slot(13).isoformat()},
+            )
+>       assert response.status_code == 401
+E       assert 204 == 401
+E        +  where 204 = <Response [204 No Content]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:47: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.323318+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":13.022,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.330067+00:00","level":"INFO","event":"http_request","method":"DELETE","route":"/api/appointments/{appointment_id}","status":204,"duration_ms":5.564,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c80451400:request_logging.py:141 http_request
+INFO     booking.http.703c80451400:request_logging.py:141 http_request
+____________________ test_invalid_identity_is_rejected[   ] ____________________
+
+client = <httpx.AsyncClient object at 0x703c80309f30>, identity = '   '
+
+    @pytest.mark.parametrize("identity", ["   ", "x" * 101])
+    async def test_invalid_identity_is_rejected(client, identity):
+        response = await client.get("/api/appointments", headers={"X-User-Id": identity})
+>       assert response.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.350441+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":10.409,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c80452510:request_logging.py:141 http_request
+_________________ test_invalid_identity_is_rejected[identity1] _________________
+
+client = <httpx.AsyncClient object at 0x703c8019c950>
+identity = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+
+    @pytest.mark.parametrize("identity", ["   ", "x" * 101])
+    async def test_invalid_identity_is_rejected(client, identity):
+        response = await client.get("/api/appointments", headers={"X-User-Id": identity})
+>       assert response.status_code == 401
+E       assert 200 == 401
+E        +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:53: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.372900+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":11.794,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c80453770:request_logging.py:141 http_request
+__________________ test_payload_owner_cannot_override_caller ___________________
+
+client = <httpx.AsyncClient object at 0x703c801f8050>
+
+    async def test_payload_owner_cannot_override_caller(client):
+        response = await client.post(
+            "/api/appointments", headers={"X-User-Id": "bob"},
+            json={"customer_name": "Alice", "owner_id": "alice", "starts_at": slot().isoformat()},
+        )
+>       assert response.status_code == 422
+E       assert 201 == 422
+E        +  where 201 = <Response [201 Created]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:74: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.432011+00:00","level":"INFO","event":"http_request","method":"POST","route":"/api/appointments","status":201,"duration_ms":12.227,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c8036b0e0:request_logging.py:141 http_request
+_ test_legacy_ownership_is_quarantined_even_when_identifier_is_known[legacy_known_uuid] _
+
+client = <httpx.AsyncClient object at 0x703c80240950>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x703c803dcad0>, autoflush=True, expire_on_commit=False)
+owner = 'legacy_known_uuid'
+
+    @pytest.mark.parametrize("owner", ["legacy_known_uuid", "unassigned", "anonymous"])
+    async def test_legacy_ownership_is_quarantined_even_when_identifier_is_known(
+        client, test_session_factory, owner
+    ):
+        appointment_id = uuid4()
+        async with test_session_factory() as session:
+            session.add(Appointment(
+                id=appointment_id, customer_name="Known Patient", owner_id=owner,
+                starts_at=slot(), status="booked", is_deleted=False,
+            ))
+            await session.commit()
+        # A valid caller cannot read the historical row.
+        response = await client.get("/api/appointments", headers={"X-User-Id": "alice"})
+        assert response.json()["items"] == []
+        response = await client.get(
+            f"/api/appointments/{appointment_id}", headers={"X-User-Id": "alice"}
+        )
+        assert response.status_code == 404
+        # Knowing/asserting the stored historical owner never grants access.
+        for method, path in [
+            ("GET", "/api/appointments"),
+            ("GET", f"/api/appointments/{appointment_id}"),
+            ("GET", "/api/appointments/trash"),
+            ("PATCH", f"/api/appointments/{appointment_id}/soft-delete"),
+            ("PATCH", f"/api/appointments/{appointment_id}/restore"),
+            ("DELETE", f"/api/appointments/{appointment_id}"),
+        ]:
+            response = await client.request(method, path, headers={"X-User-Id": owner})
+>           assert response.status_code == 401
+E           assert 200 == 401
+E            +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:105: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.459175+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":11.303,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.464374+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/{appointment_id}","status":404,"duration_ms":3.976,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.469276+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":4.33,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c80238980:request_logging.py:141 http_request
+INFO     booking.http.703c80238980:request_logging.py:141 http_request
+INFO     booking.http.703c80238980:request_logging.py:141 http_request
+_ test_legacy_ownership_is_quarantined_even_when_identifier_is_known[unassigned] _
+
+client = <httpx.AsyncClient object at 0x703c80241c50>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x703c803dcad0>, autoflush=True, expire_on_commit=False)
+owner = 'unassigned'
+
+    @pytest.mark.parametrize("owner", ["legacy_known_uuid", "unassigned", "anonymous"])
+    async def test_legacy_ownership_is_quarantined_even_when_identifier_is_known(
+        client, test_session_factory, owner
+    ):
+        appointment_id = uuid4()
+        async with test_session_factory() as session:
+            session.add(Appointment(
+                id=appointment_id, customer_name="Known Patient", owner_id=owner,
+                starts_at=slot(), status="booked", is_deleted=False,
+            ))
+            await session.commit()
+        # A valid caller cannot read the historical row.
+        response = await client.get("/api/appointments", headers={"X-User-Id": "alice"})
+        assert response.json()["items"] == []
+        response = await client.get(
+            f"/api/appointments/{appointment_id}", headers={"X-User-Id": "alice"}
+        )
+        assert response.status_code == 404
+        # Knowing/asserting the stored historical owner never grants access.
+        for method, path in [
+            ("GET", "/api/appointments"),
+            ("GET", f"/api/appointments/{appointment_id}"),
+            ("GET", "/api/appointments/trash"),
+            ("PATCH", f"/api/appointments/{appointment_id}/soft-delete"),
+            ("PATCH", f"/api/appointments/{appointment_id}/restore"),
+            ("DELETE", f"/api/appointments/{appointment_id}"),
+        ]:
+            response = await client.request(method, path, headers={"X-User-Id": owner})
+>           assert response.status_code == 401
+E           assert 200 == 401
+E            +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:105: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.495040+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":10.354,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.499700+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/{appointment_id}","status":404,"duration_ms":3.505,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.503521+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":3.294,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c80239e80:request_logging.py:141 http_request
+INFO     booking.http.703c80239e80:request_logging.py:141 http_request
+INFO     booking.http.703c80239e80:request_logging.py:141 http_request
+_ test_legacy_ownership_is_quarantined_even_when_identifier_is_known[anonymous] _
+
+client = <httpx.AsyncClient object at 0x703c800c0140>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x703c803dcad0>, autoflush=True, expire_on_commit=False)
+owner = 'anonymous'
+
+    @pytest.mark.parametrize("owner", ["legacy_known_uuid", "unassigned", "anonymous"])
+    async def test_legacy_ownership_is_quarantined_even_when_identifier_is_known(
+        client, test_session_factory, owner
+    ):
+        appointment_id = uuid4()
+        async with test_session_factory() as session:
+            session.add(Appointment(
+                id=appointment_id, customer_name="Known Patient", owner_id=owner,
+                starts_at=slot(), status="booked", is_deleted=False,
+            ))
+            await session.commit()
+        # A valid caller cannot read the historical row.
+        response = await client.get("/api/appointments", headers={"X-User-Id": "alice"})
+        assert response.json()["items"] == []
+        response = await client.get(
+            f"/api/appointments/{appointment_id}", headers={"X-User-Id": "alice"}
+        )
+        assert response.status_code == 404
+        # Knowing/asserting the stored historical owner never grants access.
+        for method, path in [
+            ("GET", "/api/appointments"),
+            ("GET", f"/api/appointments/{appointment_id}"),
+            ("GET", "/api/appointments/trash"),
+            ("PATCH", f"/api/appointments/{appointment_id}/soft-delete"),
+            ("PATCH", f"/api/appointments/{appointment_id}/restore"),
+            ("DELETE", f"/api/appointments/{appointment_id}"),
+        ]:
+            response = await client.request(method, path, headers={"X-User-Id": owner})
+>           assert response.status_code == 401
+E           assert 200 == 401
+E            +  where 200 = <Response [200 OK]>.status_code
+
+backend/tests/integration/test_vt116_security_transitions.py:105: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{"timestamp":"2026-11-09T06:29:08.526723+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":9.736,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.531748+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments/{appointment_id}","status":404,"duration_ms":3.768,"release":"dev","commit_sha":"unknown"}
+{"timestamp":"2026-11-09T06:29:08.535516+00:00","level":"INFO","event":"http_request","method":"GET","route":"/api/appointments","status":200,"duration_ms":3.264,"release":"dev","commit_sha":"unknown"}
+------------------------------ Captured log call -------------------------------
+INFO     booking.http.703c8023a510:request_logging.py:141 http_request
+INFO     booking.http.703c8023a510:request_logging.py:141 http_request
+INFO     booking.http.703c8023a510:request_logging.py:141 http_request
+=========================== short test summary info ============================
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[list]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[detail]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[create]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[cancel]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_invalid_identity_is_rejected[   ]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_invalid_identity_is_rejected[identity1]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_payload_owner_cannot_override_caller
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_legacy_ownership_is_quarantined_even_when_identifier_is_known[legacy_known_uuid]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_legacy_ownership_is_quarantined_even_when_identifier_is_known[unassigned]
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_legacy_ownership_is_quarantined_even_when_identifier_is_known[anonymous]
+10 failed, 5 passed in 0.58s
+
+Exit code: 1

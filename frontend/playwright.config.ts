@@ -11,6 +11,8 @@ export default defineConfig({
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:8080",
+    // Controlled test identity assertion; production identity is supplied upstream.
+    extraHTTPHeaders: { "X-User-Id": process.env.E2E_USER_ID ?? "e2e-user" },
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

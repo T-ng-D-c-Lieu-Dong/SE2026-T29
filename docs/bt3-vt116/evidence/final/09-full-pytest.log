@@ -1,0 +1,148 @@
+UTC: 2026-11-09T06:34:21.002311+00:00
+Tested commit: c3421e27c5885857dea0b14f6358954b5a80ddb1
+Working tree before run:
+(clean)
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/pytest backend/tests -v -p no:cacheprovider
+Database: isolated vt116_final_test on 127.0.0.1:55433
+============================= test session starts ==============================
+platform linux -- Python 3.14.4, pytest-9.2.0, pluggy-1.7.0 -- /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python3
+rootdir: /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend
+configfile: pyproject.toml
+plugins: anyio-4.16.0, cov-7.1.0, asyncio-1.4.1.post1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 117 items
+
+backend/tests/integration/test_appointments_api.py::test_create_booking_persists PASSED [  0%]
+backend/tests/integration/test_appointments_api.py::test_error_fault_returns_500_before_database_write PASSED [  1%]
+backend/tests/integration/test_appointments_api.py::test_concurrent_booking_same_slot PASSED [  2%]
+backend/tests/integration/test_appointments_api.py::test_invalid_slot_returns_422 PASSED [  3%]
+backend/tests/integration/test_appointments_api.py::test_cancel_is_idempotent_and_allows_rebooking PASSED [  4%]
+backend/tests/integration/test_appointments_api.py::test_cancel_unknown_id_returns_404 PASSED [  5%]
+backend/tests/integration/test_appointments_api.py::test_list_appointments_is_paginated PASSED [  5%]
+backend/tests/integration/test_appointments_api.py::test_slots_exclude_active_booking PASSED [  6%]
+backend/tests/integration/test_health_api.py::test_liveness_does_not_query_database PASSED [  7%]
+backend/tests/integration/test_health_api.py::test_readiness_checks_database_and_schema PASSED [  8%]
+backend/tests/integration/test_health_api.py::test_version_endpoint PASSED [  9%]
+backend/tests/integration/test_release_e08_e12_e14.py::test_e08_version_traceability_integration PASSED [ 10%]
+backend/tests/integration/test_release_e08_e12_e14.py::test_e12_booking_data_preserved_across_simulated_rollback PASSED [ 11%]
+backend/tests/integration/test_release_e08_e12_e14.py::test_e14_schema_backward_compatibility_during_rollback_window PASSED [ 11%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc01_soft_delete_happy_path PASSED [ 12%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc02_restore_happy_path PASSED [ 13%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc06_cross_user_soft_delete_forbidden PASSED [ 14%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc07_cross_user_restore_forbidden PASSED [ 15%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc08_cross_user_get_detail_isolation PASSED [ 16%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc09_trash_api_isolation PASSED [ 17%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc10_restore_slot_conflict_returns_409 PASSED [ 17%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc04_tc05_idempotency_soft_delete_and_restore PASSED [ 18%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_tc12_soft_delete_not_found PASSED [ 19%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_auth_missing_header_returns_401 PASSED [ 20%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_auth_header_spoofing_limitation_demonstration PASSED [ 21%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_concurrent_restore_same_slot_race_condition PASSED [ 22%]
+backend/tests/integration/test_soft_delete_restore_api.py::test_concurrent_booking_and_restore_same_slot PASSED [ 23%]
+backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[list] PASSED [ 23%]
+backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[detail] PASSED [ 24%]
+backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[create] PASSED [ 25%]
+backend/tests/integration/test_vt116_security_transitions.py::test_private_routes_missing_identity_fail_closed[cancel] PASSED [ 26%]
+backend/tests/integration/test_vt116_security_transitions.py::test_invalid_identity_is_rejected[   ] PASSED [ 27%]
+backend/tests/integration/test_vt116_security_transitions.py::test_invalid_identity_is_rejected[identity1] PASSED [ 28%]
+backend/tests/integration/test_vt116_security_transitions.py::test_same_customer_name_does_not_confer_ownership PASSED [ 29%]
+backend/tests/integration/test_vt116_security_transitions.py::test_payload_owner_cannot_override_caller PASSED [ 29%]
+backend/tests/integration/test_vt116_security_transitions.py::test_legacy_ownership_is_quarantined_even_when_identifier_is_known[legacy_known_uuid] PASSED [ 30%]
+backend/tests/integration/test_vt116_security_transitions.py::test_legacy_ownership_is_quarantined_even_when_identifier_is_known[unassigned] PASSED [ 31%]
+backend/tests/integration/test_vt116_security_transitions.py::test_legacy_ownership_is_quarantined_even_when_identifier_is_known[anonymous] PASSED [ 32%]
+backend/tests/integration/test_vt116_security_transitions.py::test_forged_identity_still_reads_owner_data_without_gateway_OPEN_RISK PASSED [ 33%]
+backend/tests/integration/test_vt116_security_transitions.py::test_tc11_restore_past_booking_rejected_without_state_change PASSED [ 34%]
+backend/tests/integration/test_vt116_security_transitions.py::test_cancelled_delete_restore_preserves_cancellation_and_free_slot PASSED [ 35%]
+backend/tests/integration/test_vt116_security_transitions.py::test_cancel_soft_deleted_booking_returns_404 PASSED [ 35%]
+backend/tests/integration/test_vt116_security_transitions.py::test_unverified_historical_name_owner_is_not_claimable PASSED [ 36%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_converts_to_utc PASSED [ 37%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at0] PASSED [ 38%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at1] PASSED [ 39%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at2] PASSED [ 40%]
+backend/tests/unit/test_booking_service.py::test_normalize_start_time_rejects_invalid_slots[starts_at3] PASSED [ 41%]
+backend/tests/unit/test_booking_service.py::test_create_uses_normalized_time_and_commits PASSED [ 41%]
+backend/tests/unit/test_booking_service.py::test_create_injects_error_before_repository_write PASSED [ 42%]
+backend/tests/unit/test_booking_service.py::test_cancel_is_idempotent PASSED [ 43%]
+backend/tests/unit/test_booking_service.py::test_cancel_unknown_appointment PASSED [ 44%]
+backend/tests/unit/test_booking_service.py::test_available_slots_excludes_booked_slot PASSED [ 45%]
+backend/tests/unit/test_deploy_and_rollback.py::test_build_compose_up_command_produces_deterministic_args PASSED [ 46%]
+backend/tests/unit/test_deploy_and_rollback.py::test_build_compose_up_command_custom_flags PASSED [ 47%]
+backend/tests/unit/test_deploy_and_rollback.py::test_deployer_prepares_pinned_env_file PASSED [ 47%]
+backend/tests/unit/test_deploy_and_rollback.py::test_deploy_and_rollback_manifest_history_flow PASSED [ 48%]
+backend/tests/unit/test_deploy_and_rollback.py::test_deploy_auto_rollbacks_on_smoke_test_failure PASSED [ 49%]
+backend/tests/unit/test_deploy_lock.py::test_deploy_lock_acquire_and_release PASSED [ 50%]
+backend/tests/unit/test_deploy_lock.py::test_deploy_lock_context_manager PASSED [ 51%]
+backend/tests/unit/test_deploy_lock.py::test_deploy_lock_mutual_exclusion PASSED [ 52%]
+backend/tests/unit/test_deploy_lock.py::test_deploy_lock_stale_lock_cleanup PASSED [ 52%]
+backend/tests/unit/test_fault_injection.py::test_settings_load_fault_controls_from_environment PASSED [ 53%]
+backend/tests/unit/test_fault_injection.py::test_settings_require_expiry_when_fault_is_active PASSED [ 54%]
+backend/tests/unit/test_fault_injection.py::test_error_mode_raises_when_selected PASSED [ 55%]
+backend/tests/unit/test_fault_injection.py::test_off_mode_never_injects PASSED [ 56%]
+backend/tests/unit/test_fault_injection.py::test_rate_can_skip_fault PASSED [ 57%]
+backend/tests/unit/test_fault_injection.py::test_fault_automatically_stops_at_until PASSED [ 58%]
+backend/tests/unit/test_fault_injection.py::test_latency_mode_uses_configured_duration PASSED [ 58%]
+backend/tests/unit/test_fault_injection.py::test_active_fault_requires_expiry_even_when_constructed_directly PASSED [ 59%]
+backend/tests/unit/test_health_dependencies.py::test_liveness_does_not_resolve_database_dependency PASSED [ 60%]
+backend/tests/unit/test_health_dependencies.py::test_readiness_returns_503_when_database_is_unavailable PASSED [ 61%]
+backend/tests/unit/test_loadtest_vt116.py::test_percentile_uses_interpolated_sample_rank PASSED [ 62%]
+backend/tests/unit/test_loadtest_vt116.py::test_empty_workload_cannot_meet_performance_goal PASSED [ 63%]
+backend/tests/unit/test_loadtest_vt116.py::test_partial_workload_cannot_meet_performance_goal PASSED [ 64%]
+backend/tests/unit/test_loadtest_vt116.py::test_slow_workload_fails_performance_goal PASSED [ 64%]
+backend/tests/unit/test_loadtest_vt116.py::test_completed_fast_workload_meets_performance_goal PASSED [ 65%]
+backend/tests/unit/test_persistence_check.py::test_seed_books_first_free_slot PASSED [ 66%]
+backend/tests/unit/test_persistence_check.py::test_seed_fails_when_no_free_slot PASSED [ 67%]
+backend/tests/unit/test_persistence_check.py::test_verify_finds_booking_on_later_page PASSED [ 68%]
+backend/tests/unit/test_persistence_check.py::test_verify_fails_when_booking_missing PASSED [ 69%]
+backend/tests/unit/test_persistence_check.py::test_verify_fails_when_booking_cancelled PASSED [ 70%]
+backend/tests/unit/test_release_contract_e08.py::test_e08_version_endpoint_matches_release_manifest PASSED [ 70%]
+backend/tests/unit/test_release_contract_e08.py::test_e08_release_manifest_traceability_to_image_spec PASSED [ 71%]
+backend/tests/unit/test_release_manifest.py::test_image_spec_validation_passes_valid_spec PASSED [ 72%]
+backend/tests/unit/test_release_manifest.py::test_image_spec_rejects_latest_tag PASSED [ 73%]
+backend/tests/unit/test_release_manifest.py::test_image_spec_rejects_invalid_digest PASSED [ 74%]
+backend/tests/unit/test_release_manifest.py::test_manifest_validation_passes PASSED [ 75%]
+backend/tests/unit/test_release_manifest.py::test_manifest_validation_rejects_latest_release PASSED [ 76%]
+backend/tests/unit/test_release_manifest.py::test_manifest_validation_rejects_invalid_commit_sha PASSED [ 76%]
+backend/tests/unit/test_release_manifest.py::test_manifest_serialization_and_deserialization PASSED [ 77%]
+backend/tests/unit/test_release_manifest.py::test_v010_reference_manifest_file_is_valid PASSED [ 78%]
+backend/tests/unit/test_release_manifest.py::test_manifest_with_frontend_image_passes_validation PASSED [ 79%]
+backend/tests/unit/test_release_manifest.py::test_manifest_rejects_invalid_frontend_digest PASSED [ 80%]
+backend/tests/unit/test_release_manifest.py::test_manifest_rejects_latest_tag_for_frontend PASSED [ 81%]
+backend/tests/unit/test_request_logging.py::test_request_log_uses_route_template_and_excludes_customer_data PASSED [ 82%]
+backend/tests/unit/test_request_logging.py::test_request_log_includes_valid_traceparent_ids PASSED [ 82%]
+backend/tests/unit/test_request_logging.py::test_unmatched_path_has_fixed_low_cardinality_route PASSED [ 83%]
+backend/tests/unit/test_request_logging.py::test_invalid_traceparent_is_not_logged PASSED [ 84%]
+backend/tests/unit/test_smoke_test.py::test_smoke_runner_readiness_success PASSED [ 85%]
+backend/tests/unit/test_smoke_test.py::test_smoke_runner_readiness_failure PASSED [ 86%]
+backend/tests/unit/test_smoke_test.py::test_smoke_runner_version_check_success PASSED [ 87%]
+backend/tests/unit/test_smoke_test.py::test_smoke_runner_version_check_mismatch PASSED [ 88%]
+backend/tests/unit/test_smoke_test.py::test_smoke_runner_business_flow_success PASSED [ 88%]
+backend/tests/unit/test_smoke_test.py::test_smoke_runner_business_flow_fails_when_booking_fails PASSED [ 89%]
+backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_success PASSED [ 90%]
+backend/tests/unit/test_soft_delete_restore.py::test_unit_soft_delete_unauthorized PASSED [ 91%]
+backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_success PASSED [ 92%]
+backend/tests/unit/test_soft_delete_restore.py::test_unit_restore_conflict_when_slot_rebooked PASSED [ 93%]
+backend/tests/unit/test_telemetry.py::test_resource_attributes_correlate_telemetry_with_release PASSED [ 94%]
+backend/tests/unit/test_telemetry.py::test_config_rejects_unbounded_or_invalid_batch_settings PASSED [ 94%]
+backend/tests/unit/test_telemetry.py::test_disabled_runtime_keeps_business_instrumentation_safe PASSED [ 95%]
+backend/tests/unit/test_telemetry.py::test_booking_span_validates_low_cardinality_operation_name PASSED [ 96%]
+backend/tests/unit/test_telemetry.py::test_business_signals_share_release_resource_and_trace_context PASSED [ 97%]
+backend/tests/unit/test_telemetry.py::test_real_request_correlates_log_and_trace_without_leaking_url_data PASSED [ 98%]
+backend/tests/unit/test_telemetry.py::test_only_one_enabled_runtime_can_own_process_instrumentation PASSED [ 99%]
+backend/tests/unit/test_telemetry.py::test_collector_outage_does_not_block_booking_path PASSED [100%]
+
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1
+  /home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/lib/python3.14/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 117 passed, 1 warning in 3.51s ========================
+
+Exit code: 0

@@ -17,8 +17,18 @@ class AppointmentRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def create(self, customer_name: str, starts_at: datetime) -> Appointment:
-        appointment = Appointment(customer_name=customer_name, starts_at=starts_at)
+    async def create(
+        self,
+        customer_name: str,
+        starts_at: datetime,
+        owner_id: str | None = None,
+    ) -> Appointment:
+        effective_owner = owner_id or customer_name
+        appointment = Appointment(
+            customer_name=customer_name,
+            starts_at=starts_at,
+            owner_id=effective_owner,
+        )
         self.session.add(appointment)
         try:
             await self.session.flush()
@@ -29,18 +39,86 @@ class AppointmentRepository:
             raise
         return appointment
 
-    async def get(self, appointment_id: UUID) -> Appointment | None:
-        return await self.session.get(Appointment, appointment_id)
+    async def get(self, appointment_id: UUID, include_deleted: bool = False) -> Appointment | None:
+        query = select(Appointment).where(Appointment.id == appointment_id)
+        if not include_deleted:
+            query = query.where(Appointment.is_deleted.is_(False))
+        return await self.session.scalar(query)
 
-    async def list(self, limit: int, offset: int) -> tuple[list[Appointment], int]:
+    async def list(
+        self,
+        limit: int,
+        offset: int,
+        owner_id: str | None = None,
+    ) -> tuple[list[Appointment], int]:
+        accessible_owner = (
+            Appointment.owner_access_enabled.is_(True)
+            & ~Appointment.owner_id.startswith("legacy_", autoescape=True)
+            & Appointment.owner_id.not_in(["anonymous", "unassigned"])
+        )
+        query = select(Appointment).where(Appointment.is_deleted.is_(False), accessible_owner)
+        count_query = (
+            select(func.count())
+            .select_from(Appointment)
+            .where(Appointment.is_deleted.is_(False), accessible_owner)
+        )
+
+        if owner_id is not None:
+            query = query.where(Appointment.owner_id == owner_id)
+            count_query = count_query.where(Appointment.owner_id == owner_id)
+
         rows = await self.session.scalars(
-            select(Appointment)
-            .order_by(Appointment.starts_at, Appointment.created_at)
+            query.order_by(Appointment.starts_at, Appointment.created_at)
             .limit(limit)
             .offset(offset)
         )
-        total = await self.session.scalar(select(func.count()).select_from(Appointment))
+        total = await self.session.scalar(count_query)
         return list(rows), int(total or 0)
+
+    async def list_trash(
+        self,
+        owner_id: str,
+        limit: int,
+        offset: int,
+    ) -> tuple[list[Appointment], int]:
+        query = (
+            select(Appointment)
+            .where(
+                Appointment.is_deleted.is_(True),
+                Appointment.owner_id == owner_id,
+                Appointment.owner_access_enabled.is_(True),
+            )
+            .order_by(Appointment.starts_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        count_query = (
+            select(func.count())
+            .select_from(Appointment)
+            .where(
+                Appointment.is_deleted.is_(True),
+                Appointment.owner_id == owner_id,
+                Appointment.owner_access_enabled.is_(True),
+            )
+        )
+        rows = await self.session.scalars(query)
+        total = await self.session.scalar(count_query)
+        return list(rows), int(total or 0)
+
+    async def is_slot_booked(self, starts_at: datetime, exclude_id: UUID | None = None) -> bool:
+        query = (
+            select(func.count())
+            .select_from(Appointment)
+            .where(
+                Appointment.starts_at == starts_at,
+                Appointment.status == AppointmentStatus.BOOKED.value,
+                Appointment.is_deleted.is_(False),
+            )
+        )
+        if exclude_id is not None:
+            query = query.where(Appointment.id != exclude_id)
+        count = await self.session.scalar(query)
+        return bool(count and count > 0)
 
     async def booked_starts_between(
         self,
@@ -50,6 +128,7 @@ class AppointmentRepository:
         rows = await self.session.scalars(
             select(Appointment.starts_at).where(
                 Appointment.status == AppointmentStatus.BOOKED.value,
+                Appointment.is_deleted.is_(False),
                 Appointment.starts_at >= start,
                 Appointment.starts_at < end,
             )
@@ -57,7 +136,13 @@ class AppointmentRepository:
         return set(rows)
 
     async def commit(self) -> None:
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            if ACTIVE_SLOT_CONSTRAINT in str(exc.orig):
+                raise SlotAlreadyBooked("This slot already has an active booking") from exc
+            raise
 
     async def refresh(self, appointment: Appointment) -> None:
         await self.session.refresh(appointment)

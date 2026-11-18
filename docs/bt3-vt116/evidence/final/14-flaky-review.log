@@ -1,0 +1,27 @@
+UTC: 2026-11-09T06:36:06.917306+00:00
+Tested commit: 0c65e34ebb1e19393f9a4540abb74da5fdfa25bf
+Working tree before run:
+?? docs/bt3-vt116/evidence/final/coverage.json
+?? docs/bt3-vt116/evidence/final/performance-20261109T063500Z-038fb4c8.json
+
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/python scripts/verify_vt116_flaky.py
+Database: isolated vt116_final_test on 127.0.0.1:55433
+RUN timezone=UTC reverse_order=0; command=['/home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python', '-m', 'pytest', 'backend/tests/unit/test_soft_delete_restore.py', 'backend/tests/integration/test_soft_delete_restore_api.py', 'backend/tests/integration/test_vt116_security_transitions.py', '-q', '-p', 'no:cacheprovider', '-p', 'scripts.verify_vt116_flaky']
+.................................                                        [100%]
+33 passed in 1.02s
+RUN timezone=Pacific/Honolulu reverse_order=1; command=['/home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python', '-m', 'pytest', 'backend/tests/unit/test_soft_delete_restore.py', 'backend/tests/integration/test_soft_delete_restore_api.py', 'backend/tests/integration/test_vt116_security_transitions.py', '-q', '-p', 'no:cacheprovider', '-p', 'scripts.verify_vt116_flaky']
+.................................                                        [100%]
+33 passed in 1.02s
+RUN timezone=Asia/Ho_Chi_Minh reverse_order=0; command=['/home/anhzxje/Documents/Projects/SE/SE2026-T29/backend/.venv/bin/python', '-m', 'pytest', 'backend/tests/unit/test_soft_delete_restore.py', 'backend/tests/integration/test_soft_delete_restore_api.py', 'backend/tests/integration/test_vt116_security_transitions.py', '-q', '-p', 'no:cacheprovider', '-p', 'scripts.verify_vt116_flaky']
+.................................                                        [100%]
+33 passed in 1.03s
+PASS: three isolated runs; reversed order and varied process timezone; fixed service clocks
+
+Exit code: 0
