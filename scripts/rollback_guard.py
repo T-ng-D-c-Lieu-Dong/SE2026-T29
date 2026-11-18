@@ -95,7 +95,7 @@ class RollbackGuard:
                 None,
             )
         try:
-            manifest = ReleaseManifest.from_file(manifest_path)
+            manifest = ReleaseManifest.load(manifest_path)
             errors = manifest.validate()
             if errors:
                 return (
@@ -139,11 +139,15 @@ class RollbackGuard:
                 detail="Current manifest absent; assuming standalone target migration",
             )
         try:
-            current = ReleaseManifest.from_file(curr_path)
+            current = ReleaseManifest.load(curr_path)
             # E14: Target manifest migration must match or be within backward-compatible window
             curr_rev = current.migration_revision
             tgt_rev = target_manifest.migration_revision
-            min_rev = target_manifest.compatibility.min_compatible_schema
+            min_rev = None
+            if isinstance(target_manifest.compatibility, dict):
+                min_rev = target_manifest.compatibility.get("min_compatible_schema")
+            elif hasattr(target_manifest.compatibility, "min_compatible_schema"):
+                min_rev = target_manifest.compatibility.min_compatible_schema
 
             if min_rev and curr_rev < min_rev:
                 return CheckItem(
