@@ -1,0 +1,6 @@
+# Experiment: 422 response for oversized customer_name — baseline 5c8efc2
+$ (cd backend && python ../docs/vt118/experiments/exp_oversized_422_echo.py)
+name_chars=      101 status=422 request_bytes=      164 response_bytes=      257 echoed_input_chars=101 elapsed=23.1ms type=string_too_long
+name_chars=    10000 status=422 request_bytes=    10063 response_bytes=    10156 echoed_input_chars=10000 elapsed=2.1ms type=string_too_long
+name_chars=  1000000 status=422 request_bytes=  1000063 response_bytes=  1000156 echoed_input_chars=1000000 elapsed=12.4ms type=string_too_long
+name_chars=  5000000 status=422 request_bytes=  5000063 response_bytes=  5000156 echoed_input_chars=5000000 elapsed=61.9ms type=string_too_long

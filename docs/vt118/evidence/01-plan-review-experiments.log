@@ -1,0 +1,26 @@
+# Plan review experiments — 2026-11-07T15:51:01+00:00 — baseline 5c8efc2
+
+$ which k6 || echo "k6: not installed"
+k6: not installed
+
+$ python docs/vt118/experiments/exp_a7_background_tasks.py
+status=200 elapsed=1.004s events=['bg-done']
+
+$ (cd backend && python ../docs/vt118/experiments/exp_pool_hold_after_refresh.py)
+pool: AsyncAdaptedQueuePool size= 5 max_overflow= 10 timeout= 3.0
+commit-then-refresh: checked_out_after=1 in_transaction=True created_at_loaded=True
+refresh-then-commit: checked_out_after=0 in_transaction=False created_at_loaded=True
+
+$ python docs/vt118/experiments/exp_timeout_limits.py
+coop_hang  budget=0.100s outcome=TimeoutError elapsed=0.101s
+blocking   budget=0.100s outcome=completed    elapsed=1.000s
+swallow    budget=0.100s outcome=completed    elapsed=1.102s
+
+$ grep -n "ports" -A2 deploy/compose.yaml deploy/compose.production.yaml | grep 8000
+deploy/compose.yaml-92-      - "${BACKEND_PORT:-8000}:8000"
+
+$ grep -n client_max_body_size frontend/nginx.conf || echo "no client_max_body_size (nginx default 1m)"
+no client_max_body_size (nginx default 1m)
+
+$ grep -rn "notif" backend/app || echo "no notification code in backend/app"
+no notification code in backend/app

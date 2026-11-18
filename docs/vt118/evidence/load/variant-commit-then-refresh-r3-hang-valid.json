@@ -1,0 +1,30 @@
+{
+  "scenario": "variant-commit-then-refresh-r3-hang-valid",
+  "payload": "valid",
+  "payload_customer_name_chars": 13,
+  "concurrency": 60,
+  "requests_per_worker": 10,
+  "total_requests": 600,
+  "peak_in_flight": 60,
+  "wall_seconds": 19.658,
+  "throughput_rps": 30.5,
+  "latency_seconds": {
+    "p50": 1.4921,
+    "p95": 3.0233,
+    "p99": 3.4925,
+    "max": 3.513
+  },
+  "status_counts": {
+    "201": 555,
+    "500": 45
+  },
+  "client_errors": {},
+  "notification_status_counts": {
+    "timeout": 555
+  },
+  "booked_rows_in_db": 555,
+  "rows_match_201": true,
+  "target_p95_seconds": 2.0,
+  "p95_within_target": false,
+  "no_5xx": false
+}

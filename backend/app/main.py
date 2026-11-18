@@ -11,6 +11,7 @@ from app.request_logging import (
     configure_request_logger,
     install_request_logging,
 )
+from app.services.notifications import NOTIFICATION_LOGGER_NAME, LoggingBookingNotifier
 from app.telemetry import TelemetryConfig, configure_telemetry
 
 
@@ -53,6 +54,9 @@ def create_app() -> FastAPI:
         log_handler_logger=request_logger,
     )
     application.state.telemetry = telemetry
+    # Same JSON-on-stdout format as request logs; without a handler INFO lines are dropped (F1).
+    notification_logger = configure_request_logger(logger_name=NOTIFICATION_LOGGER_NAME)
+    application.state.booking_notifier = LoggingBookingNotifier(notification_logger)
     install_request_logging(
         application,
         release=settings.release,

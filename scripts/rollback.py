@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -35,6 +36,7 @@ class Rollbacker:
         skip_container_ops: bool = False,
         dry_run: bool = False,
         acquire_lock: bool = True,
+        compose_overlays: Sequence[Path | str] = (),
     ) -> None:
         resolved_state_dir = state_dir or os.getenv("BOOKING_STATE_DIR", "deploy")
         self.state_dir = Path(resolved_state_dir).resolve()
@@ -44,6 +46,7 @@ class Rollbacker:
             self.target_manifest_path = Path(target_manifest).resolve()
 
         self.compose_file = Path(compose_file).resolve()
+        self.compose_overlays = [Path(overlay).resolve() for overlay in compose_overlays]
         self.base_url = base_url
         self.readiness_timeout_seconds = readiness_timeout_seconds
         self.skip_container_ops = skip_container_ops
@@ -106,7 +109,9 @@ class Rollbacker:
         print(f"[INFO] Restoring previous container using digest: {backend_spec.pinned_reference}")
         if not self.skip_container_ops:
             # Recreate containers without touching database volume
-            compose_cmd = build_compose_up_command(self.env_file, self.compose_file)
+            compose_cmd = build_compose_up_command(
+                self.env_file, self.compose_file, overlays=self.compose_overlays
+            )
             self.execute_command(compose_cmd)
 
     def run_smoke_tests(self, manifest: ReleaseManifest) -> bool:
@@ -205,6 +210,12 @@ def main() -> None:
     )
     parser.add_argument("--compose-file", default="deploy/compose.production.yaml")
     parser.add_argument(
+        "--compose-overlay",
+        action="append",
+        default=[],
+        help="Extra compose file applied after --compose-file (repeatable)",
+    )
+    parser.add_argument(
         "--state-dir",
         default=default_state_dir,
         help="Directory to store active manifests and locks (default: BOOKING_STATE_DIR)",
@@ -224,6 +235,7 @@ def main() -> None:
         rollbacker = Rollbacker(
             target_manifest=args.target_manifest,
             compose_file=args.compose_file,
+            compose_overlays=args.compose_overlay,
             state_dir=args.state_dir,
             base_url=args.base_url,
             readiness_timeout_seconds=args.timeout,

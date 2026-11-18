@@ -1,0 +1,27 @@
+{
+  "scenario": "after-r3-ok-oversized-1mb",
+  "payload": "oversized-1mb",
+  "payload_customer_name_chars": 1000000,
+  "concurrency": 60,
+  "requests_per_worker": 10,
+  "total_requests": 600,
+  "peak_in_flight": 60,
+  "wall_seconds": 5.347,
+  "throughput_rps": 112.2,
+  "latency_seconds": {
+    "p50": 0.4972,
+    "p95": 0.8323,
+    "p99": 1.0166,
+    "max": 1.2208
+  },
+  "status_counts": {
+    "422": 600
+  },
+  "client_errors": {},
+  "notification_status_counts": {},
+  "booked_rows_in_db": 0,
+  "rows_match_201": true,
+  "target_p95_seconds": 2.0,
+  "p95_within_target": true,
+  "no_5xx": true
+}

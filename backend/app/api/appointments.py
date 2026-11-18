@@ -9,12 +9,25 @@ from app.db import get_session
 from app.domain import AccessDeniedError, AppointmentNotFound, InvalidSlot, SlotAlreadyBooked
 from app.ownership import is_quarantined_owner
 from app.repositories import AppointmentRepository
-from app.schemas import AppointmentCreate, AppointmentList, AppointmentRead
+from app.schemas import (
+    AppointmentCreate,
+    AppointmentCreated,
+    AppointmentList,
+    AppointmentRead,
+    NotificationStatus,
+)
 from app.services import BookingFaultInjector, BookingService, InjectedBookingFault
+from app.services.notifications import BookingNotifier, NotificationOutcome
 from app.telemetry import TelemetryRuntime
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 SessionDependency = Annotated[AsyncSession, Depends(get_session)]
+
+NOTIFICATION_STATUS: dict[NotificationOutcome, NotificationStatus] = {
+    NotificationOutcome.DELIVERED: "sent",
+    NotificationOutcome.FAILED: "failed",
+    NotificationOutcome.TIMED_OUT: "timeout",
+}
 
 
 def get_telemetry_runtime(request: Request) -> TelemetryRuntime:
@@ -41,25 +54,40 @@ def require_authenticated_caller(
 AuthenticatedCallerDependency = Annotated[str, Depends(require_authenticated_caller)]
 
 
-def booking_service(session: AsyncSession, telemetry: TelemetryRuntime) -> BookingService:
+def get_booking_notifier(request: Request) -> BookingNotifier:
+    return request.app.state.booking_notifier
+
+
+NotifierDependency = Annotated[BookingNotifier, Depends(get_booking_notifier)]
+
+
+def booking_service(
+    session: AsyncSession,
+    telemetry: TelemetryRuntime,
+    notifier: BookingNotifier | None = None,
+) -> BookingService:
+    settings = get_settings()
     return BookingService(
         AppointmentRepository(session),
-        fault_injector=BookingFaultInjector.from_settings(get_settings()),
+        fault_injector=BookingFaultInjector.from_settings(settings),
         telemetry=telemetry,
+        notifier=notifier,
+        notification_timeout_seconds=settings.notification_timeout_seconds,
     )
 
 
-@router.post("", response_model=AppointmentRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=AppointmentCreated, status_code=status.HTTP_201_CREATED)
 async def create_appointment(
     payload: AppointmentCreate,
     session: SessionDependency,
     telemetry: TelemetryDependency,
     caller_id: AuthenticatedCallerDependency,
-) -> AppointmentRead:
+    notifier: NotifierDependency,
+) -> AppointmentCreated:
     if payload.owner_id is not None and payload.owner_id != caller_id:
         raise HTTPException(status_code=422, detail="owner_id must match the asserted caller")
     try:
-        appointment = await booking_service(session, telemetry).create(
+        created = await booking_service(session, telemetry, notifier).create_and_notify(
             customer_name=payload.customer_name,
             starts_at=payload.starts_at,
             owner_id=caller_id,
@@ -74,7 +102,11 @@ async def create_appointment(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         ) from exc
-    return AppointmentRead.model_validate(appointment)
+    appointment = AppointmentRead.model_validate(created.appointment)
+    return AppointmentCreated(
+        **appointment.model_dump(),
+        notification_status=NOTIFICATION_STATUS[created.notification],
+    )
 
 
 @router.get("", response_model=AppointmentList)

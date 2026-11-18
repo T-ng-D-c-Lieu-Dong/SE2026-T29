@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -23,24 +24,36 @@ from scripts.release_manifest import ReleaseManifest
 from scripts.smoke_test import SmokeTestRunner
 
 
+def compose_file_args(compose_file: Path | str, overlays: Sequence[Path | str] = ()) -> list[str]:
+    """Return "-f" arguments for the base file followed by every overlay.
+
+    Overlays such as compose.observability.yaml share the Compose project with the app,
+    so each compose call must list them or "up --remove-orphans" deletes their containers.
+    """
+    args = ["-f", str(compose_file)]
+    for overlay in overlays:
+        args += ["-f", str(overlay)]
+    return args
+
+
 def build_compose_up_command(
     env_file: Path | str,
     compose_file: Path | str,
     detach: bool = True,
     remove_orphans: bool = True,
+    overlays: Sequence[Path | str] = (),
 ) -> list[str]:
     """Build a deterministic docker compose up command list.
 
     Shared between deploy and rollback orchestration to guarantee consistent
-    flag ordering (--env-file, -f, up, -d, --remove-orphans).
+    flag ordering (--env-file, -f base, -f overlays..., up, -d, --remove-orphans).
     """
     cmd = [
         "docker",
         "compose",
         "--env-file",
         str(env_file),
-        "-f",
-        str(compose_file),
+        *compose_file_args(compose_file, overlays),
         "up",
     ]
     if detach:
@@ -60,9 +73,11 @@ class Deployer:
         readiness_timeout_seconds: float = 30.0,
         dry_run: bool = False,
         skip_container_ops: bool = False,
+        compose_overlays: Sequence[Path | str] = (),
     ) -> None:
         self.manifest_path = Path(manifest_path).resolve()
         self.compose_file = Path(compose_file).resolve()
+        self.compose_overlays = [Path(overlay).resolve() for overlay in compose_overlays]
         resolved_state_dir = state_dir or os.getenv("BOOKING_STATE_DIR", "deploy")
         self.state_dir = Path(resolved_state_dir).resolve()
         self.base_url = base_url
@@ -136,8 +151,7 @@ class Deployer:
             "compose",
             "--env-file",
             str(self.env_file),
-            "-f",
-            str(self.compose_file),
+            *compose_file_args(self.compose_file, self.compose_overlays),
             "--profile",
             "migrate",
             "run",
@@ -158,7 +172,9 @@ class Deployer:
                 self.execute_command(["docker", "pull", spec.pinned_reference])
 
             # 2. Recreate containers using docker compose builder
-            compose_cmd = build_compose_up_command(self.env_file, self.compose_file)
+            compose_cmd = build_compose_up_command(
+                self.env_file, self.compose_file, overlays=self.compose_overlays
+            )
             self.execute_command(compose_cmd)
 
     def run_smoke_tests(self, manifest: ReleaseManifest) -> bool:
@@ -204,6 +220,7 @@ class Deployer:
         rollbacker = Rollbacker(
             target_manifest=self.previous_manifest_file,
             compose_file=self.compose_file,
+            compose_overlays=self.compose_overlays,
             state_dir=self.state_dir,
             base_url=self.base_url,
             readiness_timeout_seconds=self.readiness_timeout_seconds,
@@ -284,6 +301,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Deterministic Booking API deploy tool")
     parser.add_argument("--manifest", required=True, help="Path to release manifest JSON")
     parser.add_argument("--compose-file", default="deploy/compose.production.yaml")
+    parser.add_argument(
+        "--compose-overlay",
+        action="append",
+        default=[],
+        help="Extra compose file applied after --compose-file (repeatable)",
+    )
     default_state_dir = os.getenv("BOOKING_STATE_DIR", "deploy")
     parser.add_argument(
         "--state-dir",
@@ -300,6 +323,7 @@ def main() -> None:
         deployer = Deployer(
             manifest_path=args.manifest,
             compose_file=args.compose_file,
+            compose_overlays=args.compose_overlay,
             state_dir=args.state_dir,
             base_url=args.base_url,
             readiness_timeout_seconds=args.timeout,

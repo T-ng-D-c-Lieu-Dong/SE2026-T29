@@ -8,3 +8,6 @@ modules:
       ip_protocol_fallback: false
       valid_status_codes:
         - 200
+      # Guards against the SPA fallback answering 200 with index.html.
+      fail_if_body_not_matches_regexp:
+        - '"status":\s*"ready"'

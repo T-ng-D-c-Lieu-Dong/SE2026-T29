@@ -1,0 +1,53 @@
+# Coverage (line + branch) — 2026-11-07T16:12:12+00:00 — HEAD 9065503
+
+## Run A: default coverage.py settings (thread concurrency only)
+$ pytest -q --cov=backend/app --cov-branch --cov-report=term-missing backend/tests
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------
+backend/app/api/appointments.py               48      6      0      0    88%   76-77, 97, 113-115
+backend/app/config.py                         36      1      4      1    95%   46
+backend/app/main.py                           29      3      0      0    90%   20-23
+backend/app/repositories/__init__.py           2      0      0      0   100%
+backend/app/repositories/appointments.py      36      8      2      0    74%   25-30, 43, 57
+backend/app/schemas/appointment.py            38      1      4      1    95%   24
+backend/app/services/booking.py               84      0     16      0   100%
+backend/app/services/notifications.py         42      0      2      0   100%
+backend/app/telemetry/config.py               27      0      6      0   100%
+--------------------------------------------------------------------------------------
+TOTAL                                        786     60    148     17    91%
+196 passed, 2 xfailed, 1 warning in 6.74s
+
+## Run B: same tests, coverage with greenlet support (docs/vt118/coveragerc)
+$ pytest -q --cov --cov-config=docs/vt118/coveragerc --cov-report=term-missing backend/tests
+................................................  [grpc proxy notice from an existing telemetry test removed]
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------
+backend/app/api/appointments.py               48      0      0      0   100%
+backend/app/config.py                         36      1      4      1    95%   46
+backend/app/main.py                           29      3      0      0    90%   20-23
+backend/app/repositories/__init__.py           2      0      0      0   100%
+backend/app/repositories/appointments.py      36      1      2      1    95%   29
+backend/app/schemas/appointment.py            38      1      4      1    95%   24
+backend/app/services/booking.py               84      0     16      0   100%
+backend/app/services/notifications.py         42      0      2      0   100%
+backend/app/telemetry/config.py               27      0      6      0   100%
+--------------------------------------------------------------------------------------
+TOTAL                                        786     45    148     18    92%
+196 passed, 2 xfailed, 1 warning in 7.88s
+
+## Run C: only the VT-118 tests (what the new suite exercises on its own), greenlet support
+$ pytest -q --cov --cov-config=docs/vt118/coveragerc --cov-report=term-missing backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------
+backend/app/api/appointments.py               48      9      0      0    81%   40, 74, 96-97, 111-115
+backend/app/config.py                         36      2      4      2    90%   44, 46
+backend/app/main.py                           29      3      0      0    90%   20-23
+backend/app/repositories/__init__.py           2      0      0      0   100%
+backend/app/repositories/appointments.py      36      7      2      1    79%   29, 33, 36-43, 50-57
+backend/app/schemas/appointment.py            38      1      4      1    95%   24
+backend/app/services/booking.py               84     26     16      2    64%   35, 43, 97, 100-110, 113-127
+backend/app/services/notifications.py         42      0      2      0   100%
+backend/app/telemetry/config.py               27      2      6      2    88%   34, 37
+--------------------------------------------------------------------------------------
+TOTAL                                        786    206    148     28    68%
+31 passed, 2 xfailed in 2.21s

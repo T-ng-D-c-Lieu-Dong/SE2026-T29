@@ -1,0 +1,42 @@
+# Green run after review fixes F1/F2 — 2026-11-07T16:08:13+00:00
+# HEAD: 2e27ae3 + fix in backend/app/services/notifications.py, backend/app/main.py (+ TC21 handler selection)
+$ ruff check . && ruff format --check .
+All checks passed!
+127 files already formatted
+$ pytest -v -p no:cacheprovider --tb=short backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py
+backend/tests/unit/test_booking_notifications.py::test_tc01_n1_delivered_event_describes_the_booking PASSED [  3%]
+backend/tests/unit/test_booking_notifications.py::test_tc02_n2_raising_channel_is_reported_and_logged_without_pii PASSED [  6%]
+backend/tests/unit/test_booking_notifications.py::test_tc03_n3_hanging_channel_is_cut_at_the_timeout PASSED [  9%]
+backend/tests/unit/test_booking_notifications.py::test_tc07_outer_cancellation_is_propagated_not_reported_as_failure PASSED [ 12%]
+backend/tests/unit/test_booking_notifications.py::test_tc20_error_while_mapping_the_event_is_contained PASSED [ 15%]
+backend/tests/unit/test_booking_notifications.py::test_tc21_default_channel_and_failures_are_visible_as_json_lines PASSED [ 18%]
+backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N1-ok] PASSED [ 21%]
+backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N2-raise] PASSED [ 25%]
+backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N3-hang] PASSED [ 28%]
+backend/tests/unit/test_booking_notifications.py::test_tc05_invalid_slot_is_rejected_and_nothing_is_sent PASSED [ 31%]
+backend/tests/unit/test_booking_notifications.py::test_tc06_injected_fault_fails_booking_and_nothing_is_sent PASSED [ 34%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_default_notification_timeout_is_half_a_second PASSED [ 37%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_accepts_the_valid_partition[valid-min] PASSED [ 40%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_accepts_the_valid_partition[valid-max] PASSED [ 43%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[zero] PASSED [ 46%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[negative] PASSED [ 50%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[>5] PASSED [ 53%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[60] PASSED [ 56%]
+backend/tests/unit/test_booking_notifications.py::test_tc18_n4_blocking_channel_is_not_bounded_by_the_timeout XFAIL [ 59%]
+backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC08-N1-sent] PASSED [ 62%]
+backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed] PASSED [ 65%]
+backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout] PASSED [ 68%]
+backend/tests/integration/test_appointment_notifications.py::test_tc11_channel_runs_after_commit_without_holding_a_db_connection PASSED [ 71%]
+backend/tests/integration/test_appointment_notifications.py::test_tc12_conflicting_booking_is_not_notified PASSED [ 75%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14a-L1-1-char] PASSED [ 78%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14b-L1-100-chars] PASSED [ 81%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14c-L2-blank] PASSED [ 84%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14d-L3-101-chars] PASSED [ 87%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC13-L3-large-1MB] PASSED [ 90%]
+backend/tests/integration/test_appointment_notifications.py::test_tc15_injected_fault_returns_500_and_is_not_notified PASSED [ 93%]
+backend/tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel PASSED [ 96%]
+backend/tests/integration/test_appointment_notifications.py::test_tc19_rejection_of_large_input_has_a_bounded_response XFAIL [100%]
+======================== 30 passed, 2 xfailed in 1.29s =========================
+
+$ pytest -q -p no:cacheprovider backend/tests
+195 passed, 2 xfailed, 1 warning in 4.71s

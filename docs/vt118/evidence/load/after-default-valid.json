@@ -1,0 +1,29 @@
+{
+  "scenario": "after-default-valid",
+  "payload": "valid",
+  "payload_customer_name_chars": 13,
+  "concurrency": 60,
+  "requests_per_worker": 10,
+  "total_requests": 600,
+  "peak_in_flight": 60,
+  "wall_seconds": 2.362,
+  "throughput_rps": 254.0,
+  "latency_seconds": {
+    "p50": 0.1945,
+    "p95": 0.2956,
+    "p99": 0.4077,
+    "max": 0.4903
+  },
+  "status_counts": {
+    "201": 600
+  },
+  "client_errors": {},
+  "notification_status_counts": {
+    "sent": 600
+  },
+  "booked_rows_in_db": 600,
+  "rows_match_201": true,
+  "target_p95_seconds": 2.0,
+  "p95_within_target": true,
+  "no_5xx": true
+}

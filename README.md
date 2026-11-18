@@ -88,7 +88,7 @@ SE2026-T29/
 
 | ID | Task | Mốc | Trạng thái | Người phụ trách | Sản phẩm chính |
 | --- | --- | --- | --- | --- | --- |
-| **TASK-001** | [Xác nhận kiến trúc](docs/tasks/TASK-001-confirm-architecture.md) | M0 | **Done** | Phạm Minh Cương (23001840) | Context, Module view, Runtime view, ADR-001 Accepted và review migration |
+| **TASK-001** | [Xác nhận kiến trúc](docs/tasks/TASK-001-confirm-architecture.md) | M0 | **Done** | Phạm Minh Cương  | Context, Module view, Runtime view, ADR-001 Accepted và review migration |
 | **TASK-002** | [Xây dựng Booking API](docs/tasks/TASK-002-booking-api.md) | M1 | **Done** | Phạm Minh Cương | FastAPI backend, PostgreSQL, transaction phòng chống double booking |
 | **TASK-003** | [Xây dựng React UI](docs/tasks/TASK-003-react-ui.md) | M2 | **Done** | Lê Văn Cường | Giao diện đặt lịch, xem slot và quản lý lịch hẹn |
 | **TASK-004** | [Container hóa và CI](docs/tasks/TASK-004-container-ci.md) | M3 | **In Progress** | Nguyễn Mai Hoàng Anh | Dockerfile tối ưu multi-stage, CI workflow kiểm tra lint & test |

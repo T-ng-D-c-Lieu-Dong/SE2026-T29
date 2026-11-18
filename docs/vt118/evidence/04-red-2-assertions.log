@@ -1,0 +1,88 @@
+# Red run #2 (interface stubs only, no behaviour) — 2026-11-07T15:58:26+00:00
+# HEAD: dac0952 (tests) + interface stubs in backend/app (committed next as the stub commit)
+# Expected: every behavioural test FAILS on an assertion; guard tests (TC05, TC06, TC13, TC14c/d, TC15) pass; TC18/TC19 xfail
+$ pytest -v -p no:cacheprovider --tb=no backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py
+backend/tests/unit/test_booking_notifications.py::test_tc01_n1_delivered_event_describes_the_booking FAILED [  3%]
+backend/tests/unit/test_booking_notifications.py::test_tc02_n2_raising_channel_is_reported_and_logged_without_pii FAILED [  6%]
+backend/tests/unit/test_booking_notifications.py::test_tc03_n3_hanging_channel_is_cut_at_the_timeout FAILED [ 10%]
+backend/tests/unit/test_booking_notifications.py::test_tc07_outer_cancellation_is_propagated_not_reported_as_failure FAILED [ 13%]
+backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N1-ok] FAILED [ 16%]
+backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N2-raise] FAILED [ 20%]
+backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N3-hang] FAILED [ 23%]
+backend/tests/unit/test_booking_notifications.py::test_tc05_invalid_slot_is_rejected_and_nothing_is_sent PASSED [ 26%]
+backend/tests/unit/test_booking_notifications.py::test_tc06_injected_fault_fails_booking_and_nothing_is_sent PASSED [ 30%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_default_notification_timeout_is_half_a_second FAILED [ 33%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_accepts_the_valid_partition[valid-min] FAILED [ 36%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_accepts_the_valid_partition[valid-max] FAILED [ 40%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[zero] FAILED [ 43%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[negative] FAILED [ 46%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[>5] FAILED [ 50%]
+backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[60] FAILED [ 53%]
+backend/tests/unit/test_booking_notifications.py::test_tc18_n4_blocking_channel_is_not_bounded_by_the_timeout XFAIL [ 56%]
+backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC08-N1-sent] FAILED [ 60%]
+backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed] FAILED [ 63%]
+backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout] FAILED [ 66%]
+backend/tests/integration/test_appointment_notifications.py::test_tc11_channel_runs_after_commit_without_holding_a_db_connection FAILED [ 70%]
+backend/tests/integration/test_appointment_notifications.py::test_tc12_conflicting_booking_is_not_notified FAILED [ 73%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14a-L1-1-char] FAILED [ 76%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14b-L1-100-chars] FAILED [ 80%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14c-L2-blank] PASSED [ 83%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14d-L3-101-chars] PASSED [ 86%]
+backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC13-L3-large-1MB] PASSED [ 90%]
+backend/tests/integration/test_appointment_notifications.py::test_tc15_injected_fault_returns_500_and_is_not_notified PASSED [ 93%]
+backend/tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel FAILED [ 96%]
+backend/tests/integration/test_appointment_notifications.py::test_tc19_rejection_of_large_input_has_a_bounded_response XFAIL [100%]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc01_n1_delivered_event_describes_the_booking
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc02_n2_raising_channel_is_reported_and_logged_without_pii
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc03_n3_hanging_channel_is_cut_at_the_timeout
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc07_outer_cancellation_is_propagated_not_reported_as_failure
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N1-ok]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N2-raise]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc04_booking_is_committed_before_notifying_and_survives_every_outcome[N3-hang]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_default_notification_timeout_is_half_a_second
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_accepts_the_valid_partition[valid-min]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_accepts_the_valid_partition[valid-max]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[zero]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[negative]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[>5]
+FAILED backend/tests/unit/test_booking_notifications.py::test_tc17_notification_timeout_rejects_invalid_partitions[60]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC08-N1-sent]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC09-N2-failed]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc11_channel_runs_after_commit_without_holding_a_db_connection
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc12_conflicting_booking_is_not_notified
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14a-L1-1-char]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc13_tc14_customer_name_partitions[TC14b-L1-100-chars]
+FAILED backend/tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel
+=================== 22 failed, 6 passed, 2 xfailed in 1.80s ====================
+
+# Failure reason per failing test (assertion that failed):
+$ pytest -q -p no:cacheprovider --tb=line backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py
+backend/tests/unit/test_booking_notifications.py:154: AssertionError: assert [] == [AppointmentC...ent.created')]
+backend/tests/unit/test_booking_notifications.py:176: AssertionError: assert <NotificationOutcome.DELIVERED: 'delivered'> is <NotificationOutcome.FAILED: 'failed'>
+backend/tests/unit/test_booking_notifications.py:199: AssertionError: assert <NotificationOutcome.DELIVERED: 'delivered'> is <NotificationOutcome.TIMED_OUT: 'timed_out'>
+backend/tests/unit/test_booking_notifications.py:243: AssertionError: ['create', 'commit', 'refresh']
+backend/tests/unit/test_booking_notifications.py:238: AssertionError: assert <NotificationOutcome.DELIVERED: 'delivered'> is <NotificationOutcome.FAILED: 'failed'>
+backend/tests/unit/test_booking_notifications.py:238: AssertionError: assert <NotificationOutcome.DELIVERED: 'delivered'> is <NotificationOutcome.TIMED_OUT: 'timed_out'>
+/home/claude/venv/lib/python3.12/site-packages/pydantic/main.py:1110: AttributeError: 'Settings' object has no attribute 'notification_timeout_seconds'
+/home/claude/venv/lib/python3.12/site-packages/pydantic/main.py:1110: AttributeError: 'Settings' object has no attribute 'notification_timeout_seconds'
+/home/claude/venv/lib/python3.12/site-packages/pydantic/main.py:1110: AttributeError: 'Settings' object has no attribute 'notification_timeout_seconds'
+backend/tests/unit/test_booking_notifications.py:290: Failed: DID NOT RAISE ValidationError
+backend/tests/unit/test_booking_notifications.py:290: Failed: DID NOT RAISE ValidationError
+backend/tests/unit/test_booking_notifications.py:290: Failed: DID NOT RAISE ValidationError
+backend/tests/unit/test_booking_notifications.py:290: Failed: DID NOT RAISE ValidationError
+backend/tests/integration/test_appointment_notifications.py:130: KeyError: 'notification_status'
+backend/tests/integration/test_appointment_notifications.py:130: KeyError: 'notification_status'
+backend/tests/integration/test_appointment_notifications.py:130: KeyError: 'notification_status'
+backend/tests/integration/test_appointment_notifications.py:167: assert [] == [(0, True)]
+backend/tests/integration/test_appointment_notifications.py:177: AssertionError: assert [] == ['973ecc73-7e...712185bcc79c']
+backend/tests/integration/test_appointment_notifications.py:205: KeyError: 'notification_status'
+backend/tests/integration/test_appointment_notifications.py:205: KeyError: 'notification_status'
+backend/tests/integration/test_appointment_notifications.py:256: KeyError: 'notification_status'
+
+# Existing suite (without the two new files) is still green with the stubs:
+$ pytest -q -p no:cacheprovider backend/tests --ignore=<the two new files>
+165 passed, 1 warning in 3.24s
+# (TC07 reason, its frame is in the stdlib so the grep above skipped it):
+E   asyncio.exceptions.CancelledError
+E   TimeoutError

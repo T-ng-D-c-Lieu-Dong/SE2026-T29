@@ -29,8 +29,10 @@ scrape_configs:
       module:
         - http_booking_ready
     static_configs:
+      # Probe through Nginx, the path users take: an API outage shows up as a failed
+      # probe even when the backend process no longer reports any metrics (E16).
       - targets:
-          - http://backend:8000/health/ready
+          - http://web/health/ready
     relabel_configs:
       - source_labels:
           - __address__

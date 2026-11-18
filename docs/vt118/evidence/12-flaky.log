@@ -1,0 +1,33 @@
+# Flaky-test review — 2026-11-07T16:14:24+00:00 — HEAD 9065503
+# (a run counts as red if the summary has 'N failed' or 'N error'; 'xfailed' is expected)
+
+## F-A Repetition (time, shared state): 30 consecutive runs of the VT-118 tests, fixed order
+$ for i in $(seq 30); do pytest -q -p no:cacheprovider -p no:randomly backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py; done
+result: 30/30 green, 0 red; last summary: 31 passed, 2 xfailed in 1.39s
+
+## F-B Order / shared state: whole backend suite in 10 random orders (pytest-randomly 5.0.0)
+seed 1: green 196 passed, 2 xfailed, 1 warning in 4.68s
+seed 7: green 196 passed, 2 xfailed, 1 warning in 4.58s
+seed 42: green 196 passed, 2 xfailed, 1 warning in 4.63s
+seed 118: green 196 passed, 2 xfailed, 1 warning in 4.65s
+seed 1840: green 196 passed, 2 xfailed, 1 warning in 4.62s
+seed 2026: green 196 passed, 2 xfailed, 1 warning in 4.51s
+seed 31337: green 196 passed, 2 xfailed, 1 warning in 4.63s
+seed 4242: green 196 passed, 2 xfailed, 1 warning in 4.61s
+seed 9001: green 196 passed, 2 xfailed, 1 warning in 4.38s
+seed 23001840: green 196 passed, 2 xfailed, 1 warning in 4.53s
+
+## F-C Time / concurrency under CPU starvation: 32 busy-loop processes on 2 vCPU, 10 runs, random order
+$ for i in $(seq 32); do python -c "while True: pass" & done
+load average at start: 0.65 0.59 0.28
+result: 10/10 green under load; last summary: 31 passed, 2 xfailed in 12.10s
+slowest VT-118 tests under load:
+============================= slowest 6 durations ==============================
+5.16s call     tests/integration/test_appointment_notifications.py::test_tc16_sixty_concurrent_bookings_survive_a_failing_channel
+0.46s call     tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC10-N3-timeout]
+0.40s call     tests/integration/test_appointment_notifications.py::test_tc19_rejection_of_large_input_has_a_bounded_response
+0.34s call     tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC08-N1-sent]
+0.33s setup    tests/integration/test_appointment_notifications.py::test_tc08_tc10_booking_is_kept_and_notification_status_reported[TC08-N1-sent]
+0.32s call     tests/unit/test_booking_notifications.py::test_tc18_n4_blocking_channel_is_not_bounded_by_the_timeout
+31 passed, 2 xfailed in 12.82s
+load average at end: 33.00 25.50 12.56
