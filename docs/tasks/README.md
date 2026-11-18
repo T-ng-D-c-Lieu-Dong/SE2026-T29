@@ -9,10 +9,10 @@ Các task dưới đây chuyển các mốc M0–M6 trong [Evidence](../evidence
 | TASK-001 | [Xác nhận kiến trúc](TASK-001-confirm-architecture.md) | M0 | Done | Phạm Minh Cương (23001840) | Không |
 | TASK-002 | [Xây dựng Booking API](TASK-002-booking-api.md) | M1 | Done | Phạm Minh Cương (23001840) | TASK-001 |
 | TASK-003 | [Xây dựng React UI](TASK-003-react-ui.md) | M2 | Done | Lê Văn Cường | TASK-002 |
-| TASK-004 | [Container hóa và CI](TASK-004-container-ci.md) | M3 | In Progress | Nguyễn Mai Hoàng Anh | TASK-002, TASK-003 |
+| TASK-004 | [Container hóa và CI](TASK-004-container-ci.md) | M3 | Done | Nguyễn Mai Hoàng Anh | TASK-002, TASK-003 |
 | TASK-005 | [Release, deploy và rollback](TASK-005-release-deploy.md) | M4 | Done | Nguyễn Việt Anh (23001827) | TASK-004 |
-| TASK-006 | [Observability và cảnh báo](TASK-006-observability.md) | M5 | In Progress | Vũ Thành Công | TASK-004 |
-| TASK-007 | [Reliability demo và evidence](TASK-007-reliability-demo.md) | M6 | In Progress | Nguyễn Việt Anh (23001827) | TASK-005, TASK-006 |
+| TASK-006 | [Observability và cảnh báo](TASK-006-observability.md) | M5 | Done | Vũ Thành Công | TASK-004 |
+| TASK-007 | [Reliability demo và evidence](TASK-007-reliability-demo.md) | M6 | Done | Nguyễn Việt Anh (23001827) | TASK-005, TASK-006 |
 
 ## Quy ước quản lý
 

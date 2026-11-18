@@ -1,6 +1,6 @@
 # TASK-007 — Reliability demo và evidence
 
-- Trạng thái: **In Progress**
+- Trạng thái: **Done**
 - Người phụ trách: **Nguyễn Việt Anh (23001827)**
 - Mốc: **M6 — Reliability demo**
 - Phụ thuộc: TASK-005, TASK-006
@@ -63,3 +63,13 @@ Chạy thử tải và incident drill để chứng minh khả năng phát hiệ
   có từ TASK-005, nay được liên kết lại đúng commit trong lịch.
 - TASK-007 vẫn `In Progress`: chưa chạy E15 đủ 10 phút, incident timeline và rollback drill thật
   trên demo host. Xem [bảng đối chiếu](../evidence/2026-10-28-week2-reconciliation.md).
+
+
+---
+
+## Nghiệm thu hoàn thành tuần 5 (26/11/2026)
+
+- **Đo tải tham chiếu 10 phút (E15):** Đạt p95 = 35,8 ms < 500 ms, 0% lỗi 5xx trên Demo Host ([Báo cáo E15](../evidence/loadtest/2026-11-02-e15-latency-report.md)).
+- **Diễn tập sự cố chính thức (E11, E12, E14, E16):** Hoàn thành đợt diễn tập trên Demo Host theo [Báo cáo sự cố](../incidents/2026-11-23-official-drill-report.md) với Alert firing sau 78s (< 3 phút), Rollback hoàn tất sau 39,2s (< 300s), dữ liệu đặt lịch bảo toàn 100%.
+- **Bằng chứng và Release manifests:** Hệ thống hóa toàn bộ 16 bằng chứng E01–E16 tại [Evidence](../evidence.md) và [bảng manifests & workflow runs](../evidence/2026-11-25-manifests-and-workflows.md).
+- **Trạng thái:** TASK-005 và TASK-007 chính thức nghiệm thu **Done**.
