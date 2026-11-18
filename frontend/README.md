@@ -65,6 +65,11 @@ có xác nhận và trường hợp bỏ xác nhận.
 
 ### E2E (Playwright)
 
+Playwright cấp header `X-User-Id` cho browser context thử nghiệm (mặc định `e2e-user`,
+có thể đổi bằng `E2E_USER_ID`). Ca tranh slot dùng hai identity riêng; ca thiếu identity
+phải nhận 401. Đây là assertion cho kiểm thử trong môi trường kiểm soát. UI production
+vẫn cần tầng xác thực phía trước cung cấp identity; cấu hình này không thêm đăng nhập cho UI.
+
 E2E chạy trên UI đã build phục vụ bởi Nginx trong stack Compose:
 
 ```bash

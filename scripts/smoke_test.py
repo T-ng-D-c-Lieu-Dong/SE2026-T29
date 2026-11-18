@@ -5,12 +5,16 @@ Implements TASK-005 requirements:
 - Verifies `/api/version` matches release manifest (E08).
 - Verifies end-to-end business flow: query slots -> create booking -> cancel booking.
 - Verifies existing data preservation across deploy and rollback (E12).
+
+Private booking requests require --user-id or BOOKING_PROBE_USER_ID from a controlled
+probe environment. This is an identity assertion, not an authentication token.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -37,11 +41,13 @@ class SmokeTestRunner:
         readiness_timeout_seconds: float = 30.0,
         expected_release: str | None = None,
         expected_commit_sha: str | None = None,
+        user_id: str | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.readiness_timeout_seconds = readiness_timeout_seconds
         self.expected_release = expected_release
         self.expected_commit_sha = expected_commit_sha
+        self.user_id = user_id if user_id is not None else os.getenv("BOOKING_PROBE_USER_ID")
 
     def _http_request(
         self,
@@ -53,6 +59,12 @@ class SmokeTestRunner:
     ) -> tuple[int, dict[str, Any] | str]:
         url = f"{self.base_url}{path}"
         req_headers = {"Accept": "application/json"}
+        request_path = urllib.parse.urlsplit(path).path
+        if self.user_id and (
+            request_path == "/api/appointments" or request_path.startswith("/api/appointments/")
+        ):
+            # An identity assertion for the controlled probe, not token authentication.
+            req_headers["X-User-Id"] = self.user_id
         if headers:
             req_headers.update(headers)
 
@@ -291,6 +303,9 @@ def main() -> None:
     )
     parser.add_argument("--expected-release", default=None, help="Expected release version")
     parser.add_argument("--expected-commit-sha", default=None, help="Expected Git commit SHA")
+    parser.add_argument(
+        "--user-id", default=None, help="Probe identity (defaults to BOOKING_PROBE_USER_ID)"
+    )
     args = parser.parse_args()
 
     runner = SmokeTestRunner(
@@ -298,6 +313,7 @@ def main() -> None:
         readiness_timeout_seconds=args.timeout,
         expected_release=args.expected_release,
         expected_commit_sha=args.expected_commit_sha,
+        user_id=args.user_id,
     )
     results = runner.run_all()
 

@@ -1,0 +1,19 @@
+UTC: 2026-11-09T06:37:16.741886+00:00
+Tested commit: 0c65e34ebb1e19393f9a4540abb74da5fdfa25bf
+Working tree before run:
+?? docs/bt3-vt116/evidence/final/coverage.json
+?? docs/bt3-vt116/evidence/final/performance-20261109T063500Z-038fb4c8.json
+?? scripts/verify_vt116_performance_evidence.py
+
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/python scripts/verify_vt116_performance_evidence.py docs/bt3-vt116/evidence/final/performance-20261109T063500Z-038fb4c8.json
+Database: isolated vt116_final_test on 127.0.0.1:55433
+PASS paired run 20261109T063500Z-038fb4c8: 200 samples, 600 requests, peak 40, metrics agree
+
+Exit code: 0

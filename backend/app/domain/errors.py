@@ -12,3 +12,7 @@ class SlotAlreadyBooked(BookingError):
 
 class AppointmentNotFound(BookingError):
     """The requested appointment does not exist."""
+
+
+class AccessDeniedError(BookingError):
+    """The caller does not have permission to access or modify this appointment."""

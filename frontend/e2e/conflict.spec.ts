@@ -10,8 +10,14 @@ import {
 
 test("hai người đặt cùng một slot: người thứ hai nhận thông báo xung đột", async ({ browser }) => {
   const date = dateInBookingZone(5);
-  const firstContext = await browser.newContext();
-  const secondContext = await browser.newContext();
+  // Manually created contexts do not inherit the configured test identity.
+  const identity = process.env.E2E_USER_ID ?? "e2e-user";
+  const firstContext = await browser.newContext({
+    extraHTTPHeaders: { "X-User-Id": `${identity}-first` },
+  });
+  const secondContext = await browser.newContext({
+    extraHTTPHeaders: { "X-User-Id": `${identity}-second` },
+  });
   const firstPage = await firstContext.newPage();
   const secondPage = await secondContext.newPage();
 

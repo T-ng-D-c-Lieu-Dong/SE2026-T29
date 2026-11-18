@@ -1,0 +1,76 @@
+UTC: 2026-11-09T06:30:40.649327+00:00
+Tested commit: a1a7be6f84ab0c1b3da87904958c54c86ee8d036
+Working tree before run:
+ M backend/app/api/appointments.py
+ M backend/app/repositories/appointments.py
+ M backend/app/services/booking.py
+ M backend/pyproject.toml
+ M backend/tests/integration/test_vt116_security_transitions.py
+?? backend/app/ownership.py
+
+Python: 3.14.4
+OS: Linux-7.0.0-42-generic-x86_64-with-glibc2.43
+pytest: 9.2.0
+asyncpg: 0.32.0
+coverage: 7.17.2
+sqlalchemy: 2.1.8
+httpx: 0.28.1
+Command: backend/.venv/bin/pytest backend/tests/integration/test_vt116_security_transitions.py -k historical_name -q -p no:cacheprovider
+Database: isolated vt116_final_test on 127.0.0.1:55433
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_unverified_historical_name_owner_is_not_claimable ____________
+
+client = <httpx.AsyncClient object at 0x726d26ceda90>
+test_session_factory = async_sessionmaker(class_='AsyncSession', bind=<sqlalchemy.ext.asyncio.engine.AsyncEngine object at 0x726d26bd1490>, autoflush=True, expire_on_commit=False)
+
+    async def test_unverified_historical_name_owner_is_not_claimable(client, test_session_factory):
+        """Old name-based ownership must not be claimed by asserting the known name."""
+        appointment_id = uuid4()
+        async with test_session_factory() as session:
+>           session.add(Appointment(
+                id=appointment_id, customer_name="Known Name", owner_id="Known Name",
+                owner_access_enabled=False, starts_at=slot(), status="booked", is_deleted=False,
+            ))
+
+backend/tests/integration/test_vt116_security_transitions.py:181: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<sqlalchemy generated __init__ for class app.models.appointment.Appointment>:4: in __init__
+    return new_state._initialize_instance(self, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:597: in _initialize_instance
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+backend/.venv/lib/python3.14/site-packages/sqlalchemy/util/langhelpers.py:166: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/state.py:595: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.appointment.Appointment object at 0x726d26cee900>
+kwargs = {'id': UUID('b3d4d047-29d3-4c70-afbf-c0129361117b'), 'customer_name': 'Known Name', 'owner_id': 'Known Name', 'owner_access_enabled': False, ...}
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'owner_access_enabled' is an invalid keyword argument for Appointment
+
+backend/.venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_base.py:2361: TypeError
+=========================== short test summary info ============================
+FAILED backend/tests/integration/test_vt116_security_transitions.py::test_unverified_historical_name_owner_is_not_claimable
+1 failed, 15 deselected in 0.17s
+
+Exit code: 1
