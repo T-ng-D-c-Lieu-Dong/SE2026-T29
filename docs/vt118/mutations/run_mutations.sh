@@ -8,7 +8,7 @@
 #   TEST_DATABASE_URL=postgresql+asyncpg://booking:booking@127.0.0.1:55432/booking_test \
 #     docs/vt118/mutations/run_mutations.sh [patch ...]
 set -uo pipefail
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)" || exit
 
 TESTS="${TESTS:-backend/tests/unit/test_booking_notifications.py \
 backend/tests/integration/test_appointment_notifications.py \
@@ -24,6 +24,7 @@ trap 'git checkout -q -- backend/app' EXIT
 patches=("$@")
 [ ${#patches[@]} -eq 0 ] && patches=(docs/vt118/mutations/M*.patch)
 
+# shellcheck disable=SC2086
 echo "# baseline (no mutant): $(python -m pytest -q -p no:cacheprovider --tb=no $TESTS 2>&1 | tail -1)"
 for patch in "${patches[@]}"; do
   name="$(basename "$patch" .patch)"
@@ -31,6 +32,7 @@ for patch in "${patches[@]}"; do
     echo "$name: PATCH DOES NOT APPLY"
     continue
   fi
+  # shellcheck disable=SC2086
   output="$(python -m pytest -q -p no:cacheprovider --tb=no -rf $TESTS 2>&1)"
   failed="$(grep -c '^FAILED' <<<"$output")"
   if [ "$failed" -gt 0 ]; then
