@@ -54,3 +54,4 @@ Hệ thống đặt lịch hẹn trực tuyến SE2026-T29 đã hoàn thành xu�
 - Pipeline CI/CD tự động hóa hoàn chỉnh từ commit, lint, test, release manifest đến deploy và rollback.
 - Đội ngũ vận hành nắm vững quy trình phản ứng sự cố thông qua tài liệu phân vai, danh mục kiểm tra và diễn tập thực tế.
 - Hệ thống chính thức sẵn sàng đóng gói phiên bản ổn định **v1.0.0**.
+

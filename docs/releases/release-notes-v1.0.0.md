@@ -64,3 +64,4 @@ docker compose -f deploy/compose.production.yaml up -d
 # 3. Kiểm tra tính sẵn sàng của dịch vụ
 python -m scripts.smoke_test --base-url http://localhost
 ```
+

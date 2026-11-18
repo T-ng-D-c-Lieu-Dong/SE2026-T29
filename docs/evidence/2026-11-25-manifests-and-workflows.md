@@ -40,3 +40,4 @@ Quy trình CI/CD và diễn tập sự cố được quản lý tự động th�
 * **Mục tiêu:** Khôi phục khẩn cấp về release manifest trước đó khi có sự cố, hỗ trợ kích hoạt thủ công (`workflow_dispatch`) và tự động qua Webhook Alertmanager (`repository_dispatch`).
 * **Các run tiêu biểu:**
   - [Run 41029481920](https://github.com/T-ng-D-c-Lieu-Dong/SE2026-T29/actions/runs/41029481920) — Rollback khẩn cấp từ `v0.2.0-drill` về `v0.2.1`, hoàn thành trong 39,2 giây (Nghiệm thu E12).
+
