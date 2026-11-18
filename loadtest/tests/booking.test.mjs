@@ -225,3 +225,11 @@ test('supports mixed scenario with deliberate conflicts', async () => {
   assert.equal(metrics.booking_conflicts.length, 2);
   assert.equal(metrics.booking_conflicts[1], 1);
 });
+
+test('supports spike traffic scenario when enabled', async () => {
+  const { script } = await loadBooking([], { SPIKE_SCENARIO: 'true', TARGET_RPS: '10' });
+  assert.ok(script.options.scenarios.spike, 'Spike scenario should be configured');
+  assert.equal(script.options.scenarios.spike.executor, 'ramping-arrival-rate');
+  assert.equal(script.options.scenarios.spike.stages.length, 2);
+  assert.equal(script.options.scenarios.spike.stages[0].target, 40);
+});
