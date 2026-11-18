@@ -47,6 +47,20 @@ function makeScenarios() {
       rate: Math.max(1, Math.floor(TARGET_RPS / 2)),
     };
   }
+  if (__ENV.SPIKE_SCENARIO === 'true') {
+    scenarios.spike = {
+      executor: 'ramping-arrival-rate',
+      startRate: TARGET_RPS,
+      timeUnit: '1s',
+      preAllocatedVUs: PRE_ALLOCATED_VUS * 2,
+      maxVUs: MAX_VUS * 2,
+      stages: [
+        { target: TARGET_RPS * 4, duration: '30s' },
+        { target: TARGET_RPS, duration: '30s' },
+      ],
+      exec: 'createAndCancelBooking',
+    };
+  }
   return scenarios;
 }
 
