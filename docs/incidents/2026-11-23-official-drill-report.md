@@ -106,3 +106,56 @@ Hệ thống giám sát Prometheus và Alertmanager đã phát hiện sự bất
     ```
   - Log xuất hiện đầy đủ stacktrace và gắn nhãn phiên bản `release="v0.2.0-drill"`, commit SHA `d2dffaf...`.
   - Nhờ có trường `release` và `commit_sha` gắn kèm log/trace, đội ứng cứu xác định chính xác phiên bản gây lỗi chỉ trong vòng chưa đầy 1 phút.
+
+
+---
+
+## 6. Phân tích nguyên nhân gốc rễ (Root Cause Analysis - 5 Whys)
+
+1. **Tại sao người dùng gặp lỗi HTTP 500 khi đặt lịch hẹn?**
+   → Do middleware tiêm lỗi trong dịch vụ backend đã chủ động chặn và phản hồi HTTP 500 cho 20% các request gửi tới.
+2. **Tại sao middleware tiêm lỗi lại hoạt động trên môi trường demo host?**
+   → Do phiên bản triển khai mang tag `v0.2.0-drill` được cấu hình biến môi trường `BOOKING_FAULT_MODE=error` và tỷ lệ `BOOKING_FAULT_RATE=0.20` thông qua release manifest `docs/releases/v0.2.0-drill.json`.
+3. **Tại sao phiên bản có cờ fault này lại được triển khai?**
+   → Nhóm SE2026-T29 chủ động triển khai phiên bản drill này theo kịch bản diễn tập độ tin cậy định kỳ (TASK-007) nhằm kiểm chứng khả năng phát hiện của observability stack và năng lực tự phục hồi của pipeline.
+4. **Tại sao sự cố được khoanh vùng và cách ly nhanh chóng mà không gây lan rộng?**
+   → Do kiến trúc hệ thống áp dụng định danh phiên bản bất biến (immutable image digests + commit SHA trên mọi log/trace) và cơ chế release manifest chuẩn hóa, giúp kỹ sư xác định ngay lập tức commit gây lỗi mà không cần phỏng đoán.
+5. **Tại sao việc khắc phục không yêu cầu can thiệp thủ công vào cơ sở dữ liệu?**
+   → Do toàn bộ các phiên bản tuân thủ chính sách tương thích ngược schema (Alembic migration policy, E14), cho phép hạ phiên bản code về `v0.2.1` mà cấu trúc bảng PostgreSQL vẫn tương thích 100%.
+
+---
+
+## 7. Khôi phục & Đối soát tính toàn vẹn (Recovery & Integrity — E12, E14)
+
+### 7.1. Quy trình thực thi Rollback
+* **Phương thức kích hoạt:** Incident Commander kích hoạt script rollback tự động:
+  ```bash
+  python -m scripts.rollback \
+    --target-manifest docs/releases/v0.2.1.json \
+    --verify-slo \
+    --slo-target 300
+  ```
+* **Chi tiết các bước thực hiện tự động của pipeline:**
+  1. Đọc và xác thực schema của release manifest mục tiêu `docs/releases/v0.2.1.json`.
+  2. Xác nhận tính tương thích schema của cơ sở dữ liệu (`migration_revision: 20261007_0001` tương thích hoàn toàn, không cần chạy down-migration).
+  3. Kéo chính xác Docker image theo digest bất biến của `v0.2.1` (`ghcr.io/t-ng-d-c-lieu-dong/booking-backend@sha256:5ee51e...` và `booking-frontend@sha256:8b1ae0...`).
+  4. Thực hiện `docker compose up -d --remove-orphans` để thay thế container backend/web lỗi bằng container lành.
+  5. Chạy bộ `smoke_test.py` đối soát `/api/health/ready` và `/api/version` trả về đúng release `v0.2.1`.
+* **Kết quả đo lường thời gian khôi phục (Nghiệm thu E12):**
+  - Thời gian rollback thực tế đo được: **39,20 giây**.
+  - So sánh với mục tiêu SLO: $39,20\text{s} \ll 300\text{s}$ (đạt SLO < 5 phút).
+  - Công cụ thẩm định `scripts/verify_rollback_slo.py` trả về mã thoát `0` (PASS).
+
+### 7.2. Đối soát dữ liệu và khôi phục trạng thái (Data Integrity & Self-Healing)
+* **Kiểm tra tính toàn vẹn dữ liệu đặt lịch:**
+  ```bash
+  python -m scripts.booking_integrity verify \
+    --baseline deploy/baseline-bookings.json \
+    --base-url http://10.97.0.43
+  ```
+  - Kết quả: **100% bản ghi (32/32) khớp hoàn toàn** giữa snapshot trước diễn tập và sau rollback.
+  - Không có hiện tượng mất mát dữ liệu, trùng lặp slot thời gian hay hỏng trạng thái lịch hẹn.
+* **Tự động đóng cảnh báo (Alert Self-Resolution):**
+  - Sau khi container lành hoạt động, tỷ lệ lỗi HTTP 500 lập tức giảm xuống 0%.
+  - Prometheus rule ghi nhận tỷ lệ lỗi dưới ngưỡng trong 1 phút đánh giá.
+  - Alertmanager tự động phát thông báo `[RESOLVED]` vào Discord lúc 08:33:55Z.
