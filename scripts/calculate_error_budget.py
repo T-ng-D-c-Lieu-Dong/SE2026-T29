@@ -35,7 +35,7 @@ class ErrorBudgetCalculator:
         if not (0.0 < slo_target < 1.0):
             raise ValueError(f"SLO target must be between 0 and 1, got {slo_target}")
         self.slo_target = slo_target
-        self.allowed_error_fraction = 1.0 - slo_target
+        self.allowed_error_fraction = round(1.0 - slo_target, 6)
 
     def calculate(
         self,
@@ -61,7 +61,8 @@ class ErrorBudgetCalculator:
 
         error_rate = error_requests / total_requests
         # Burn rate is the ratio of observed error rate to the allowed error rate
-        burn_rate = error_rate / self.allowed_error_fraction
+        raw_burn_rate = error_rate / self.allowed_error_fraction
+        burn_rate = round(raw_burn_rate, 4)
 
         # In a 30-day (720 hours) period, fraction of period represented by window:
         window_fraction = window_hours / 720.0
