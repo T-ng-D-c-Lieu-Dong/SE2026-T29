@@ -91,18 +91,12 @@ SE2026-T29/
 | **TASK-001** | [Xác nhận kiến trúc](docs/tasks/TASK-001-confirm-architecture.md) | M0 | **Done** | Phạm Minh Cương  | Context, Module view, Runtime view, ADR-001 Accepted và review migration |
 | **TASK-002** | [Xây dựng Booking API](docs/tasks/TASK-002-booking-api.md) | M1 | **Done** | Phạm Minh Cương | FastAPI backend, PostgreSQL, transaction phòng chống double booking |
 | **TASK-003** | [Xây dựng React UI](docs/tasks/TASK-003-react-ui.md) | M2 | **Done** | Lê Văn Cường | Giao diện đặt lịch, xem slot và quản lý lịch hẹn |
-| **TASK-004** | [Container hóa và CI](docs/tasks/TASK-004-container-ci.md) | M3 | **In Progress** | Nguyễn Mai Hoàng Anh | Dockerfile tối ưu multi-stage, CI workflow kiểm tra lint & test |
+| **TASK-004** | [Container hóa và CI](docs/tasks/TASK-004-container-ci.md) | M3 | **Done** | Nguyễn Mai Hoàng Anh | Dockerfile tối ưu multi-stage, CI workflow kiểm tra lint & test |
 | **TASK-005** | [Release, deploy và rollback](docs/tasks/TASK-005-release-deploy.md) | M4 | **Done** | Nguyễn Việt Anh | Release manifest, deploy/rollback automation, deploy lock, smoke test |
-| **TASK-006** | [Observability và cảnh báo](docs/tasks/TASK-006-observability.md) | M5 | **In Progress** | Vũ Thành Công | OpenTelemetry runtime, Grafana dashboards, Alert rules, Fault injection |
-| **TASK-007** | [Reliability demo và evidence](docs/tasks/TASK-007-reliability-demo.md) | M6 | **In Progress** | Nguyễn Việt Anh | Kịch bản diễn tập sự cố, bằng chứng cảnh báo và khôi phục hệ thống |
+| **TASK-006** | [Observability và cảnh báo](docs/tasks/TASK-006-observability.md) | M5 | **Done** | Vũ Thành Công | OpenTelemetry runtime, Grafana dashboards, Alert rules, Fault injection |
+| **TASK-007** | [Reliability demo và evidence](docs/tasks/TASK-007-reliability-demo.md) | M6 | **Done** | Nguyễn Việt Anh | Kịch bản diễn tập sự cố, bằng chứng cảnh báo và khôi phục hệ thống |
 
-TASK-001 do **Phạm Minh Cương (23001840)** phụ trách. Xem
-[review kiến trúc ngày 25/10](docs/evidence/2026-10-25-architecture-review.md) và
-[bảng Tasks](docs/tasks/README.md) để theo dõi trạng thái thống nhất.
-
-Đối chiếu tuần 2 ngày 28/10/2026: **48/50 đầu việc Done (96%)**; C058 và C060 vẫn
-`In Progress` vì còn thiếu required reviewer và lần deploy thật trên demo host. Xem
-[báo cáo đối chiếu tuần 2](docs/evidence/2026-10-28-week2-reconciliation.md).
+Nghiệm thu toàn diện mốc M0–M6 (26/11/2026): **Toàn bộ 7/7 Task đã hoàn thành 100% (Done)**. Hệ thống đã triển khai thực tế trên Demo Host (`booking-demo`), hoàn tất đợt [diễn tập sự cố chính thức](docs/incidents/2026-11-23-official-drill-report.md) đạt tiêu chuẩn MTTR < 5 phút và lưu trữ đầy đủ 16/16 bằng chứng [E01–E16](docs/evidence.md).
 
 ---
 
