@@ -32,3 +32,4 @@
 
 - **Chuyển dịch sang Multi-Host (Kubernetes / Nomad):** Thay thế single-VM Compose bằng Rolling Update hoặc Canary Deployment trên cụm container đa node để đạt Zero-Downtime thực sự.
 - **Persistent Error Budget Engine:** Tích hợp script `calculate_error_budget` thành cronjob định kỳ 5 phút đẩy metric `booking_error_budget_burn_rate` vào Prometheus để hiển thị trực tiếp lên Grafana Alert Dashboard.
+

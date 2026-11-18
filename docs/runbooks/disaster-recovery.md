@@ -89,3 +89,4 @@ python3 -m scripts.smoke_test --base-url http://localhost:8000
 - [ ] Các slot thời gian hiển thị đúng múi giờ `Asia/Ho_Chi_Minh`.
 - [ ] Cảnh báo trên Prometheus / Alertmanager tự động chuyển sang trạng thái `Resolved`.
 - [ ] Báo cáo dòng thời gian sự cố được ghi lại bằng `scripts.drill_timeline`.
+

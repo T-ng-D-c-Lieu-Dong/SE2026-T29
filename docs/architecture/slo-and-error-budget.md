@@ -50,3 +50,4 @@ Khi Error Budget bị tiêu hao vượt quá $100\%$ trong chu kỳ 30 ngày:
    - $100\%$ thời gian của nhóm kỹ sư tập trung vào sửa lỗi gốc rễ (RCA), tối ưu hóa database queries, bổ sung automated tests và củng cố pipeline.
 3. **Điều kiện gỡ bỏ đóng băng:**
    - Hệ thống vận hành ổn định liên tục ít nhất 7 ngày không phát sinh vi phạm SLO và ngân sách lỗi bắt đầu hồi phục.
+
