@@ -38,4 +38,3 @@ def test_tampered_commit_sha_detected():
 
     assert manifest.compute_checksum() != original_checksum
     assert manifest.verify_checksum(original_checksum) is False
-
