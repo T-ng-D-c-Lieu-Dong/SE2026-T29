@@ -41,6 +41,14 @@ jobs:
         run: |
           ruff format --check .
 
+      - name: Lint shell scripts with ShellCheck
+        run: |
+          if command -v shellcheck >/dev/null 2>&1; then
+            find . -type f -name "*.sh" -not -path "*/node_modules/*" -exec shellcheck {} +
+          else
+            echo "ShellCheck not installed on runner, skipping"
+          fi
+
   backend-tests:
     name: Backend Unit and Integration Tests
     runs-on: ubuntu-latest
