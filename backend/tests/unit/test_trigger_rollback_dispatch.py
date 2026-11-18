@@ -106,3 +106,25 @@ def test_cli_dry_run_flow(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "[DRY-RUN]" in out
     assert "[SUCCESS] Rollback dispatch triggered: dry-run" in out
+
+
+def test_parse_alertmanager_webhook():
+    from scripts.trigger_rollback_dispatch import parse_alertmanager_webhook
+
+    data = {
+        "alerts": [
+            {
+                "labels": {
+                    "alertname": "BookingHighHttpErrorRate",
+                    "severity": "critical",
+                },
+                "annotations": {
+                    "description": "More than 5% of requests returned HTTP 500",
+                },
+            }
+        ]
+    }
+    extracted = parse_alertmanager_webhook(data)
+    assert extracted["alert_name"] == "BookingHighHttpErrorRate"
+    assert extracted["severity"] == "critical"
+    assert "More than 5%" in extracted["reason"]
