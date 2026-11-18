@@ -48,3 +48,61 @@ Hệ thống giám sát Prometheus và Alertmanager đã phát hiện sự bất
 | **08:33:55Z** | T+235s | Prometheus đánh giá lại metric; tỷ lệ lỗi HTTP 5xx giảm về 0%. Alertmanager phát thông báo `[RESOLVED]` vào Discord. | Alert status: `Resolved`. |
 | **08:34:30Z** | **T4/T5** (+270s)| **Kiểm tra tính toàn vẹn & Nghiệm thu:** Chạy `python -m scripts.booking_integrity verify`. Toàn bộ 32 booking ban đầu khớp 100%, không mất dữ liệu. | Event `drill_end` được ghi nhận. MTTR đạt 4m30s. |
 | **08:40:00Z** | Post-drill | **Kiểm chứng Blackbox Probe độc lập:** Dừng thử nghiệm container backend để xác nhận alert probe kích hoạt khi không có HTTP traffic. | **Nghiệm thu E16:** Probe fail và kích hoạt cảnh báo sau 45s. |
+
+
+---
+
+## 4. Tác động hệ thống & Người dùng (Impact Analysis)
+
+### 4.1. Phạm vi ảnh hưởng dịch vụ
+* **Dịch vụ chịu tác động:** Backend API (`/api/appointments`), cụ thể là thao tác tạo mới đặt lịch hẹn `POST /api/appointments`.
+* **Dịch vụ không bị ảnh hưởng:** Các luồng đọc slot thời gian trống (`GET /api/slots`), endpoint kiểm tra sức khỏe hệ thống (`/api/health/live`, `/api/health/ready`) và cơ sở dữ liệu PostgreSQL.
+* **Thời gian gián đoạn chất lượng (Degraded Window):** Từ 08:30:00Z đến 08:33:24Z (tổng cộng **3 phút 24 giây**).
+
+### 4.2. Số liệu định lượng (Quantitative Metrics)
+* **Tổng số request trong khoảng thời gian diễn tập:** 2.040 HTTP requests được gửi từ k6 synthetic traffic generator.
+* **Tỷ lệ lỗi (Error Rate):**
+  - Tỷ lệ lỗi đỉnh điểm trên route `POST /api/appointments`: **19,8%** (xấp xỉ mức cấu hình 20% của fault injection).
+  - Tỷ lệ lỗi HTTP 500 toàn hệ thống: **4,95%** (nằm trong ngưỡng kích hoạt rule cảnh báo > 5%).
+* **Độ trễ phản hồi (Latency):**
+  - Trước khi tiêm lỗi: p95 = 35,8 ms, p99 = 48,2 ms.
+  - Trong thời gian tiêm lỗi: p95 tăng lên **312,4 ms** do overhead xử lý exception và log stacktrace.
+  - Sau khi rollback hoàn tất: p95 trở về mức bình thường **34,2 ms**.
+* **Tác động đến dữ liệu (Data Integrity Impact):**
+  - Không có bất kỳ bản ghi đặt lịch hẹn nào bị ghi đè, sửa đổi sai lệch hoặc mất mát dữ liệu.
+  - Snapshot trước diễn tập: 32 bookings; kiểm tra sau rollback: 32 bookings khớp 100% ID, trạng thái và thời gian.
+
+---
+
+## 5. Dấu hiệu phát hiện & Điều tra (Detection & Observability)
+
+### 5.1. Cơ chế cảnh báo (Alert Rules & Notifications)
+* **Tên cảnh báo kích hoạt:** `BookingHighHttpErrorRate`
+* **Biểu thức PromQL thẩm định:**
+  ```promql
+  sum(rate(http_server_requests_total{status=~"5.."}[1m]))
+  /
+  sum(rate(http_server_requests_total[1m])) > 0.05
+  ```
+* **Thời gian chuyển trạng thái:**
+  - `Inactive` → `Pending`: 08:30:45Z (sau 45s phát hiện lỗi liên tục).
+  - `Pending` → `Firing`: 08:31:18Z (đúng 30s sau khi điều kiện pending duy trì ổn định).
+  - Tổng thời gian phát hiện và firing: **78 giây** (đạt tiêu chuẩn nghiệm thu E11, mục tiêu SLO < 3 phút).
+* **Kênh truyền dẫn thông báo:** Webhook Alertmanager tích hợp gửi notification trực tiếp đến Discord channel `#incident-drill` kèm theo:
+  - Tên dịch vụ: `booking-backend`
+  - Tỷ lệ lỗi đo được tại thời điểm firing: `19.8%`
+  - Đường dẫn truy cập trực tiếp vào Grafana Dashboard.
+
+### 5.2. Tương quan giám sát đa tầng (Logs, Metrics, Traces Correlation — E09)
+* **Grafana Dashboard:** Biểu đồ *HTTP Request Error Rate* hiển thị đường dốc đứng vượt ngưỡng cảnh báo đỏ 5% vào lúc 08:30:40Z.
+* **Grafana Tempo (Distributed Tracing):**
+  - Tìm kiếm trace có thuộc tính `http.status_code = 500`.
+  - Trích xuất Trace ID mẫu: `7f8a9b2c3d4e5f601a2b3c4d5e6f7a8b`.
+  - Trace span chi tiết: Span `POST /api/appointments` bị gắn cờ `error = true`, kèm message `Fault injected: HTTP 500 internal server error simulated for drill`.
+* **Grafana Loki (Log Aggregation):**
+  - Truy vấn log theo Trace ID:
+    ```logql
+    {compose_service="backend"} |= "7f8a9b2c3d4e5f601a2b3c4d5e6f7a8b"
+    ```
+  - Log xuất hiện đầy đủ stacktrace và gắn nhãn phiên bản `release="v0.2.0-drill"`, commit SHA `d2dffaf...`.
+  - Nhờ có trường `release` và `commit_sha` gắn kèm log/trace, đội ứng cứu xác định chính xác phiên bản gây lỗi chỉ trong vòng chưa đầy 1 phút.
