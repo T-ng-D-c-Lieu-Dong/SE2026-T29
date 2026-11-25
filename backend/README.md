@@ -48,6 +48,20 @@ Trên PowerShell, dùng `$env:TEST_DATABASE_URL=...`; trên Linux/macOS, dùng `
 
 Database integration test bắt buộc có tên kết thúc bằng `_test`. Test sẽ từ chối chạy nếu URL trỏ tới database khác.
 
+## Phản hồi lỗi validation
+
+Request sai schema, JSON, query hoặc path nhận HTTP `422` với `detail` là danh sách lỗi.
+Mỗi lỗi chỉ có `type`, `loc` và `msg`; API không trả lại `input` hoặc `ctx` từ Pydantic.
+Ví dụ tên khách hàng vượt quá 100 ký tự:
+
+```json
+{"detail":[{"type":"string_too_long","loc":["body","customer_name"],"msg":"String should have at most 100 characters"}]}
+```
+
+Vì dữ liệu bị từ chối không được lặp lại trong response, tên dài 1 MB vẫn nhận lỗi nhỏ.
+Đây là xử lý phản hồi validation, không phải giới hạn kích thước request tại lớp HTTP.
+Xem [kiểm chứng ngày 25/11/2026](../docs/evidence/2026-11-25-backend-validation.md).
+
 ## Fault injection cho reliability drill
 
 Fault injection mặc định tắt và chỉ áp dụng cho thao tác tạo booking, trước khi ghi dữ liệu:

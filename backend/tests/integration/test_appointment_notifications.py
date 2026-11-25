@@ -297,17 +297,15 @@ async def test_tc16_sixty_concurrent_bookings_survive_a_failing_channel(
     assert await booked_rows(test_session_factory) == 60
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "Residual risk (evidence/02-oversized-422-echo.log): FastAPI's default 422 handler echoes "
-        "the rejected input, so a 1 MB customer_name produces a ~1 MB error response."
-    ),
-)
-async def test_tc19_rejection_of_large_input_has_a_bounded_response(api) -> None:
+async def test_tc19_rejection_of_large_input_has_a_bounded_response(
+    api, notifier, test_session_factory
+) -> None:
     response = await api.post(
         URL, json={"customer_name": "X" * 1_000_000, "starts_at": slot(25).isoformat()}
     )
 
     assert response.status_code == 422
     assert len(response.content) < 4_096
+    assert all(set(error) == {"type", "loc", "msg"} for error in response.json()["detail"])
+    assert notifier.events == []
+    assert await booked_rows(test_session_factory) == 0

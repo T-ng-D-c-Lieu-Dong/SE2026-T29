@@ -20,7 +20,7 @@ Kênh bị giới hạn bằng `BOOKING_NOTIFICATION_TIMEOUT_SECONDS` (mặc đ�
 | `backend/app/api/appointments.py` | dependency `get_booking_notifier`, mapping `NotificationOutcome → notification_status` |
 | `backend/app/schemas/appointment.py`, `backend/app/config.py`, `backend/app/main.py`, `backend/.env.example` | response model, setting, wiring + JSON logger |
 | `backend/tests/unit/test_booking_notifications.py` | TC01–TC07, TC17, TC18 (xfail), TC20, TC21 |
-| `backend/tests/integration/test_appointment_notifications.py` | TC08–TC16, TC19 (xfail), TC22 |
+| `backend/tests/integration/test_appointment_notifications.py` | TC08–TC16, TC19 (hồi quy, đã sửa ngày 25/11), TC22 |
 
 ## Chạy test
 
@@ -30,12 +30,17 @@ docker compose -f backend/compose.test.yaml up -d          # PostgreSQL test ở
 export TEST_DATABASE_URL=postgresql+asyncpg://booking:booking@127.0.0.1:55432/booking_test
 
 pytest -v backend/tests/unit/test_booking_notifications.py backend/tests/integration/test_appointment_notifications.py
-pytest -q backend/tests                                        # toàn bộ: 196 passed, 2 xfailed
+pytest -q backend/tests
 ruff check . && ruff format --check .
 ```
 
-Kết quả mong đợi của file VT-118: `31 passed, 2 xfailed`. Hai xfail (`strict=True`) là residual risk có chủ đích:
-TC18 (notifier chặn event loop không bị timeout cắt) và TC19 (422 lặp lại toàn bộ input 1 MB).
+Kết quả hiện tại của hai file VT-118: `32 passed, 1 xfailed`. TC18 vẫn `xfail(strict=True)` vì
+notifier chặn event loop không bị timeout cắt. TC19 đã thành test hồi quy thông thường sau bản
+sửa ngày 25/11/2026: response `422` chỉ có `type`/`loc`/`msg`, không lặp lại input 1 MB.
+Xem [kiểm chứng bổ sung](../evidence/2026-11-25-backend-validation.md).
+
+Các số `196 passed, 2 xfailed` và `31 passed, 2 xfailed` trong evidence gốc bên dưới là kết quả
+lịch sử của lần bàn giao VT-118, trước bản sửa này.
 
 ## Mutation, coverage, flaky, tải
 

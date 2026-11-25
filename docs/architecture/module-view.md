@@ -18,6 +18,10 @@ flowchart TD
 
 `main.py` là nơi khởi tạo và kết nối các thành phần. Mũi tên là hướng sử dụng. UI và backend không import code của nhau; chúng phối hợp qua HTTP contract.
 
+`create_app()` đăng ký handler chung cho `RequestValidationError`: giữ HTTP `422` và danh sách
+`detail` với `type`/`loc`/`msg`, bỏ `input`/`ctx` để phản hồi không lặp lại dữ liệu khách hàng bị
+từ chối. Handler nằm ở ranh giới HTTP, không gọi service hoặc repository.
+
 ## 2. Trách nhiệm và đường dẫn
 
 | Module | Đường dẫn hiện tại | Trách nhiệm | Giới hạn |
