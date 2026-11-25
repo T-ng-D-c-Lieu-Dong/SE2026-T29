@@ -1,5 +1,9 @@
 # VT-118 — Test strategy, test cases, traceability và AI usage log
 
+Bổ sung ngày 25/11/2026: TC19 đã được sửa và chạy như test hồi quy; kết quả hai file VT-118 là
+`32 passed, 1 xfailed` (chỉ còn TC18). Bảng traceability và AI usage log gốc ở mục 4–5 giữ lại
+kết quả lịch sử; xem [evidence bản sửa](../evidence/2026-11-25-backend-validation.md).
+
 ## 1. Test strategy dựa trên risk
 
 | Mức | Dùng để chứng minh | Test |
@@ -52,7 +56,7 @@ mutation "đổi mapping" bị phát hiện.
 | TC16 | Invariant dưới đồng thời | API | 60 POST đồng thời, notifier N2 | 60 × 201 `failed`; 60 row | P2 |
 | TC17 | AC3 (config) | Unit | 0, −1, 0.001, 5, 5.01, 60 | hợp lệ chỉ trong (0, 5]; mặc định 0.5 | P3 |
 | TC18 | Residual risk | Unit (xfail) | notifier `time.sleep(0.3)`, timeout 0.05 s | xfail: timeout không cắt được | P3 |
-| TC19 | Residual risk đầu vào lớn | API (xfail) | 1 MB | xfail: response 422 ≈ 1 MB | P3 |
+| TC19 | Hồi quy đầu vào lớn (đã sửa 25/11) | API | 1 MB | 422 < 4096 byte, chỉ có type/loc/msg; 0 row, 0 event | P2 |
 | TC20 | Invariant (review F2) | Unit | appointment `starts_at=None` | `FAILED`, không ném lỗi | P1 |
 | TC21 | AC1 production wiring (review F1) | Unit | `create_app()` + notifier mặc định | 1 dòng JSON INFO + 1 WARNING; không có tên | P2 |
 | TC22 | Contract response (mutation M5) | API | booking hợp lệ | mọi field của response = row đã lưu, `cancelled_at = null` | P1 |

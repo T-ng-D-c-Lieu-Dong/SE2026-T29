@@ -6,6 +6,10 @@ firing/resolved local nhưng thiếu thông báo Discord thật. E15 và deploy/
 demo chưa hoàn tất. [Review kiến trúc và migration](evidence/2026-10-25-architecture-review.md)
 chốt phạm vi TASK-001 và phân biệt thiết kế đích với phần code đang có.
 
+Bổ sung backend ngày 25/11/2026: khắc phục phản hồi `422` lặp lại đầu vào 1 MB của VT-118;
+toàn bộ kiểm thử backend với PostgreSQL 16 đạt **259 passed, 1 xfailed**. Xem
+[kết quả và lệnh tái lập](evidence/2026-11-25-backend-validation.md).
+
 ## 1. Cấu trúc repository hiện tại
 
 | Nhóm | Các đường dẫn chính | Liên hệ thiết kế |

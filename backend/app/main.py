@@ -1,7 +1,9 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.api import appointments, health, slots, version
 from app.config import get_settings
@@ -30,6 +32,19 @@ def create_app() -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
+
+    @application.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        # Keep field locations and useful messages, without echoing rejected customer data
+        # (input) or validator exception objects (ctx) into potentially huge responses.
+        errors = [
+            {"type": error["type"], "loc": error["loc"], "msg": error["msg"]}
+            for error in exc.errors()
+        ]
+        return JSONResponse(status_code=422, content={"detail": errors})
+
     request_logger = configure_request_logger(
         logger_name=f"{REQUEST_LOGGER_NAME}.{id(application):x}"
     )

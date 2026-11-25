@@ -38,3 +38,13 @@ Xây dựng FastAPI và PostgreSQL cho luồng xem slot, tạo, xem và hủy bo
 - Code bổ sung đã vào `main` qua [PR #14](https://github.com/CuongMotNang/SE2026-T29/pull/14).
 - Review kiến trúc và migration hiện tại: [Architecture review](../evidence/2026-10-25-architecture-review.md).
 - Tiếp tục phối hợp TASK-006/TASK-007 khi chạy demo; phần triển khai backend của Cương đã bàn giao.
+
+## Bảo trì ngày 25/11/2026 — phản hồi validation
+
+- Khắc phục TC19 của VT-118: tên khách hàng dài 1 MB bị từ chối bằng `422` nhưng không còn
+  được lặp lại trong response. Lỗi schema/JSON/query/path chỉ trả `type`, `loc`, `msg`.
+- Thêm 10 ca hồi quy không cần DB; TC19 chạy với PostgreSQL thật và xác nhận không tạo row
+  hoặc gửi notification cho request lỗi.
+- Kiểm chứng cục bộ: **259 passed, 1 xfailed**, Ruff lint/format đạt. Xem
+  [evidence](../evidence/2026-11-25-backend-validation.md).
+- TASK-002 giữ trạng thái Done; thay đổi bảo trì đi qua PR để nhóm review.
