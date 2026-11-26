@@ -1,0 +1,13 @@
+{
+  "captured_at_utc": "2026-11-26T14:15:39.982724+00:00",
+  "prometheus_url": "http://localhost:9090",
+  "checks": {
+    "targets": true,
+    "rules": true,
+    "probe": true,
+    "http_metrics": true
+  },
+  "errors": {},
+  "success": true,
+  "scope": "Read-only snapshot; does not prove error correlation, outage or delivery. HTTP check only rejects known forbidden label names; review other labels manually."
+}

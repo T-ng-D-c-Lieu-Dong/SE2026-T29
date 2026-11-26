@@ -1,0 +1,128 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "__name__": "http_server_duration_milliseconds_count",
+          "commit_sha": "local",
+          "deployment_environment": "local",
+          "deployment_environment_name": "local",
+          "exported_instance": "2fda1af2-b82b-43b5-957d-b47f02c28e04",
+          "exported_job": "booking-api",
+          "http_flavor": "1.1",
+          "http_host": "172.19.0.4:8000",
+          "http_method": "DELETE",
+          "http_scheme": "http",
+          "http_server_name": "localhost:8000",
+          "http_status_code": "204",
+          "http_target": "/api/appointments/{appointment_id}",
+          "instance": "otel-collector:8889",
+          "job": "otel-collector",
+          "net_host_port": "8000",
+          "otel_scope_name": "opentelemetry.instrumentation.fastapi",
+          "otel_scope_schema_url": "https://opentelemetry.io/schemas/1.11.0",
+          "otel_scope_version": "0.66b2",
+          "release": "dev",
+          "service_name": "booking-api",
+          "service_version": "dev"
+        },
+        "value": [
+          1795702375.962,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_server_duration_milliseconds_count",
+          "commit_sha": "local",
+          "deployment_environment": "local",
+          "deployment_environment_name": "local",
+          "exported_instance": "2fda1af2-b82b-43b5-957d-b47f02c28e04",
+          "exported_job": "booking-api",
+          "http_flavor": "1.1",
+          "http_host": "172.19.0.4:8000",
+          "http_method": "GET",
+          "http_scheme": "http",
+          "http_server_name": "localhost:8000",
+          "http_status_code": "200",
+          "http_target": "/api/slots",
+          "instance": "otel-collector:8889",
+          "job": "otel-collector",
+          "net_host_port": "8000",
+          "otel_scope_name": "opentelemetry.instrumentation.fastapi",
+          "otel_scope_schema_url": "https://opentelemetry.io/schemas/1.11.0",
+          "otel_scope_version": "0.66b2",
+          "release": "dev",
+          "service_name": "booking-api",
+          "service_version": "dev"
+        },
+        "value": [
+          1795702375.962,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_server_duration_milliseconds_count",
+          "commit_sha": "local",
+          "deployment_environment": "local",
+          "deployment_environment_name": "local",
+          "exported_instance": "2fda1af2-b82b-43b5-957d-b47f02c28e04",
+          "exported_job": "booking-api",
+          "http_flavor": "1.1",
+          "http_host": "172.19.0.4:8000",
+          "http_method": "GET",
+          "http_scheme": "http",
+          "http_server_name": "localhost:8000",
+          "http_status_code": "200",
+          "http_target": "/api/version",
+          "instance": "otel-collector:8889",
+          "job": "otel-collector",
+          "net_host_port": "8000",
+          "otel_scope_name": "opentelemetry.instrumentation.fastapi",
+          "otel_scope_schema_url": "https://opentelemetry.io/schemas/1.11.0",
+          "otel_scope_version": "0.66b2",
+          "release": "dev",
+          "service_name": "booking-api",
+          "service_version": "dev"
+        },
+        "value": [
+          1795702375.962,
+          "1"
+        ]
+      },
+      {
+        "metric": {
+          "__name__": "http_server_duration_milliseconds_count",
+          "commit_sha": "local",
+          "deployment_environment": "local",
+          "deployment_environment_name": "local",
+          "exported_instance": "2fda1af2-b82b-43b5-957d-b47f02c28e04",
+          "exported_job": "booking-api",
+          "http_flavor": "1.1",
+          "http_host": "172.19.0.4:8000",
+          "http_method": "POST",
+          "http_scheme": "http",
+          "http_server_name": "localhost:8000",
+          "http_status_code": "201",
+          "http_target": "/api/appointments",
+          "instance": "otel-collector:8889",
+          "job": "otel-collector",
+          "net_host_port": "8000",
+          "otel_scope_name": "opentelemetry.instrumentation.fastapi",
+          "otel_scope_schema_url": "https://opentelemetry.io/schemas/1.11.0",
+          "otel_scope_version": "0.66b2",
+          "release": "dev",
+          "service_name": "booking-api",
+          "service_version": "dev"
+        },
+        "value": [
+          1795702375.962,
+          "1"
+        ]
+      }
+    ]
+  }
+}
