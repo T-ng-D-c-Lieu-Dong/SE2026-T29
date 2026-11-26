@@ -1,0 +1,17 @@
+﻿{
+    "traces":  [
+                   {
+                       "traceID":  "8c47c03547e8552cad989795564c3065",
+                       "rootServiceName":  "booking-api",
+                       "rootTraceName":  "GET /health/ready",
+                       "startTimeUnixNano":  "1795701622277238740",
+                       "durationMs":  21
+                   }
+               ],
+    "metrics":  {
+                    "inspectedTraces":  2,
+                    "inspectedBytes":  "20459",
+                    "completedJobs":  3,
+                    "totalJobs":  3
+                }
+}

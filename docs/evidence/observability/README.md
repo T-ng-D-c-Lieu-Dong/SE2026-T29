@@ -7,6 +7,24 @@ delivery path.
 
 ## Before the drill
 
+Capture a read-only Prometheus snapshot before and after the drill:
+
+```powershell
+python -m scripts.capture_observability --prometheus-url http://localhost:9090 --output reports/observability-before
+```
+
+Use a new output directory per capture. The command saves targets, rules, readiness probe and
+HTTP metric series, plus a UTC summary. Exit 1 means a query failed, required data is missing,
+a target/probe is unhealthy, required alert rules are missing, or HTTP metrics have a known
+forbidden label (`trace_id`, `span_id`, `appointment_id`, `customer_name`). Review other labels
+and values manually for identifiers/customer data. A successful snapshot does not prove drill
+timing, request-error correlation or notification delivery. Copy reviewed artifacts into this
+directory when recording evidence; do not include credentials in the Prometheus URL.
+
+The rule check also requires healthy evaluation and the current hold durations:
+`HighErrorRate` 120 seconds, `ApiProbeDown` 60 seconds, `HighLatencyP95` 300 seconds.
+A snapshot of an older rule with the same name must not pass this check.
+
 Record these values in `result.md` before generating traffic:
 
 - UTC start and end time;

@@ -1,0 +1,117 @@
+{
+  "status": "success",
+  "data": {
+    "groups": [
+      {
+        "name": "booking-api-alerts",
+        "file": "/etc/prometheus/rules/booking-alerts.yml",
+        "rules": [
+          {
+            "state": "inactive",
+            "name": "HighErrorRate",
+            "query": "booking:http_5xx_ratio:rate1m > 0.05 and sum(increase(http_server_duration_milliseconds_count{service_name=\"booking-api\"}[1m])) >= 100",
+            "duration": 120,
+            "keepFiringFor": 0,
+            "labels": {
+              "service": "booking-api",
+              "severity": "critical"
+            },
+            "annotations": {
+              "description": "More than 5% of at least 100 requests in one minute returned 5xx, and the condition has remained true for two minutes.",
+              "runbook_url": "docs/runbooks/observability-alerts.md#higherrorrate",
+              "summary": "Booking API has a high HTTP 5xx rate"
+            },
+            "alerts": [],
+            "health": "ok",
+            "evaluationTime": 0.000199027,
+            "lastEvaluation": "2026-11-26T14:15:22.1353668Z",
+            "type": "alerting"
+          },
+          {
+            "state": "inactive",
+            "name": "ApiProbeDown",
+            "query": "probe_success{job=\"booking-api-readiness\"} == 0",
+            "duration": 60,
+            "keepFiringFor": 0,
+            "labels": {
+              "service": "booking-api",
+              "severity": "critical"
+            },
+            "annotations": {
+              "description": "The independent blackbox readiness probe has failed continuously for one minute.",
+              "runbook_url": "docs/runbooks/observability-alerts.md#apiprobedown",
+              "summary": "Booking API readiness probe is failing"
+            },
+            "alerts": [],
+            "health": "ok",
+            "evaluationTime": 5.3963e-05,
+            "lastEvaluation": "2026-11-26T14:15:22.135569164Z",
+            "type": "alerting"
+          },
+          {
+            "state": "inactive",
+            "name": "HighLatencyP95",
+            "query": "max(booking:http_request_duration_seconds:p95_5m) > 0.5 and sum(increase(http_server_duration_milliseconds_count{service_name=\"booking-api\"}[5m])) >= 100",
+            "duration": 300,
+            "keepFiringFor": 0,
+            "labels": {
+              "service": "booking-api",
+              "severity": "warning"
+            },
+            "annotations": {
+              "description": "At least one route has exceeded 500 ms p95 latency for five minutes while the API received at least 100 requests.",
+              "runbook_url": "docs/runbooks/observability-alerts.md#highlatencyp95",
+              "summary": "Booking API p95 latency is above 500 ms"
+            },
+            "alerts": [],
+            "health": "ok",
+            "evaluationTime": 7.1047e-05,
+            "lastEvaluation": "2026-11-26T14:15:22.135624944Z",
+            "type": "alerting"
+          }
+        ],
+        "interval": 15,
+        "limit": 0,
+        "evaluationTime": 0.00035091,
+        "lastEvaluation": "2026-11-26T14:15:22.135347189Z"
+      },
+      {
+        "name": "booking-api-sli",
+        "file": "/etc/prometheus/rules/booking-alerts.yml",
+        "rules": [
+          {
+            "name": "booking:http_requests:rate1m",
+            "query": "sum by (http_target) (rate(http_server_duration_milliseconds_count{service_name=\"booking-api\"}[1m]))",
+            "labels": {},
+            "health": "ok",
+            "evaluationTime": 0.000249599,
+            "lastEvaluation": "2026-11-26T14:15:34.225548266Z",
+            "type": "recording"
+          },
+          {
+            "name": "booking:http_5xx_ratio:rate1m",
+            "query": "sum(rate(http_server_duration_milliseconds_count{http_status_code=~\"5..\",service_name=\"booking-api\"}[1m])) / clamp_min(sum(rate(http_server_duration_milliseconds_count{service_name=\"booking-api\"}[1m])), 0.000001)",
+            "labels": {},
+            "health": "ok",
+            "evaluationTime": 0.000108444,
+            "lastEvaluation": "2026-11-26T14:15:34.225803244Z",
+            "type": "recording"
+          },
+          {
+            "name": "booking:http_request_duration_seconds:p95_5m",
+            "query": "histogram_quantile(0.95, sum by (le, http_target) (rate(http_server_duration_milliseconds_bucket{service_name=\"booking-api\"}[5m]))) / 1000",
+            "labels": {},
+            "health": "ok",
+            "evaluationTime": 0.000283433,
+            "lastEvaluation": "2026-11-26T14:15:34.225914193Z",
+            "type": "recording"
+          }
+        ],
+        "interval": 15,
+        "limit": 0,
+        "evaluationTime": 0.00067419,
+        "lastEvaluation": "2026-11-26T14:15:34.225526041Z"
+      }
+    ]
+  }
+}

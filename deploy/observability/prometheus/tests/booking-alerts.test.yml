@@ -4,6 +4,58 @@ rule_files:
 evaluation_interval: 15s
 
 tests:
+  - name: four percent errors do not fire at sufficient volume
+    interval: 15s
+    input_series:
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="200"}'
+        values: '0+96x24'
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="500"}'
+        values: '0+4x24'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: HighErrorRate
+        exp_alerts: []
+
+  - name: short error burst does not satisfy two minute hold
+    interval: 15s
+    input_series:
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="200"}'
+        values: '0+30x24'
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="500"}'
+        values: '0+10x4 40+0x20'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: HighErrorRate
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: HighErrorRate
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: HighErrorRate
+        exp_alerts: []
+
+  - name: high error rate resolves after error counter stops increasing
+    interval: 15s
+    input_series:
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="200"}'
+        values: '0+30x24'
+      - series: 'http_server_duration_milliseconds_count{service_name="booking-api",http_status_code="500"}'
+        values: '0+5x16 80+0x8'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: HighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              service: booking-api
+            exp_annotations:
+              summary: Booking API has a high HTTP 5xx rate
+              description: More than 5% of at least 100 requests in one minute returned 5xx, and the condition has remained true for two minutes.
+              runbook_url: docs/runbooks/observability-alerts.md#higherrorrate
+      - eval_time: 5m30s
+        alertname: HighErrorRate
+        exp_alerts: []
+
   - name: high error rate fires only after volume and duration thresholds
     interval: 15s
     input_series:

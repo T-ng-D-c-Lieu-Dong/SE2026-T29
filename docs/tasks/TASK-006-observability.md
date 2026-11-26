@@ -46,3 +46,21 @@ Thu thập metrics, traces và logs để phát hiện, điều tra lỗi và li
 - Bổ sung explicit HTTP duration buckets và trace-based exemplar filter tại `072ba36`.
 - Trạng thái task vẫn là `In Progress` vì tiêu chí hoàn thành yêu cầu demo chung, webhook thật và
   reliability drill; xem [bảng đối chiếu](../evidence/2026-10-28-week2-reconciliation.md).
+
+## Cập nhật ngày 26/11/2026
+
+- Code main đã có [hạ tầng observability trên demo host ngày 15/11](../evidence/observability/2026-11-15-demo-host-observability.md).
+  Báo cáo này xác nhận targets, metrics, traces, logs và tài nguyên; webhook ở lần chạy đó vẫn
+  là placeholder. Không còn coi việc dựng stack demo là toàn bộ phần thiếu.
+- Đã thêm `python -m scripts.capture_observability` để lưu snapshot Prometheus và kiểm tra
+  targets, alert rules, probe cùng một số nhãn metric bị cấm; không suy diễn snapshot thành drill pass.
+- [Kiểm chứng local 26/11](../evidence/observability/2026-11-26-local/README.md):
+  build stack, smoke booking và truy vấn trace → log đạt; snapshot mới có cả bốn checks đạt.
+- Báo cáo rehearsal E11 ngày 06/11 ghi `for: 30s`, trong khi rule hiện tại là `for: 2m`.
+  Kết quả lịch sử cần được đối chiếu đúng config/release và artifact gốc trước khi dùng để
+  nghiệm thu rule hiện tại. Báo cáo demo 15/11 cũng ghi webhook chưa cấu hình ở lần chạy đó.
+- Giữ `In Progress`: cần thống nhất evidence E11 theo đúng môi trường/config, xác nhận
+  điều hướng dashboard → trace lỗi → log và bổ sung E09/E16 trên demo host.
+- Đã bổ sung và chạy đạt sáu scenario promtool cho alert (bao gồm burst ngắn, dưới
+  ngưỡng và phục hồi E11); sáu tests công cụ snapshot đạt. Runtime snapshot xác nhận
+  rule health và `for` hiện tại là 120/60/300 giây. Chi tiết ở evidence local 26/11.

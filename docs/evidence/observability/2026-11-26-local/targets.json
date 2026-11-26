@@ -1,0 +1,175 @@
+﻿{
+    "status":  "success",
+    "data":  {
+                 "activeTargets":  [
+                                       {
+                                           "discoveredLabels":  {
+                                                                    "__address__":  "blackbox-exporter:9115",
+                                                                    "__always_scrape_classic_histograms__":  "false",
+                                                                    "__convert_classic_histograms_to_nhcb__":  "false",
+                                                                    "__metrics_path__":  "/metrics",
+                                                                    "__scheme__":  "http",
+                                                                    "__scrape_interval__":  "15s",
+                                                                    "__scrape_native_histograms__":  "false",
+                                                                    "__scrape_timeout__":  "10s",
+                                                                    "job":  "blackbox-exporter"
+                                                                },
+                                           "labels":  {
+                                                          "instance":  "blackbox-exporter:9115",
+                                                          "job":  "blackbox-exporter"
+                                                      },
+                                           "scrapePool":  "blackbox-exporter",
+                                           "scrapeUrl":  "http://blackbox-exporter:9115/metrics",
+                                           "globalUrl":  "http://blackbox-exporter:9115/metrics",
+                                           "lastError":  "",
+                                           "lastScrape":  "2026-11-26T14:01:50.465624654Z",
+                                           "lastScrapeDuration":  0.001186184,
+                                           "health":  "up",
+                                           "scrapeInterval":  "15s",
+                                           "scrapeTimeout":  "10s"
+                                       },
+                                       {
+                                           "discoveredLabels":  {
+                                                                    "__address__":  "http://backend:8000/health/ready",
+                                                                    "__always_scrape_classic_histograms__":  "false",
+                                                                    "__convert_classic_histograms_to_nhcb__":  "false",
+                                                                    "__metrics_path__":  "/probe",
+                                                                    "__param_module":  "http_booking_ready",
+                                                                    "__scheme__":  "http",
+                                                                    "__scrape_interval__":  "15s",
+                                                                    "__scrape_native_histograms__":  "false",
+                                                                    "__scrape_timeout__":  "10s",
+                                                                    "job":  "booking-api-readiness"
+                                                                },
+                                           "labels":  {
+                                                          "instance":  "http://backend:8000/health/ready",
+                                                          "job":  "booking-api-readiness"
+                                                      },
+                                           "scrapePool":  "booking-api-readiness",
+                                           "scrapeUrl":  "http://blackbox-exporter:9115/probe?module=http_booking_ready\u0026target=http%3A%2F%2Fbackend%3A8000%2Fhealth%2Fready",
+                                           "globalUrl":  "http://blackbox-exporter:9115/probe?module=http_booking_ready\u0026target=http%3A%2F%2Fbackend%3A8000%2Fhealth%2Fready",
+                                           "lastError":  "",
+                                           "lastScrape":  "2026-11-26T14:02:02.571966821Z",
+                                           "lastScrapeDuration":  0.003984061,
+                                           "health":  "up",
+                                           "scrapeInterval":  "15s",
+                                           "scrapeTimeout":  "10s"
+                                       },
+                                       {
+                                           "discoveredLabels":  {
+                                                                    "__address__":  "cadvisor:8080",
+                                                                    "__always_scrape_classic_histograms__":  "false",
+                                                                    "__convert_classic_histograms_to_nhcb__":  "false",
+                                                                    "__metrics_path__":  "/metrics",
+                                                                    "__scheme__":  "http",
+                                                                    "__scrape_interval__":  "15s",
+                                                                    "__scrape_native_histograms__":  "false",
+                                                                    "__scrape_timeout__":  "10s",
+                                                                    "job":  "cadvisor"
+                                                                },
+                                           "labels":  {
+                                                          "instance":  "cadvisor:8080",
+                                                          "job":  "cadvisor"
+                                                      },
+                                           "scrapePool":  "cadvisor",
+                                           "scrapeUrl":  "http://cadvisor:8080/metrics",
+                                           "globalUrl":  "http://cadvisor:8080/metrics",
+                                           "lastError":  "",
+                                           "lastScrape":  "2026-11-26T14:01:50.615397572Z",
+                                           "lastScrapeDuration":  0.084411729,
+                                           "health":  "up",
+                                           "scrapeInterval":  "15s",
+                                           "scrapeTimeout":  "10s"
+                                       },
+                                       {
+                                           "discoveredLabels":  {
+                                                                    "__address__":  "node-exporter:9100",
+                                                                    "__always_scrape_classic_histograms__":  "false",
+                                                                    "__convert_classic_histograms_to_nhcb__":  "false",
+                                                                    "__metrics_path__":  "/metrics",
+                                                                    "__scheme__":  "http",
+                                                                    "__scrape_interval__":  "15s",
+                                                                    "__scrape_native_histograms__":  "false",
+                                                                    "__scrape_timeout__":  "10s",
+                                                                    "job":  "node-exporter"
+                                                                },
+                                           "labels":  {
+                                                          "instance":  "node-exporter:9100",
+                                                          "job":  "node-exporter"
+                                                      },
+                                           "scrapePool":  "node-exporter",
+                                           "scrapeUrl":  "http://node-exporter:9100/metrics",
+                                           "globalUrl":  "http://node-exporter:9100/metrics",
+                                           "lastError":  "",
+                                           "lastScrape":  "2026-11-26T14:02:03.223545658Z",
+                                           "lastScrapeDuration":  0.014698109,
+                                           "health":  "up",
+                                           "scrapeInterval":  "15s",
+                                           "scrapeTimeout":  "10s"
+                                       },
+                                       {
+                                           "discoveredLabels":  {
+                                                                    "__address__":  "otel-collector:8889",
+                                                                    "__always_scrape_classic_histograms__":  "false",
+                                                                    "__convert_classic_histograms_to_nhcb__":  "false",
+                                                                    "__metrics_path__":  "/metrics",
+                                                                    "__scheme__":  "http",
+                                                                    "__scrape_interval__":  "15s",
+                                                                    "__scrape_native_histograms__":  "false",
+                                                                    "__scrape_timeout__":  "10s",
+                                                                    "job":  "otel-collector"
+                                                                },
+                                           "labels":  {
+                                                          "instance":  "otel-collector:8889",
+                                                          "job":  "otel-collector"
+                                                      },
+                                           "scrapePool":  "otel-collector",
+                                           "scrapeUrl":  "http://otel-collector:8889/metrics",
+                                           "globalUrl":  "http://otel-collector:8889/metrics",
+                                           "lastError":  "",
+                                           "lastScrape":  "2026-11-26T14:01:54.476991548Z",
+                                           "lastScrapeDuration":  0.001986995,
+                                           "health":  "up",
+                                           "scrapeInterval":  "15s",
+                                           "scrapeTimeout":  "10s"
+                                       },
+                                       {
+                                           "discoveredLabels":  {
+                                                                    "__address__":  "prometheus:9090",
+                                                                    "__always_scrape_classic_histograms__":  "false",
+                                                                    "__convert_classic_histograms_to_nhcb__":  "false",
+                                                                    "__metrics_path__":  "/metrics",
+                                                                    "__scheme__":  "http",
+                                                                    "__scrape_interval__":  "15s",
+                                                                    "__scrape_native_histograms__":  "false",
+                                                                    "__scrape_timeout__":  "10s",
+                                                                    "job":  "prometheus"
+                                                                },
+                                           "labels":  {
+                                                          "instance":  "prometheus:9090",
+                                                          "job":  "prometheus"
+                                                      },
+                                           "scrapePool":  "prometheus",
+                                           "scrapeUrl":  "http://prometheus:9090/metrics",
+                                           "globalUrl":  "http://prometheus:9090/metrics",
+                                           "lastError":  "",
+                                           "lastScrape":  "2026-11-26T14:01:52.363356642Z",
+                                           "lastScrapeDuration":  0.003686767,
+                                           "health":  "up",
+                                           "scrapeInterval":  "15s",
+                                           "scrapeTimeout":  "10s"
+                                       }
+                                   ],
+                 "droppedTargets":  [
+
+                                    ],
+                 "droppedTargetCounts":  {
+                                             "blackbox-exporter":  0,
+                                             "booking-api-readiness":  0,
+                                             "cadvisor":  0,
+                                             "node-exporter":  0,
+                                             "otel-collector":  0,
+                                             "prometheus":  0
+                                         }
+             }
+}
